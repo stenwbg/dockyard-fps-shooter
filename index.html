@@ -246,7 +246,7 @@
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 7;
+    z-index: 9;
     pointer-events: none;
   }
   #waveCountdownLayer::before {
@@ -391,6 +391,27 @@
     height: 1px;
     margin: 0 0 16px;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  }
+  #overlay .menu-controls-toggle {
+    margin: 0 0 14px;
+    text-align: left;
+  }
+  #overlay .menu-show-controls-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: clamp(0.84rem, 1.9vw, 0.93rem);
+    font-weight: 600;
+    color: #aeb6c8;
+    user-select: none;
+  }
+  #overlay .menu-show-controls-label input {
+    width: 1.1em;
+    height: 1.1em;
+    margin: 0;
+    accent-color: #e88a32;
+    cursor: pointer;
   }
   #overlay .menu-controls {
     margin: 0 0 14px;
@@ -908,12 +929,18 @@
       <h1 id="title">Abandoned Factory</h1>
       <p id="subtitle" class="menu-lead">Click anywhere to capture the mouse and enter first person.</p>
       <div class="menu-divider"></div>
-      <div class="menu-controls">
+      <div class="menu-controls-toggle" id="menuControlsToggleWrap">
+        <label class="menu-show-controls-label" for="menuShowControls">
+          <input type="checkbox" id="menuShowControls" autocomplete="off" />
+          Show controls
+        </label>
+      </div>
+      <div class="menu-controls" id="menuControlsPanel" hidden aria-hidden="true">
         <p><strong>Move</strong> <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> · <kbd>Space</kbd> jump · <kbd>R</kbd> reload</p>
         <p><strong>Weapons</strong> <kbd>1</kbd> rifle · <kbd>2</kbd> shotgun · <kbd>3</kbd> grenade · <kbd>4</kbd> knife · <kbd>G</kbd> quick grenade · <kbd>F</kbd> quick knife · wheel</p>
         <p><strong>Other</strong> <kbd>P</kbd> or <kbd>Esc</kbd> pause · <kbd>LMB</kbd> hold fire · <kbd>Enter</kbd> start</p>
       </div>
-      <p class="menu-notes">Face photo from Wikimedia Commons. Ruined floor, tanks, and partitions — ceiling girders are visual only.</p>
+      <p class="menu-notes">Face photo from Wikimedia Commons. Modular factory floor with structural bays and industrial tanks.</p>
       <div class="menu-cta"><span>Start</span><kbd>Enter</kbd></div>
     </div>
   </div>
@@ -927,6 +954,36 @@
   var overlay = document.getElementById("overlay");
   var titleEl = document.getElementById("title");
   var subtitleEl = document.getElementById("subtitle");
+  var menuShowControls = document.getElementById("menuShowControls");
+  var menuControlsPanel = document.getElementById("menuControlsPanel");
+  var menuControlsToggleWrap = document.getElementById("menuControlsToggleWrap");
+
+  function syncStartMenuControlsPanel() {
+    if (!menuShowControls || !menuControlsPanel) return;
+    var on = menuShowControls.checked;
+    menuControlsPanel.hidden = !on;
+    menuControlsPanel.setAttribute("aria-hidden", on ? "false" : "true");
+  }
+
+  function resetStartMenuControlsToggle() {
+    if (menuShowControls) menuShowControls.checked = false;
+    syncStartMenuControlsPanel();
+  }
+
+  if (menuShowControls) {
+    menuShowControls.addEventListener("change", syncStartMenuControlsPanel);
+    syncStartMenuControlsPanel();
+  }
+  if (menuControlsToggleWrap) {
+    menuControlsToggleWrap.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
+  if (menuControlsPanel) {
+    menuControlsPanel.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
   var crosshair = document.getElementById("crosshair");
   var crosshairHitEnemy = document.getElementById("crosshairHitEnemy");
   var crosshairHitBarrel = document.getElementById("crosshairHitBarrel");
@@ -1019,11 +1076,11 @@
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   document.body.appendChild(renderer.domElement);
 
-  var hemi = new THREE.HemisphereLight(0x9a9db0, 0x1e1a16, 0.55);
+  var hemi = new THREE.HemisphereLight(0x9a9db0, 0x2a2418, 0.6);
   scene.add(hemi);
-  var ambient = new THREE.AmbientLight(0x6a6258, 0.42);
+  var ambient = new THREE.AmbientLight(0x726a5c, 0.48);
   scene.add(ambient);
-  var dir = new THREE.DirectionalLight(0xffe8d4, 0.82);
+  var dir = new THREE.DirectionalLight(0xfff0dc, 0.82);
   dir.position.set(26, 38, -10);
   dir.castShadow = true;
   dir.shadow.mapSize.set(2048, 2048);
@@ -1034,7 +1091,7 @@
   dir.shadow.camera.top = 56;
   dir.shadow.camera.bottom = -56;
   scene.add(dir);
-  var fill = new THREE.PointLight(0xffb070, 0.22, 48);
+  var fill = new THREE.PointLight(0xffcc66, 0.26, 52);
   fill.position.set(-14, 5.5, 16);
   scene.add(fill);
   var rim = new THREE.DirectionalLight(0x5a5048, 0.28);
@@ -1050,7 +1107,7 @@
   var colliders = [];
   var shootBlockingRoots = [];
 
-  function addCollider(minX, maxX, minZ, maxZ, y0, y1, walkableTop) {
+  function addCollider(minX, maxX, minZ, maxZ, y0, y1, walkableTop, noShootTopCap) {
     colliders.push({
       minX: minX,
       maxX: maxX,
@@ -1059,6 +1116,7 @@
       y0: y0 != null ? y0 : 0,
       y1: y1 != null ? y1 : wallH,
       top: !!walkableTop,
+      noShootTopCap: !!noShootTopCap,
       active: true
     });
   }
@@ -1087,19 +1145,21 @@
   var wallH = 6.2;
 
   var concreteMat = new THREE.MeshStandardMaterial({
-    color: 0x4a4d52,
-    metalness: 0.06,
-    roughness: 0.92
+    color: 0x4b4a46,
+    metalness: 0.05,
+    roughness: 0.9
   });
   var rustMetalMat = new THREE.MeshStandardMaterial({
-    color: 0x5a5e64,
+    color: 0x5c5a56,
     metalness: 0.48,
-    roughness: 0.58
+    roughness: 0.56,
+    emissive: 0x2a1810,
+    emissiveIntensity: 0.04
   });
   var darkBeamMat = new THREE.MeshStandardMaterial({
-    color: 0x2e3238,
+    color: 0x343630,
     metalness: 0.28,
-    roughness: 0.86
+    roughness: 0.84
   });
   var crateMat = new THREE.MeshStandardMaterial({
     color: 0x4a5056,
@@ -1130,17 +1190,19 @@
 
   var floor = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), concreteMat);
   floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
+  floor.receiveShadow = false;
   scene.add(floor);
 
-  var ceil = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), new THREE.MeshStandardMaterial({
-    color: 0x1a1c20,
-    roughness: 0.96,
-    metalness: 0.03
-  }));
+  var ceilMat = new THREE.MeshStandardMaterial({
+    color: 0x23262c,
+    roughness: 0.94,
+    metalness: 0.04
+  });
+  var ceilingSlabY = 9.22;
+  var ceil = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), ceilMat);
   ceil.rotation.x = Math.PI / 2;
-  ceil.position.y = 9.2;
-  ceil.receiveShadow = true;
+  ceil.position.y = ceilingSlabY;
+  ceil.receiveShadow = false;
   scene.add(ceil);
 
   function addWallMesh(w, h, d, x, z, ry, mat, skipCollider, walkableTop) {
@@ -1182,7 +1244,9 @@
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     scene.add(mesh);
-    shootBlockingRoots.push(mesh);
+    var lowDarkFloor =
+      mat === darkBeamMat && yBottom <= 0.02 && yBottom + h <= 0.62;
+    if (!lowDarkFloor) shootBlockingRoots.push(mesh);
     var cos = Math.cos(ry || 0);
     var sin = Math.sin(ry || 0);
     var hw = w * 0.5;
@@ -1200,7 +1264,10 @@
       minZ = Math.min(minZ, wz); maxZ = Math.max(maxZ, wz);
     }
     var wt = walkableTop === undefined ? h >= 0.55 : !!walkableTop;
-    addCollider(minX, maxX, minZ, maxZ, yBottom, yBottom + h, wt);
+    if (!wt && yBottom <= 0.02 && yBottom + h <= 1.55 && h >= 0.2) {
+      wt = true;
+    }
+    addCollider(minX, maxX, minZ, maxZ, yBottom, yBottom + h, wt, lowDarkFloor);
   }
 
   var wallT = 1.15;
@@ -1208,15 +1275,6 @@
   addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, half + wallT / 2, 0, rustMetalMat, false, false);
   addWallMesh(wallT, wallH, arena * 2 + wallT * 2, -half - wallT / 2, 0, 0, rustMetalMat, false, false);
   addWallMesh(wallT, wallH, arena * 2 + wallT * 2, half + wallT / 2, 0, 0, rustMetalMat, false, false);
-
-  for (var b = 0; b < 22; b++) {
-    var ang = (b / 22) * Math.PI * 2 + 0.35;
-    var rad = 7.2 + (b % 5) * 2.15;
-    var bx = Math.cos(ang) * rad + (b % 3) * 0.4;
-    var bz = Math.sin(ang) * rad * 0.92 + (b % 2) * 0.55;
-    var sh = 0.14 + (b % 4) * 0.05;
-    addWallMesh(0.55 + (b % 6) * 0.12, sh, 0.38 + (b % 3) * 0.1, bx, bz, ang * 0.08, darkBeamMat, false, false);
-  }
 
   function addCrate(wx, wz, w, h, d, rotY) {
     var mat = Math.random() < 0.5 ? crateMat : crateMat2;
@@ -1243,7 +1301,7 @@
   function addSquareColumn(px, pz, w, d) {
     var mesh = new THREE.Mesh(new THREE.BoxGeometry(w, wallH, d), rustMetalMat);
     mesh.position.set(px, wallH / 2, pz);
-    mesh.rotation.y = (px + pz) * 0.02;
+    mesh.rotation.y = 0;
     addStaticMesh(mesh, true);
     var hw = w * 0.5 + 0.04;
     var hd = d * 0.5 + 0.04;
@@ -1268,32 +1326,27 @@
   addWallMesh(0.38, 3.85, wu(11), half - wu(2.05), wu(-6.2), 0, windowMat, false, false);
   addWallMesh(wu(9.5), 2.95, 0.36, wu(-14.2), half - wu(2.15), wu(0.4), rustMetalMat, false, false);
 
-  var sodiumMat = new THREE.MeshStandardMaterial({
-    color: 0xffb060,
-    emissive: 0xff6600,
-    emissiveIntensity: 0.28,
-    roughness: 0.55,
-    metalness: 0.12
-  });
-  var palletMat = new THREE.MeshStandardMaterial({ color: 0x45494e, roughness: 0.92, metalness: 0.06 });
-  var pipeMat = new THREE.MeshStandardMaterial({ color: 0x3a3d42, roughness: 0.68, metalness: 0.42 });
-  var hazardMat = new THREE.MeshStandardMaterial({ color: 0xb07028, roughness: 0.7, metalness: 0.08 });
-  var oilMat = new THREE.MeshStandardMaterial({
-    color: 0x0e1014,
-    roughness: 0.98,
-    metalness: 0.02
+  var palletMat = new THREE.MeshStandardMaterial({ color: 0x4a463c, roughness: 0.9, metalness: 0.06 });
+  var hazardMat = new THREE.MeshStandardMaterial({
+    color: 0xd4a028,
+    roughness: 0.62,
+    metalness: 0.1,
+    emissive: 0x4a3208,
+    emissiveIntensity: 0.09
   });
   var sootWallMat = new THREE.MeshStandardMaterial({
-    color: 0x3a3d42,
+    color: 0x3e4038,
     metalness: 0.22,
-    roughness: 0.88
+    roughness: 0.87,
+    emissive: 0x5a4a28,
+    emissiveIntensity: 0.032
   });
   var tankPatinaMat = new THREE.MeshStandardMaterial({
-    color: 0x4a5358,
+    color: 0x4d5248,
     metalness: 0.38,
-    roughness: 0.55,
-    emissive: 0x050608,
-    emissiveIntensity: 0.06
+    roughness: 0.52,
+    emissive: 0x1a1610,
+    emissiveIntensity: 0.07
   });
 
   function makeFireLogoTexture() {
@@ -1396,16 +1449,6 @@
     addCollider(minX, maxX, minZ, maxZ, 0, 0.12, true);
   }
 
-  function addFloorDecal(w, d, x, z, rotY, mat, y, renderOrder) {
-    var m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat);
-    m.rotation.x = -Math.PI / 2;
-    if (rotY) m.rotation.y = rotY;
-    m.position.set(x, y === undefined ? 0.018 : y, z);
-    m.receiveShadow = true;
-    if (renderOrder != null) m.renderOrder = renderOrder;
-    scene.add(m);
-  }
-
   function addIndustrialTank(wx, wz, r, h) {
     var mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.04, h, 20), tankPatinaMat);
     mesh.position.set(wx, h * 0.5, wz);
@@ -1414,11 +1457,20 @@
     addCollider(wx - rr, wx + rr, wz - rr, wz + rr, 0, h, true);
   }
 
-  function buildAbandonedFactoryInterior() {
-    addFloorDecal(5.5, 4.2, wu(-12), wu(-6), 0.2, oilMat, 0.012, 20);
-    addFloorDecal(7, 3.5, wu(8), wu(5), -0.35, oilMat, 0.011, 21);
-    addFloorDecal(3.5, 9, wu(2), wu(-11), 0.6, oilMat, 0.013, 19);
+  function addElectricalCabinet(wx, wz, ry) {
+    addObstacleBox(0.5, 2.08, 0.46, wx, 0, wz, ry || 0, rustMetalMat, false);
+    var cos = Math.cos(ry || 0);
+    var sin = Math.sin(ry || 0);
+    var ox = sin * 0.19;
+    var oz = cos * 0.19;
+    addObstacleBox(0.38, 0.14, 0.05, wx + ox, 1.96, wz + oz, ry, darkBeamMat, false);
+  }
 
+  function addMachineryBlock(wx, wz, w, h, d, ry) {
+    addObstacleBox(w, h, d, wx, 0, wz, ry || 0, rustMetalMat, false);
+  }
+
+  function buildAbandonedFactoryInterior() {
     addWallMesh(wu(24), 1.25, 0.44, wu(0), wu(-9.2), 0, sootWallMat, false, true);
     addWallMesh(wu(24), 1.25, 0.44, wu(0), wu(9.2), 0, sootWallMat, false, true);
 
@@ -1432,49 +1484,77 @@
 
     addWallMesh(wu(14), 2.15, 0.42, wu(0), wu(-15.6), 0, sootWallMat, false, true);
 
-    addWallMesh(wu(5.2), 0.52, wu(3.8), wu(-6.5), wu(0), 0.08, rustMetalMat, false, true);
-    addWallMesh(wu(5.2), 0.52, wu(3.8), wu(6.5), wu(0), -0.06, rustMetalMat, false, true);
+    addWallMesh(wu(5.2), 0.52, wu(3.8), wu(-6.5), wu(0), 0, rustMetalMat, false, true);
+    addWallMesh(wu(5.2), 0.52, wu(3.8), wu(6.5), wu(0), 0, rustMetalMat, false, true);
 
     addIndustrialTank(wu(-8), wu(13.5), 1.32, 2.35);
     addIndustrialTank(wu(8), wu(13.5), 1.32, 2.35);
 
     addWallMesh(wu(6), 1.85, 0.4, wu(0), wu(14.2), 0.12, sootWallMat, false, true);
 
-    addObstacleBox(wu(18), 0.34, 0.5, wu(0), 1.88, wu(-4.2), 0, darkBeamMat, false);
-    addObstacleBox(wu(1.1), 0.28, wu(6.5), wu(-10), 1.42, wu(4), 0, darkBeamMat, false);
-    addObstacleBox(wu(1.1), 0.28, wu(6.5), wu(10), 1.42, wu(-4), 0, darkBeamMat, false);
+    addObstacleBox(wu(18), 0.42, wu(0.5), wu(0), 0, wu(-4.2), 0, darkBeamMat, false);
+    addObstacleBox(wu(1.1), 0.42, wu(6.5), wu(-10), 0, wu(4), 0, darkBeamMat, false);
+    addObstacleBox(wu(1.1), 0.42, wu(6.5), wu(10), 0, wu(-4), 0, darkBeamMat, false);
 
-    var fallen = new THREE.Mesh(new THREE.BoxGeometry(wu(5.8), 0.18, wu(2.1)), rustMetalMat);
-    fallen.position.set(wu(-7.5), 0.48, wu(11.5));
-    fallen.rotation.set(0.1, 0.32, 0.04);
-    fallen.castShadow = true;
-    fallen.receiveShadow = true;
-    scene.add(fallen);
-    addWallMesh(wu(5.8), 0.22, wu(2.1), wu(-7.5), wu(11.5), 0.32, sootWallMat, false, true);
+    addWallMesh(wu(5.8), 0.22, wu(2.1), wu(-7.5), wu(11.5), 0, sootWallMat, false, true);
+
+    addElectricalCabinet(wu(-15.8), wu(6), 0);
+    addElectricalCabinet(wu(-15.8), wu(-2.4), 0);
+    addElectricalCabinet(wu(15.5), wu(-6.5), Math.PI);
+
+    addMachineryBlock(wu(12), wu(-11.5), wu(1.45), 1.28, wu(1.05), 0);
+    addMachineryBlock(wu(-4), wu(8), wu(2.6), 0.92, wu(1.35), 0);
+    addMachineryBlock(wu(5), wu(-13), wu(1.6), 0.75, wu(0.95), Math.PI * 0.5);
+
+    addWallMesh(wu(3.6), 1.12, 0.36, wu(8), wu(-7), 0, sootWallMat, false, true);
+    addWallMesh(wu(3.6), 1.12, 0.36, wu(8), wu(7.4), 0, sootWallMat, false, true);
+    addWallMesh(0.36, 0.95, wu(2.2), wu(-10), wu(2.5), 0, rustMetalMat, false, true);
+    addObstacleBox(wu(1.35), 0.48, wu(1.35), wu(-1), 0, wu(-14.2), 0, darkBeamMat, false);
+    addObstacleBox(wu(2.4), 0.38, wu(0.5), wu(3.5), 0, wu(10.5), 0, darkBeamMat, false);
+    addObstacleBox(wu(0.55), 1.15, wu(0.55), wu(-12.5), 0, wu(4.2), 0, rustMetalMat, false);
+    addObstacleBox(wu(0.55), 0.36, wu(3.2), wu(-10), 0, wu(4), 0, darkBeamMat, false);
+    addObstacleBox(wu(0.55), 0.36, wu(3.2), wu(10), 0, wu(-4), 0, darkBeamMat, false);
   }
 
   buildAbandonedFactoryInterior();
 
-  var sodiumPts = [
-    [-11, 2], [-3, -4], [3, 7], [11, -1], [-7, -10], [7, 12], [13, 4], [-1, 13], [9, -11], [-14, -1]
-  ];
-  for (var si = 0; si < sodiumPts.length; si++) {
-    var sm = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.09, 0.4), sodiumMat);
-    sm.position.set(wu(sodiumPts[si][0]), 8.58 + (si % 3) * 0.07, wu(sodiumPts[si][1]));
-    sm.rotation.y = si * 0.41;
-    sm.castShadow = false;
-    scene.add(sm);
-  }
-
-  var trunk = new THREE.Mesh(new THREE.BoxGeometry(arena - 13, 0.46, 0.82), pipeMat);
-  trunk.position.set(wu(1.2), 7.62, wu(-11.5));
-  trunk.rotation.y = 0.16;
-  trunk.castShadow = true;
-  scene.add(trunk);
-  var trunk2 = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.4, arena - 17), pipeMat);
-  trunk2.position.set(wu(-13.5), 7.38, wu(1.8));
-  trunk2.castShadow = true;
-  scene.add(trunk2);
+  (function addFactoryCautionDetails() {
+    var stripMat = new THREE.MeshStandardMaterial({
+      color: 0xdcc038,
+      metalness: 0.18,
+      roughness: 0.52,
+      emissive: 0x4a3a10,
+      emissiveIntensity: 0.07
+    });
+    function floorStrip(len, x, z, ry) {
+      var m = new THREE.Mesh(new THREE.BoxGeometry(len, 0.032, 0.14), stripMat);
+      m.position.set(x, 0.02, z);
+      m.rotation.y = ry;
+      m.receiveShadow = true;
+      scene.add(m);
+    }
+    floorStrip(wu(7.5), wu(-5), wu(-10), 0.04);
+    floorStrip(wu(5.5), wu(11), wu(3), Math.PI * 0.28);
+    floorStrip(wu(4.2), wu(-12), wu(14), Math.PI * 0.5);
+    floorStrip(wu(3.8), wu(6), wu(-14), -0.12);
+    var plateMat = new THREE.MeshStandardMaterial({
+      color: 0xc4a82c,
+      metalness: 0.35,
+      roughness: 0.42,
+      emissive: 0xffe090,
+      emissiveIntensity: 0.22
+    });
+    function wallPlate(wx, wz, y, ry) {
+      var p = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.2, 0.04), plateMat);
+      p.position.set(wx, y, wz);
+      p.rotation.y = ry;
+      p.castShadow = true;
+      scene.add(p);
+    }
+    wallPlate(wu(-5), wu(-8.98), 0.92, 0);
+    wallPlate(wu(4), wu(8.98), 0.95, Math.PI);
+    wallPlate(wu(2.2), wu(14.38), 1.02, 0);
+  })();
 
   function pickSpawnOpen(radius, minDistFromOrigin) {
     var md = minDistFromOrigin == null ? 0 : minDistFromOrigin;
@@ -1509,6 +1589,8 @@
   tryPlaceBarrel(0.33, 0.9);
   tryPlaceBarrel(0.36, 0.98);
   tryPlaceBarrel(0.35, 1.04);
+  tryPlaceBarrel(0.34, 0.96);
+  tryPlaceBarrel(0.36, 1.0);
 
   function tryPlacePalette(rotY) {
     for (var tp = 0; tp < 80; tp++) {
@@ -1541,38 +1623,103 @@
   tryPlaceCrate(1.68, 1.02, 1.28, 0.42);
   tryPlaceCrate(2.02, 1.38, 1.62, -0.08);
   tryPlaceCrate(1.9, 1.18, 1.42, 0.18);
+  (function addAnchoredFloorGear() {
+    var cr = [
+      [-14.5, 14, 1.05, 0.88, 0.92],
+      [16, -10.5, 1.08, 0.9, 0.98],
+      [-9, -12.5, 0.98, 0.76, 0.9]
+    ];
+    var ci;
+    for (ci = 0; ci < cr.length; ci++) {
+      var qx = cr[ci][0];
+      var qz = cr[ci][1];
+      if (Math.hypot(qx - SPAWN_X, qz - SPAWN_Z) < 3) continue;
+      if (!enemyWalkFree(qx, qz, 0.5)) continue;
+      if (getGroundHeightFor(qx, qz, 0.45) > 0.12) continue;
+      addCrate(qx, qz, cr[ci][2], cr[ci][3], cr[ci][4], 0);
+    }
+    var pal = [[-18, 4], [13, -6]];
+    for (ci = 0; ci < pal.length; ci++) {
+      qx = pal[ci][0];
+      qz = pal[ci][1];
+      if (Math.hypot(qx - SPAWN_X, qz - SPAWN_Z) < 3) continue;
+      if (!enemyWalkFree(qx, qz, 0.55)) continue;
+      if (getGroundHeightFor(qx, qz, 0.5) > 0.1) continue;
+      addPalette(qx, qz, 0);
+    }
+  })();
   var eyeY = 1.65;
   var GRAVITY = 26;
   var JUMP_V = 10.2;
   var PLAYER_BODY_H = 1.78;
+  var ENEMY_BODY_H = 1.74;
+  var VAULT_MIN_LIFT = 0.1;
+  var VAULT_MAX_HEIGHT = 1.14;
   var SKIN_Y = 0.08;
   var CEILING_Y = 8.85;
 
-  for (var cone = 0; cone < 16; cone++) {
+  var coneSpots = [
+    [-16, -16], [16, -16], [-16, 16], [16, 16],
+    [-8, 0], [8, 0], [0, -12], [0, 12],
+    [-12, 8], [12, -8], [-4, -8], [4, 8]
+  ];
+  for (var cone = 0; cone < coneSpots.length; cone++) {
+    var cox = coneSpots[cone][0];
+    var coz = coneSpots[cone][1];
     var co = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.5, 8), hazardMat);
-    var cox = (Math.random() - 0.5) * (arena - 8);
-    var coz = (Math.random() - 0.5) * (arena - 8);
     co.position.set(cox, 0.25, coz);
     if (Math.abs(cox - SPAWN_X) < 2 && Math.abs(coz - SPAWN_Z) < 2) continue;
     if (!enemyWalkFree(cox, coz, 0.32)) continue;
+    co.rotation.y = 0;
     co.castShadow = true;
     scene.add(co);
   }
 
-  for (var s = 0; s < 40; s++) {
-    var sx = (Math.random() - 0.5) * (arena - 6);
-    var sz = (Math.random() - 0.5) * (arena - 6);
-    if (Math.abs(sx) < 3 && Math.abs(sz) < 3) continue;
-    if (!enemyWalkFree(sx, sz, 0.28)) continue;
-    var jw = 0.3 + Math.random() * 0.5;
-    var jd = 0.25 + Math.random() * 0.45;
-    var jrot = Math.random() * Math.PI;
-    var junk = new THREE.Mesh(new THREE.BoxGeometry(jw, 0.12, jd), darkBeamMat);
-    junk.position.set(sx, 0.06, sz);
-    junk.rotation.y = jrot;
+  var junkSpots = [
+    [-18, -14], [-18, -6], [-18, 6], [-10, -10], [-10, 10],
+    [10, -14], [10, 6], [18, -6], [18, 10], [-6, -18], [6, 18], [0, -6], [0, 6]
+  ];
+  for (var sj = 0; sj < junkSpots.length; sj++) {
+    var jx = junkSpots[sj][0];
+    var jz = junkSpots[sj][1];
+    if (Math.abs(jx) < 3 && Math.abs(jz) < 3) continue;
+    if (!enemyWalkFree(jx, jz, 0.28)) continue;
+    var junk = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.14, 0.4), darkBeamMat);
+    junk.position.set(jx, 0.07, jz);
+    junk.rotation.y = 0;
     junk.receiveShadow = true;
+    junk.castShadow = true;
     scene.add(junk);
   }
+
+  (function buildLowWalkableTopHitboxes() {
+    var TOP_HITBOX_MAX_Y = 2.12;
+    var TOP_SLAB = 0.052;
+    var hitMat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false
+    });
+    for (var ti = 0; ti < colliders.length; ti++) {
+      var b = colliders[ti];
+      if (!b.top) continue;
+      if (b.noShootTopCap) continue;
+      if (b.y1 > TOP_HITBOX_MAX_Y) continue;
+      if (b.y1 <= b.y0 + 0.035) continue;
+      var bw = b.maxX - b.minX;
+      var bd = b.maxZ - b.minZ;
+      if (bw < 0.06 || bd < 0.06) continue;
+      var bcx = (b.minX + b.maxX) * 0.5;
+      var bcz = (b.minZ + b.maxZ) * 0.5;
+      var cap = new THREE.Mesh(new THREE.BoxGeometry(bw, TOP_SLAB, bd), hitMat);
+      cap.position.set(bcx, b.y1 + TOP_SLAB * 0.5, bcz);
+      cap.userData.topHitbox = true;
+      scene.add(cap);
+      shootBlockingRoots.push(cap);
+    }
+  })();
 
   var player = { x: SPAWN_X, z: SPAWN_Z, jumpY: 0, vy: 0, kbVx: 0, kbVz: 0, grounded: true, radius: 0.35, _jumpPress: false };
   player.jumpY = getGroundHeight(player.x, player.z);
@@ -2653,7 +2800,6 @@
       g.add(back);
       var face = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.7), facePlaneMaterial);
       face.position.set(0, 1.2, 0.34);
-      face.rotation.x = -0.06;
       face.scale.set(1.06, 1.05, 1);
       g.add(face);
     } else {
@@ -2757,10 +2903,11 @@
           sz = Math.max(-half + 2, Math.min(half - 2, sz));
         }
       }
-      mesh.position.set(sx, 0, sz);
+      var feetY0 = getGroundHeightFor(sx, sz, rad);
+      mesh.position.set(sx, feetY0, sz);
       mesh.rotation.set(0, 0, 0);
       scene.add(mesh);
-      enemies.push({ mesh: mesh });
+      enemies.push({ mesh: mesh, feetY: feetY0 });
       placed.push(mesh);
     }
     elLeft.textContent = String(enemies.length);
@@ -2851,7 +2998,7 @@
   var bulletVis = [];
   var explosions = [];
   var bulletTrailMat = new THREE.MeshBasicMaterial({ color: 0xffeeaa, toneMapped: false });
-  var CONTACT_DPS = 8;
+  var CONTACT_DPS = 8.75;
   var ENEMY_MELEE_RANGE = 0.68;
   var KNIFE_REACH = 2.45;
   var KNIFE_CLEAVE_RANGE = 2.8;
@@ -3080,6 +3227,7 @@
         titleEl.textContent = "Mission failed";
         subtitleEl.textContent = "You were overrun. Click here to restart.";
         overlay.classList.remove("hidden");
+        resetStartMenuControlsToggle();
         document.exitPointerLock();
       }
       var inv = rd > 1e-5 ? 1 / rd : 0;
@@ -3452,42 +3600,35 @@
     setTimeout(function () { elDamage.classList.remove("flash"); }, 100);
   }
 
-  function tryEnemyMoveWithAvoidance(m, udx, udz, stepLen, r) {
+  function tryEnemyMoveWithAvoidance(m, udx, udz, stepLen, r, e) {
     if (stepLen < 1e-8) return false;
     var px = m.position.x;
     var pz = m.position.z;
+    var feetY = e.feetY != null ? e.feetY : getGroundHeightFor(px, pz, r);
+    function tryEnemyPos(nx, nz) {
+      if (enemyWalkFreeAt(nx, nz, r, feetY)) {
+        m.position.x = nx;
+        m.position.z = nz;
+        return true;
+      }
+      return tryEnemyVaultTo(m, e, nx, nz, r, feetY);
+    }
     var baseAng = Math.atan2(udx, udz);
     var offsets = [0, 0.42, -0.42, 0.82, -0.82, 1.22, -1.22, 1.65, -1.65, 2.08, -2.08, 2.55, -2.55, 3.05, -3.05];
     for (var oi = 0; oi < offsets.length; oi++) {
       var ang = baseAng + offsets[oi];
       var nx = px + Math.sin(ang) * stepLen;
       var nz = pz + Math.cos(ang) * stepLen;
-      if (enemyWalkFree(nx, nz, r)) {
-        m.position.x = nx;
-        m.position.z = nz;
-        return true;
-      }
+      if (tryEnemyPos(nx, nz)) return true;
     }
     var sx = (Math.abs(udx) > 1e-6 ? Math.sign(udx) : 0) * stepLen;
     var sz = (Math.abs(udz) > 1e-6 ? Math.sign(udz) : 0) * stepLen;
     if (Math.abs(sx) >= Math.abs(sz)) {
-      if (enemyWalkFree(px + sx, pz, r)) {
-        m.position.x = px + sx;
-        return true;
-      }
-      if (enemyWalkFree(px, pz + sz, r)) {
-        m.position.z = pz + sz;
-        return true;
-      }
+      if (tryEnemyPos(px + sx, pz)) return true;
+      if (tryEnemyPos(px, pz + sz)) return true;
     } else {
-      if (enemyWalkFree(px, pz + sz, r)) {
-        m.position.z = pz + sz;
-        return true;
-      }
-      if (enemyWalkFree(px + sx, pz, r)) {
-        m.position.x = px + sx;
-        return true;
-      }
+      if (tryEnemyPos(px, pz + sz)) return true;
+      if (tryEnemyPos(px + sx, pz)) return true;
     }
     return false;
   }
@@ -3613,6 +3754,11 @@
   }
 
   function updateHpVignette() {
+    if (!elHpVignette) return;
+    if (hp >= 100) {
+      elHpVignette.style.boxShadow = "none";
+      return;
+    }
     var stress = Math.max(0, Math.min(1, (100 - hp) / 100));
     var outer = 38 + stress * 172;
     var inner = 22 + stress * 108;
@@ -3895,9 +4041,8 @@
     for (var i = enemies.length - 1; i >= 0; i--) {
       var e = enemies[i];
       var m = e.mesh;
+      var r = 0.42;
       if (!gameOver && waveIntermission <= 0 && pointerLocked) {
-        m.position.y = 0;
-
         var toPx = player.x - m.position.x;
         var toPz = player.z - m.position.z;
         var distChase = Math.hypot(toPx, toPz) || 1;
@@ -3926,11 +4071,10 @@
         var stepX = vx * chaseSpeed * dt;
         var stepZ = vz * chaseSpeed * dt;
         var stepLen = Math.hypot(stepX, stepZ);
-        var r = 0.42;
         if (stepLen > 1e-8) {
           var udx = stepX / stepLen;
           var udz = stepZ / stepLen;
-          tryEnemyMoveWithAvoidance(m, udx, udz, stepLen, r);
+          tryEnemyMoveWithAvoidance(m, udx, udz, stepLen, r, e);
         }
 
         m.rotation.y = Math.atan2(player.x - m.position.x, player.z - m.position.z);
@@ -3952,10 +4096,13 @@
             titleEl.textContent = "Mission failed";
             subtitleEl.textContent = "You were overrun. Click here to restart.";
             overlay.classList.remove("hidden");
+            resetStartMenuControlsToggle();
             document.exitPointerLock();
           }
         }
       }
+      e.feetY = getGroundHeightFor(m.position.x, m.position.z, r);
+      m.position.y = e.feetY;
     }
 
     for (var t = tracers.length - 1; t >= 0; t--) {
@@ -3975,12 +4122,45 @@
     updateHotbarAvailability();
   }
 
-  function enemyWalkFree(px, pz, rad) {
+  function enemyColliderBlocksFeet(px, pz, rad, feetY, box) {
+    if (!aabbOverlap(px, pz, rad, box)) return false;
+    var headTop = feetY + ENEMY_BODY_H;
+    if (feetY >= box.y1 - 0.07) return false;
+    if (headTop <= box.y0 + 0.06) return false;
+    return true;
+  }
+
+  function enemyWalkFreeAt(px, pz, rad, feetY) {
     if (Math.abs(px) > half - 0.45 || Math.abs(pz) > half - 0.45) return false;
     for (var ec = 0; ec < colliders.length; ec++) {
-      if (colliders[ec].active === false) continue;
-      if (aabbOverlap(px, pz, rad, colliders[ec])) return false;
+      var b = colliders[ec];
+      if (b.active === false) continue;
+      if (enemyColliderBlocksFeet(px, pz, rad, feetY, b)) return false;
     }
+    return true;
+  }
+
+  function enemyWalkFree(px, pz, rad) {
+    return enemyWalkFreeAt(px, pz, rad, 0);
+  }
+
+  function tryEnemyVaultTo(m, e, nx, nz, r, feetY) {
+    var best = -1;
+    var vi;
+    for (vi = 0; vi < colliders.length; vi++) {
+      var box = colliders[vi];
+      if (box.active === false || !box.top) continue;
+      if (!aabbOverlap(nx, nz, r, box)) continue;
+      var dh = box.y1 - feetY;
+      if (dh < VAULT_MIN_LIFT || dh > VAULT_MAX_HEIGHT) continue;
+      if (!enemyWalkFreeAt(nx, nz, r, box.y1)) continue;
+      if (box.y1 > best) best = box.y1;
+    }
+    if (best < 0) return false;
+    m.position.x = nx;
+    m.position.z = nz;
+    e.feetY = best;
+    m.position.y = best;
     return true;
   }
 
@@ -4029,9 +4209,45 @@
     return true;
   }
 
+  function tryVaultTo(nx, nz, feetY) {
+    var best = -1;
+    var vi;
+    for (vi = 0; vi < colliders.length; vi++) {
+      var box = colliders[vi];
+      if (box.active === false || !box.top) continue;
+      if (!aabbOverlap(nx, nz, player.radius, box)) continue;
+      var dh = box.y1 - feetY;
+      if (dh < VAULT_MIN_LIFT || dh > VAULT_MAX_HEIGHT) continue;
+      if (!playerFree(nx, nz, box.y1)) continue;
+      if (box.y1 > best) best = box.y1;
+    }
+    if (best < 0) return false;
+    player.x = nx;
+    player.z = nz;
+    player.jumpY = best;
+    player.vy = 0;
+    player.grounded = true;
+    return true;
+  }
+
   function tryMove(dx, dz, feetY) {
-    if (playerFree(player.x + dx, player.z, feetY)) player.x += dx;
-    if (playerFree(player.x, player.z + dz, feetY)) player.z += dz;
+    var canVault = player.grounded && player.vy <= 0.08;
+    var nx = player.x + dx;
+    var nz = player.z + dz;
+    if (playerFree(nx, nz, feetY)) {
+      player.x = nx;
+      player.z = nz;
+      return;
+    }
+    if (canVault && tryVaultTo(nx, nz, feetY)) return;
+
+    nx = player.x + dx;
+    if (playerFree(nx, player.z, feetY)) player.x = nx;
+    else if (canVault && tryVaultTo(nx, player.z, feetY)) { }
+
+    nz = player.z + dz;
+    if (playerFree(player.x, nz, feetY)) player.z = nz;
+    else if (canVault && tryVaultTo(player.x, nz, feetY)) { }
   }
 
   function tick() {
