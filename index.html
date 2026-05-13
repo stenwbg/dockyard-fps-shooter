@@ -191,6 +191,27 @@
     font-variant-numeric: tabular-nums;
     color: #ffb86b;
   }
+  #fpsHud {
+    position: fixed;
+    top: 11px;
+    right: 14px;
+    z-index: 5;
+    pointer-events: none;
+    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: rgba(128, 136, 152, 0.4);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+    user-select: none;
+  }
+  #fpsHud .fps-val {
+    font-variant-numeric: tabular-nums;
+    min-width: 2.4ch;
+    text-align: right;
+    display: inline-block;
+    color: rgba(136, 144, 160, 0.5);
+  }
   #reloadHud.crosshair-reload {
     position: fixed;
     left: 50%;
@@ -239,6 +260,15 @@
     color: #e8ecf5;
     line-height: 1.2;
     letter-spacing: 0.02em;
+  }
+  #mapNameHud .mapLevelSub {
+    display: block;
+    margin-top: 4px;
+    font-size: clamp(0.72rem, 1.8vw, 0.82rem);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9aa3b2;
   }
   #waveCountdownLayer {
     position: fixed;
@@ -484,6 +514,46 @@
   }
   #overlay .menu-controls kbd {
     background: rgba(32, 36, 48, 0.95);
+  }
+  #overlay .menu-card--gameover {
+    background: linear-gradient(168deg, rgba(42, 22, 26, 0.96) 0%, rgba(10, 8, 12, 0.98) 100%);
+    border-color: rgba(255, 120, 120, 0.22);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.55),
+      0 24px 64px rgba(40, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 200, 200, 0.05);
+  }
+  #overlay .menu-card--gameover::before {
+    background: linear-gradient(135deg, rgba(200, 90, 90, 0.45), rgba(40, 30, 35, 0.2));
+  }
+  #overlay .menu-kicker--dead {
+    color: #c98888;
+    letter-spacing: 0.32em;
+  }
+  #overlay .menu-card--gameover h1 {
+    background: linear-gradient(180deg, #ffe8e8 0%, #d08080 55%, #a05050 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  #overlay .menu-card--gameover .menu-lead {
+    color: #b8a8b0;
+  }
+  #overlay .menu-cta--again {
+    background: linear-gradient(180deg, #d8f0ff 0%, #7ec4e8 42%, #3a8ab8 100%);
+    color: #0a1218;
+    box-shadow:
+      0 4px 0 rgba(20, 60, 90, 0.5),
+      0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+  #overlay:hover .menu-cta--again {
+    filter: brightness(1.06);
+  }
+  #overlay:active .menu-cta--again {
+    transform: translateY(1px);
+    box-shadow:
+      0 2px 0 rgba(20, 60, 90, 0.5),
+      0 8px 24px rgba(0, 0, 0, 0.45);
   }
   #damage {
     position: fixed;
@@ -855,6 +925,7 @@
 </div>
 <div id="mapNameHud" aria-hidden="true">
   <span id="mapNameText" class="mapNameTitle">Abandoned Factory</span>
+  <span id="mapLevelSub" class="mapLevelSub">Level 1</span>
 </div>
 <div id="waveCountdownLayer">
   <div class="waveCountdownPanel">
@@ -865,10 +936,11 @@
 </div>
 <div id="topHudCenter">
   <div class="topHudRow">
-    <div class="topHudPill"><span class="lbl">Wave</span> <strong id="wave">1</strong></div>
+    <div class="topHudPill"><span class="lbl">Wave</span> <strong id="wave">1/10</strong></div>
     <div class="topHudPill"><span class="lbl">Enemies</span> <strong id="left">0</strong></div>
   </div>
 </div>
+<div id="fpsHud" aria-hidden="true"><span class="fps-val" id="fpsVal">—</span></div>
 <div id="pauseLayer" role="dialog" aria-modal="true" aria-labelledby="pauseTitle" aria-hidden="true">
   <div class="pause-panel">
     <span class="pause-badge">Paused</span>
@@ -924,7 +996,7 @@
 </div>
 <div id="overlay">
   <div class="menu-shell">
-    <div class="menu-card">
+    <div class="menu-card" id="startMenuPanel">
       <p class="menu-kicker">Local FPS</p>
       <h1 id="title">Abandoned Factory</h1>
       <p id="subtitle" class="menu-lead">Click anywhere to capture the mouse and enter first person.</p>
@@ -943,6 +1015,13 @@
       <p class="menu-notes">Face photo from Wikimedia Commons. Modular factory floor with structural bays and industrial tanks.</p>
       <div class="menu-cta"><span>Start</span><kbd>Enter</kbd></div>
     </div>
+    <div class="menu-card menu-card--gameover" id="gameOverPanel" hidden>
+      <p class="menu-kicker menu-kicker--dead">Run ended</p>
+      <h1>Game over</h1>
+      <p id="gameOverLead" class="menu-lead">You were overrun.</p>
+      <div class="menu-divider"></div>
+      <div class="menu-cta menu-cta--again"><span>Play again</span><kbd>Enter</kbd></div>
+    </div>
   </div>
 </div>
 
@@ -952,6 +1031,8 @@
   "use strict";
 
   var overlay = document.getElementById("overlay");
+  var startMenuPanel = document.getElementById("startMenuPanel");
+  var gameOverPanel = document.getElementById("gameOverPanel");
   var titleEl = document.getElementById("title");
   var subtitleEl = document.getElementById("subtitle");
   var menuShowControls = document.getElementById("menuShowControls");
@@ -968,6 +1049,16 @@
   function resetStartMenuControlsToggle() {
     if (menuShowControls) menuShowControls.checked = false;
     syncStartMenuControlsPanel();
+  }
+
+  function showStartMenuPanel() {
+    if (startMenuPanel) startMenuPanel.hidden = false;
+    if (gameOverPanel) gameOverPanel.hidden = true;
+  }
+
+  function showGameOverPanel() {
+    if (startMenuPanel) startMenuPanel.hidden = true;
+    if (gameOverPanel) gameOverPanel.hidden = false;
   }
 
   if (menuShowControls) {
@@ -1012,6 +1103,7 @@
     }, 420);
   }
   var elWave = document.getElementById("wave");
+  var elFpsVal = document.getElementById("fpsVal");
   var elLeft = document.getElementById("left");
   var elHpBarFill = document.getElementById("hpBarFill");
   var elHpBarText = document.getElementById("hpBarText");
@@ -1039,8 +1131,11 @@
   var elHotbarSlots = document.querySelectorAll("#hotbar .hotbar-slot");
 
   var MAP_DISPLAY_NAME = "Abandoned Factory";
+  var MAP_DISPLAY_NAME_BACKROOMS = "The Backrooms";
   var elMapName = document.getElementById("mapNameText");
+  var elMapLevelSub = document.getElementById("mapLevelSub");
   if (elMapName) elMapName.textContent = MAP_DISPLAY_NAME;
+  if (elMapLevelSub) elMapLevelSub.textContent = "Level 1";
 
   var weaponWheelAcc = 0;
   var lastWeaponWheelAt = 0;
@@ -1059,6 +1154,15 @@
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(0x14110e);
   scene.fog = new THREE.Fog(0x221c18, 22, 102);
+
+  var factoryWorldGroup = new THREE.Group();
+  factoryWorldGroup.name = "factoryWorld";
+  var backroomsWorldGroup = new THREE.Group();
+  backroomsWorldGroup.name = "backroomsWorld";
+  backroomsWorldGroup.visible = false;
+  scene.add(factoryWorldGroup);
+  scene.add(backroomsWorldGroup);
+  var mapBuildParent = factoryWorldGroup;
 
   var camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.06, 280);
   var yaw = new THREE.Group();
@@ -1098,14 +1202,54 @@
   rim.position.set(-20, 12, 22);
   scene.add(rim);
 
+  function applyFactorySceneStyle() {
+    scene.background.setHex(0x14110e);
+    scene.fog.color.setHex(0x221c18);
+    scene.fog.near = 22;
+    scene.fog.far = 102;
+    hemi.color.setHex(0x9a9db0);
+    hemi.groundColor.setHex(0x2a2418);
+    hemi.intensity = 0.6;
+    ambient.color.setHex(0x726a5c);
+    ambient.intensity = 0.48;
+    dir.color.setHex(0xfff0dc);
+    dir.intensity = 0.82;
+    fill.color.setHex(0xffcc66);
+    fill.intensity = 0.26;
+    rim.color.setHex(0x5a5048);
+    rim.intensity = 0.28;
+  }
+
+  function applyBackroomsSceneStyle() {
+    scene.background.setHex(0x1c1810);
+    scene.fog.color.setHex(0x2a2418);
+    scene.fog.near = 3.5;
+    scene.fog.far = 32;
+    hemi.color.setHex(0xd8c8a0);
+    hemi.groundColor.setHex(0x18140a);
+    hemi.intensity = 0.36;
+    ambient.color.setHex(0x8a7e62);
+    ambient.intensity = 0.26;
+    dir.color.setHex(0xe8dcc8);
+    dir.intensity = 0.32;
+    fill.color.setHex(0xffd880);
+    fill.intensity = 0.08;
+    rim.color.setHex(0x3a3224);
+    rim.intensity = 0.04;
+  }
+
   var arena = 50;
   var half = arena / 2;
   var worldU = arena / 34;
   function wu(v) {
     return v * worldU;
   }
-  var colliders = [];
-  var shootBlockingRoots = [];
+  var factoryColliders = [];
+  var factoryShootBlockingRoots = [];
+  var backroomsColliders = [];
+  var backroomsShootBlockingRoots = [];
+  var colliders = factoryColliders;
+  var shootBlockingRoots = factoryShootBlockingRoots;
 
   function addCollider(minX, maxX, minZ, maxZ, y0, y1, walkableTop, noShootTopCap) {
     colliders.push({
@@ -1182,7 +1326,7 @@
   function addStaticMesh(mesh, castShadow) {
     mesh.castShadow = !!castShadow;
     mesh.receiveShadow = true;
-    scene.add(mesh);
+    mapBuildParent.add(mesh);
     if (!mesh.userData || typeof mesh.userData.explosiveBarrelIndex !== "number") {
       shootBlockingRoots.push(mesh);
     }
@@ -1191,7 +1335,8 @@
   var floor = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), concreteMat);
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = false;
-  scene.add(floor);
+  mapBuildParent.add(floor);
+  var activeFloorMesh = floor;
 
   var ceilMat = new THREE.MeshStandardMaterial({
     color: 0x23262c,
@@ -1203,7 +1348,7 @@
   ceil.rotation.x = Math.PI / 2;
   ceil.position.y = ceilingSlabY;
   ceil.receiveShadow = false;
-  scene.add(ceil);
+  mapBuildParent.add(ceil);
 
   function addWallMesh(w, h, d, x, z, ry, mat, skipCollider, walkableTop) {
     var g = new THREE.BoxGeometry(w, h, d);
@@ -1212,7 +1357,7 @@
     m.rotation.y = ry || 0;
     m.castShadow = true;
     m.receiveShadow = true;
-    scene.add(m);
+    mapBuildParent.add(m);
     if (!skipCollider) {
       var cos = Math.cos(ry || 0);
       var sin = Math.sin(ry || 0);
@@ -1243,7 +1388,7 @@
     mesh.rotation.y = ry || 0;
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    scene.add(mesh);
+    mapBuildParent.add(mesh);
     var lowDarkFloor =
       mat === darkBeamMat && yBottom <= 0.02 && yBottom + h <= 0.62;
     if (!lowDarkFloor) shootBlockingRoots.push(mesh);
@@ -1349,42 +1494,29 @@
     emissiveIntensity: 0.07
   });
 
-  function makeFireLogoTexture() {
-    var c = document.createElement("canvas");
-    c.width = 128;
-    c.height = 128;
-    var ctx = c.getContext("2d");
-    var g = ctx.createRadialGradient(64, 78, 6, 64, 72, 52);
-    g.addColorStop(0, "#fffce8");
-    g.addColorStop(0.18, "#ffcc44");
-    g.addColorStop(0.45, "#ff6600");
-    g.addColorStop(0.75, "#cc2200");
-    g.addColorStop(1, "rgba(40,10,0,0)");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(64, 118);
-    ctx.bezierCurveTo(102, 88, 108, 48, 64, 22);
-    ctx.bezierCurveTo(20, 48, 26, 88, 64, 118);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255,200,80,0.35)";
-    ctx.beginPath();
-    ctx.arc(48, 58, 10, 0, Math.PI * 2);
-    ctx.arc(78, 52, 8, 0, Math.PI * 2);
-    ctx.fill();
-    var tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.needsUpdate = true;
-    return tex;
+  function getBarrelFlamePrintedGeometry() {
+    if (getBarrelFlamePrintedGeometry._geo) return getBarrelFlamePrintedGeometry._geo;
+    var shape = new THREE.Shape();
+    shape.moveTo(0, -0.5);
+    shape.bezierCurveTo(0.4, -0.1, 0.46, 0.36, 0, 0.56);
+    shape.bezierCurveTo(-0.46, 0.36, -0.4, -0.1, 0, -0.5);
+    var g = new THREE.ShapeGeometry(shape, 22);
+    g.center();
+    g.computeVertexNormals();
+    g.userData.skipDispose = true;
+    getBarrelFlamePrintedGeometry._geo = g;
+    return g;
   }
 
-  var fireLogoTex = makeFireLogoTexture();
-  var fireDecalMat = new THREE.MeshBasicMaterial({
-    map: fireLogoTex,
-    transparent: true,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-    toneMapped: false
+  var barrelFlamePrintedMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.72,
+    metalness: 0,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1
   });
+
   var explosiveDrumMat = new THREE.MeshStandardMaterial({
     color: 0x9a1a1a,
     roughness: 0.42,
@@ -1392,8 +1524,17 @@
     emissive: 0x3a0606,
     emissiveIntensity: 0.35
   });
+  var barrelTopShotMat = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false
+  });
 
   var explosiveBarrels = [];
+  /* Seconds before a destroyed explosive barrel respawns (higher = lower spawn rate). */
+  var EXPLOSIVE_BARREL_RESPAWN = 70;
 
   function addExplosiveBarrel(wx, wz, r, ht) {
     var rMesh = r * 1.22;
@@ -1408,14 +1549,29 @@
     cyl.castShadow = true;
     cyl.receiveShadow = true;
     group.add(cyl);
-    var decal = new THREE.Mesh(new THREE.PlaneGeometry(rMesh * 2.1, ht * 0.95), fireDecalMat.clone());
-    decal.position.set(0, 0, rMesh * 1.08);
-    decal.rotation.y = Math.PI / 2;
-    group.add(decal);
-    var decal2 = decal.clone();
-    decal2.position.set(0, 0, -rMesh * 1.08);
-    decal2.rotation.y = -Math.PI / 2;
-    group.add(decal2);
+    var flameGeo = getBarrelFlamePrintedGeometry();
+    var flameFront = new THREE.Mesh(flameGeo, barrelFlamePrintedMat);
+    flameFront.scale.set(rMesh * 0.98, ht * 0.5, 1);
+    flameFront.position.set(0, 0, rMesh * 0.998);
+    flameFront.renderOrder = 1;
+    flameFront.castShadow = false;
+    flameFront.receiveShadow = false;
+    group.add(flameFront);
+    var flameBack = new THREE.Mesh(flameGeo, barrelFlamePrintedMat);
+    flameBack.scale.copy(flameFront.scale);
+    flameBack.position.set(0, 0, -rMesh * 0.998);
+    flameBack.rotation.y = Math.PI;
+    flameBack.renderOrder = 1;
+    flameBack.castShadow = false;
+    flameBack.receiveShadow = false;
+    group.add(flameBack);
+    var topShot = new THREE.Mesh(
+      new THREE.CylinderGeometry(rMesh * 1.52, rMesh * 1.52, 0.12, 22),
+      barrelTopShotMat
+    );
+    topShot.position.y = ht * 0.5 + 0.06;
+    topShot.userData.barrelTopShotProbe = true;
+    group.add(topShot);
     addStaticMesh(group, true);
     explosiveBarrels.push({
       group: group,
@@ -1532,7 +1688,7 @@
       m.position.set(x, 0.02, z);
       m.rotation.y = ry;
       m.receiveShadow = true;
-      scene.add(m);
+      mapBuildParent.add(m);
     }
     floorStrip(wu(7.5), wu(-5), wu(-10), 0.04);
     floorStrip(wu(5.5), wu(11), wu(3), Math.PI * 0.28);
@@ -1550,7 +1706,7 @@
       p.position.set(wx, y, wz);
       p.rotation.y = ry;
       p.castShadow = true;
-      scene.add(p);
+      mapBuildParent.add(p);
     }
     wallPlate(wu(-5), wu(-8.98), 0.92, 0);
     wallPlate(wu(4), wu(8.98), 0.95, Math.PI);
@@ -1658,6 +1814,7 @@
   var VAULT_MAX_HEIGHT = 1.14;
   var SKIN_Y = 0.08;
   var CEILING_Y = 8.85;
+  var activeCeilingY = CEILING_Y;
 
   var coneSpots = [
     [-16, -16], [16, -16], [-16, 16], [16, 16],
@@ -1673,7 +1830,7 @@
     if (!enemyWalkFree(cox, coz, 0.32)) continue;
     co.rotation.y = 0;
     co.castShadow = true;
-    scene.add(co);
+    mapBuildParent.add(co);
   }
 
   var junkSpots = [
@@ -1690,10 +1847,10 @@
     junk.rotation.y = 0;
     junk.receiveShadow = true;
     junk.castShadow = true;
-    scene.add(junk);
+    mapBuildParent.add(junk);
   }
 
-  (function buildLowWalkableTopHitboxes() {
+  function addWalkableTopCapsForColliderList(collList, shootList, parentGroup) {
     var TOP_HITBOX_MAX_Y = 2.12;
     var TOP_SLAB = 0.052;
     var hitMat = new THREE.MeshBasicMaterial({
@@ -1703,8 +1860,8 @@
       side: THREE.DoubleSide,
       toneMapped: false
     });
-    for (var ti = 0; ti < colliders.length; ti++) {
-      var b = colliders[ti];
+    for (var ti = 0; ti < collList.length; ti++) {
+      var b = collList[ti];
       if (!b.top) continue;
       if (b.noShootTopCap) continue;
       if (b.y1 > TOP_HITBOX_MAX_Y) continue;
@@ -1717,10 +1874,196 @@
       var cap = new THREE.Mesh(new THREE.BoxGeometry(bw, TOP_SLAB, bd), hitMat);
       cap.position.set(bcx, b.y1 + TOP_SLAB * 0.5, bcz);
       cap.userData.topHitbox = true;
-      scene.add(cap);
-      shootBlockingRoots.push(cap);
+      parentGroup.add(cap);
+      shootList.push(cap);
     }
-  })();
+  }
+
+  addWalkableTopCapsForColliderList(factoryColliders, factoryShootBlockingRoots, factoryWorldGroup);
+
+  var backroomsBuilt = false;
+  var floorBackrooms = null;
+  var BR_CEILING_VIS = 4.08;
+  var BR_PLAYER_CEILING = 3.76;
+  var BACKROOMS_SPAWN_X = 0;
+  var BACKROOMS_SPAWN_Z = 0;
+
+  function makeBackroomsFloorTexture() {
+    var c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 256;
+    var ctx = c.getContext("2d");
+    ctx.fillStyle = "#d4c26a";
+    ctx.fillRect(0, 0, 256, 256);
+    var step = 16;
+    var x;
+    var y;
+    for (y = 0; y < 256; y += step) {
+      for (x = 0; x < 256; x += step) {
+        ctx.strokeStyle = "rgba(90, 78, 40, 0.14)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 0.5, y + 0.5, step - 1, step - 1);
+      }
+    }
+    for (var n = 0; n < 8000; n++) {
+      ctx.fillStyle = "rgba(100, 82, 35, " + (0.03 + Math.random() * 0.06) + ")";
+      ctx.fillRect((Math.random() * 256) | 0, (Math.random() * 256) | 0, 1, 1);
+    }
+    return c;
+  }
+
+  function makeBackroomsCeilingTexture() {
+    var c = document.createElement("canvas");
+    c.width = 128;
+    c.height = 128;
+    var ctx = c.getContext("2d");
+    ctx.fillStyle = "#ebe4cc";
+    ctx.fillRect(0, 0, 128, 128);
+    var t = 16;
+    var x;
+    var y;
+    for (y = 0; y < 128; y += t) {
+      for (x = 0; x < 128; x += t) {
+        ctx.strokeStyle = "rgba(60, 55, 40, 0.18)";
+        ctx.strokeRect(x + 0.5, y + 0.5, t - 1, t - 1);
+        ctx.fillStyle = "rgba(255,255,255,0.04)";
+        ctx.fillRect(x + 2, y + 2, t - 8, 3);
+      }
+    }
+    return c;
+  }
+
+  function buildBackroomsMap() {
+    if (backroomsBuilt) return;
+    backroomsBuilt = true;
+    colliders = backroomsColliders;
+    shootBlockingRoots = backroomsShootBlockingRoots;
+    mapBuildParent = backroomsWorldGroup;
+
+    var wallPaperMat = new THREE.MeshStandardMaterial({
+      color: 0xece3a8,
+      roughness: 0.91,
+      metalness: 0,
+      emissive: 0x382808,
+      emissiveIntensity: 0.06
+    });
+
+    var floorCanvas = makeBackroomsFloorTexture();
+    var floorTex = new THREE.CanvasTexture(floorCanvas);
+    floorTex.colorSpace = THREE.SRGBColorSpace;
+    floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+    floorTex.repeat.set(28, 28);
+    floorTex.anisotropy = 4;
+    var carpetMat = new THREE.MeshStandardMaterial({
+      map: floorTex,
+      color: 0xffffff,
+      roughness: 0.94,
+      metalness: 0,
+      emissive: 0x181008,
+      emissiveIntensity: 0.04
+    });
+
+    var ceilCanvas = makeBackroomsCeilingTexture();
+    var ceilTex = new THREE.CanvasTexture(ceilCanvas);
+    ceilTex.colorSpace = THREE.SRGBColorSpace;
+    ceilTex.wrapS = ceilTex.wrapT = THREE.RepeatWrapping;
+    ceilTex.repeat.set(18, 18);
+    ceilTex.anisotropy = 2;
+    var brCeilMat = new THREE.MeshStandardMaterial({
+      map: ceilTex,
+      color: 0xffffff,
+      roughness: 0.98,
+      metalness: 0,
+      emissive: 0x1a1608,
+      emissiveIntensity: 0.1
+    });
+
+    floorBackrooms = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), carpetMat);
+    floorBackrooms.rotation.x = -Math.PI / 2;
+    floorBackrooms.receiveShadow = true;
+    mapBuildParent.add(floorBackrooms);
+    addCollider(-half, half, -half, half, 0, 0.05, true);
+
+    var ceilBr = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), brCeilMat);
+    ceilBr.rotation.x = Math.PI / 2;
+    ceilBr.position.y = BR_CEILING_VIS;
+    ceilBr.receiveShadow = true;
+    mapBuildParent.add(ceilBr);
+
+    var brWallH = BR_CEILING_VIS;
+    addObstacleBox(arena * 2 + wallT * 2, brWallH, wallT, 0, 0, -half - wallT * 0.5, 0, wallPaperMat, false);
+    addObstacleBox(arena * 2 + wallT * 2, brWallH, wallT, 0, 0, half + wallT * 0.5, 0, wallPaperMat, false);
+    addObstacleBox(wallT, brWallH, arena * 2 + wallT * 2, -half - wallT * 0.5, 0, 0, 0, wallPaperMat, false);
+    addObstacleBox(wallT, brWallH, arena * 2 + wallT * 2, half + wallT * 0.5, 0, 0, 0, wallPaperMat, false);
+
+    var th = wu(0.26);
+    var h = brWallH * 0.96;
+    var halfCorridor = wu(1.05);
+    var segOverlap = th * 0.45;
+
+    function brSegX(cx, cz, len) {
+      addObstacleBox(len, h, th, cx, 0, cz, 0, wallPaperMat, false);
+    }
+    function brSegZ(cx, cz, len) {
+      addObstacleBox(th, h, len, cx, 0, cz, 0, wallPaperMat, false);
+    }
+
+    /* Serpentine corridor: polyline never crosses itself, so offset walls stay one connected walkable tube. */
+    var brPath = [
+      [wu(-12), wu(13)],
+      [wu(12), wu(13)],
+      [wu(12), wu(8)],
+      [wu(-12), wu(8)],
+      [wu(-12), wu(3)],
+      [wu(12), wu(3)],
+      [wu(12), wu(-2)],
+      [wu(-12), wu(-2)],
+      [wu(-12), wu(-7)],
+      [wu(12), wu(-7)],
+      [wu(12), wu(-12)],
+      [wu(-12), wu(-12)],
+      [wu(-12), wu(13)]
+    ];
+
+    var pi;
+    for (pi = 0; pi < brPath.length - 1; pi++) {
+      var x0 = brPath[pi][0];
+      var z0 = brPath[pi][1];
+      var x1 = brPath[pi + 1][0];
+      var z1 = brPath[pi + 1][1];
+      var dx = x1 - x0;
+      var dz = z1 - z0;
+      if (Math.abs(dx) < 1e-5) {
+        var czMid = (z0 + z1) * 0.5;
+        var lenZ = Math.abs(z1 - z0) + segOverlap;
+        brSegZ(x0 - halfCorridor, czMid, lenZ);
+        brSegZ(x0 + halfCorridor, czMid, lenZ);
+      } else if (Math.abs(dz) < 1e-5) {
+        var cxMid = (x0 + x1) * 0.5;
+        var lenX = Math.abs(x1 - x0) + segOverlap;
+        brSegX(cxMid, z0 - halfCorridor, lenX);
+        brSegX(cxMid, z0 + halfCorridor, lenX);
+      }
+    }
+
+    var sx0 = brPath[0][0];
+    var sz0 = brPath[0][1];
+    var sx1 = brPath[1][0];
+    var sz1 = brPath[1][1];
+    var sdx = sx1 - sx0;
+    var sdz = sz1 - sz0;
+    var slen = Math.hypot(sdx, sdz) || 1;
+    BACKROOMS_SPAWN_X = sx0 + (sdx / slen) * wu(0.65);
+    BACKROOMS_SPAWN_Z = sz0 + (sdz / slen) * wu(0.65);
+
+    addWalkableTopCapsForColliderList(backroomsColliders, backroomsShootBlockingRoots, backroomsWorldGroup);
+
+    colliders = factoryColliders;
+    shootBlockingRoots = factoryShootBlockingRoots;
+    mapBuildParent = factoryWorldGroup;
+  }
+
+  buildBackroomsMap();
 
   var player = { x: SPAWN_X, z: SPAWN_Z, jumpY: 0, vy: 0, kbVx: 0, kbVz: 0, grounded: true, radius: 0.35, _jumpPress: false };
   player.jumpY = getGroundHeight(player.x, player.z);
@@ -2158,6 +2501,8 @@
 
   function openPauseMenu() {
     if (!pointerLocked || gameOver || paused) return;
+    ensureAudio();
+    playPauseOpen();
     paused = true;
     document.exitPointerLock();
     pauseLayer.classList.add("visible");
@@ -2174,6 +2519,8 @@
 
   function closePauseMenuAndPlay() {
     if (!paused) return;
+    ensureAudio();
+    playPauseClose();
     paused = false;
     pauseLayer.classList.remove("visible");
     pauseLayer.setAttribute("aria-hidden", "true");
@@ -2251,7 +2598,7 @@
       return;
     }
     if (e.code === "Enter" || e.code === "NumpadEnter") {
-      if (!gameOver && !paused && overlay && !overlay.classList.contains("hidden")) {
+      if (overlay && !overlay.classList.contains("hidden")) {
         e.preventDefault();
         overlay.click();
       }
@@ -2291,6 +2638,9 @@
   var gameOver = false;
   var waveIntermission = 0;
   var pendingSpawnCount = 0;
+  var MAX_WAVES_UI = 10;
+  var currentLevel = 1;
+  var pendingMapSwitch = false;
   var paused = false;
 
   document.addEventListener("pointerlockchange", function () {
@@ -2300,7 +2650,11 @@
       fireMouseHeld = false;
       weaponWheelAcc = 0;
       quickKnifeReturnOnFRelease = false;
-      if (!paused || gameOver) overlay.classList.remove("hidden");
+      if (!paused || gameOver) {
+        overlay.classList.remove("hidden");
+        if (gameOver) showGameOverPanel();
+        else showStartMenuPanel();
+      }
     } else {
       overlay.classList.add("hidden");
     }
@@ -2316,6 +2670,7 @@
 
   overlay.addEventListener("click", function () {
     ensureAudio();
+    playUiConfirm();
     if (gameOver) {
       gameOver = false;
       hp = 100;
@@ -2327,6 +2682,16 @@
       wave = 1;
       waveIntermission = 0;
       pendingSpawnCount = 0;
+      pendingMapSwitch = false;
+      currentLevel = 1;
+      factoryWorldGroup.visible = true;
+      backroomsWorldGroup.visible = false;
+      colliders = factoryColliders;
+      shootBlockingRoots = factoryShootBlockingRoots;
+      activeFloorMesh = floor;
+      activeCeilingY = CEILING_Y;
+      applyFactorySceneStyle();
+      updateMapLevelHudTitle();
       hideWaveCountdownOverlay();
       player.x = SPAWN_X;
       player.z = SPAWN_Z;
@@ -2352,8 +2717,10 @@
       reloading = false;
       reloadWeaponSlot = 0;
       reloadTime = 0;
+      reloadMidPlayed = false;
       if (elReloadHud) elReloadHud.style.display = "none";
       resetExplosiveBarrels();
+      clearBloodSplatters();
       paused = false;
       pauseLayer.classList.remove("visible");
       pauseLayer.setAttribute("aria-hidden", "true");
@@ -2366,8 +2733,9 @@
       yaw.quaternion.identity();
       titleEl.textContent = MAP_DISPLAY_NAME;
       subtitleEl.textContent = "Click to capture the mouse and enter first person.";
-      spawnWaveNow(4 + wave * 2);
-      elWave.textContent = "1";
+      spawnWaveNow(getEnemySpawnCountForWave(wave));
+      updateWaveHudDisplay();
+      showStartMenuPanel();
     }
     overlay.classList.add("hidden");
     renderer.domElement.requestPointerLock();
@@ -2398,47 +2766,90 @@
     if (audioCtx.state === "suspended") audioCtx.resume();
   }
 
+  var _sfxChainIn = null;
+  function sfxDest() {
+    if (!audioCtx) return null;
+    if (!_sfxChainIn) {
+      var comp = audioCtx.createDynamicsCompressor();
+      comp.threshold.setValueAtTime(-20, audioCtx.currentTime);
+      comp.knee.setValueAtTime(22, audioCtx.currentTime);
+      comp.ratio.setValueAtTime(3.2, audioCtx.currentTime);
+      comp.attack.setValueAtTime(0.002, audioCtx.currentTime);
+      comp.release.setValueAtTime(0.22, audioCtx.currentTime);
+      var lim = audioCtx.createGain();
+      lim.gain.setValueAtTime(0.82, audioCtx.currentTime);
+      comp.connect(lim);
+      lim.connect(audioCtx.destination);
+      _sfxChainIn = comp;
+    }
+    return _sfxChainIn;
+  }
+
   function noiseBuffer(duration, amp) {
     var len = Math.max(1, Math.floor(audioCtx.sampleRate * duration));
     var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
     var data = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * amp;
+    var pink = 0;
+    for (var i = 0; i < len; i++) {
+      var white = (Math.random() * 2 - 1) * amp;
+      pink = pink * 0.97 + white * 0.03;
+      data[i] = Math.max(-1.2, Math.min(1.2, pink * 3.8));
+    }
     return buf;
   }
 
   function playShoot() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
-    var src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer(0.07, 0.55);
+    var out = sfxDest();
+    var crack = audioCtx.createBufferSource();
+    crack.buffer = noiseBuffer(0.026, 0.82);
     var bp = audioCtx.createBiquadFilter();
     bp.type = "bandpass";
-    bp.frequency.setValueAtTime(1800, t0);
-    bp.Q.setValueAtTime(0.9, t0);
+    bp.frequency.setValueAtTime(5600, t0);
+    bp.frequency.exponentialRampToValueAtTime(1100, t0 + 0.038);
+    bp.Q.setValueAtTime(2.6, t0);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.45, t0);
-    g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.08);
-    src.connect(bp);
+    g.gain.setValueAtTime(0.52, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.048);
+    crack.connect(bp);
     bp.connect(g);
-    g.connect(audioCtx.destination);
-    src.start(t0);
-    src.stop(t0 + 0.09);
+    g.connect(out);
+    crack.start(t0);
+    crack.stop(t0 + 0.055);
 
-    var osc = audioCtx.createOscillator();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(420, t0);
-    osc.frequency.exponentialRampToValueAtTime(90, t0 + 0.05);
-    var og = audioCtx.createGain();
-    og.gain.setValueAtTime(0.12, t0);
-    og.gain.exponentialRampToValueAtTime(0.01, t0 + 0.06);
-    osc.connect(og);
-    og.connect(audioCtx.destination);
-    osc.start(t0);
-    osc.stop(t0 + 0.07);
+    var body = audioCtx.createBufferSource();
+    body.buffer = noiseBuffer(0.09, 0.38);
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(4800, t0);
+    lp.frequency.exponentialRampToValueAtTime(420, t0 + 0.11);
+    var g2 = audioCtx.createGain();
+    g2.gain.setValueAtTime(0.36, t0);
+    g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.13);
+    body.connect(lp);
+    lp.connect(g2);
+    g2.connect(out);
+    body.start(t0);
+    body.stop(t0 + 0.135);
+
+    var th = audioCtx.createOscillator();
+    th.type = "sine";
+    th.frequency.setValueAtTime(158, t0);
+    th.frequency.exponentialRampToValueAtTime(42, t0 + 0.06);
+    var tg = audioCtx.createGain();
+    tg.gain.setValueAtTime(0.18, t0);
+    tg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.075);
+    th.connect(tg);
+    tg.connect(out);
+    th.start(t0);
+    th.stop(t0 + 0.08);
   }
 
   function playHit() {
     if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
     var t0 = audioCtx.currentTime;
     var o = audioCtx.createOscillator();
     o.type = "square";
@@ -2448,7 +2859,7 @@
     g.gain.setValueAtTime(0.08, t0);
     g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.14);
     o.connect(g);
-    g.connect(audioCtx.destination);
+    g.connect(out);
     o.start(t0);
     o.stop(t0 + 0.15);
   }
@@ -2456,120 +2867,199 @@
   function playWaveReady() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
     var o = audioCtx.createOscillator();
     o.type = "sine";
-    o.frequency.setValueAtTime(330, t0);
-    o.frequency.linearRampToValueAtTime(520, t0 + 0.18);
+    o.frequency.setValueAtTime(392, t0);
+    o.frequency.linearRampToValueAtTime(523, t0 + 0.08);
     var g = audioCtx.createGain();
     g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(0.12, t0 + 0.04);
-    g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.35);
+    g.gain.linearRampToValueAtTime(0.11, t0 + 0.035);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.42);
     o.connect(g);
-    g.connect(audioCtx.destination);
+    g.connect(out);
     o.start(t0);
-    o.stop(t0 + 0.36);
+    o.stop(t0 + 0.44);
+    var o2 = audioCtx.createOscillator();
+    o2.type = "triangle";
+    o2.frequency.setValueAtTime(294, t0 + 0.05);
+    o2.frequency.linearRampToValueAtTime(392, t0 + 0.2);
+    var g2 = audioCtx.createGain();
+    g2.gain.setValueAtTime(0, t0 + 0.05);
+    g2.gain.linearRampToValueAtTime(0.07, t0 + 0.09);
+    g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.38);
+    o2.connect(g2);
+    g2.connect(out);
+    o2.start(t0 + 0.05);
+    o2.stop(t0 + 0.4);
   }
 
   function playDamage() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
     var src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer(0.12, 0.35);
+    src.buffer = noiseBuffer(0.14, 0.42);
+    var bp = audioCtx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(900, t0);
+    bp.frequency.exponentialRampToValueAtTime(220, t0 + 0.12);
+    bp.Q.setValueAtTime(1.1, t0);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.22, t0);
-    g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.14);
-    src.connect(g);
-    g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.26, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.15);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(out);
     src.start(t0);
-    src.stop(t0 + 0.13);
+    src.stop(t0 + 0.16);
   }
 
   function playMagSlap() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
+    var th = audioCtx.createOscillator();
+    th.type = "triangle";
+    th.frequency.setValueAtTime(95, t0);
+    th.frequency.exponentialRampToValueAtTime(38, t0 + 0.028);
+    var tg = audioCtx.createGain();
+    tg.gain.setValueAtTime(0.14, t0);
+    tg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.04);
+    th.connect(tg);
+    tg.connect(out);
+    th.start(t0);
+    th.stop(t0 + 0.045);
     var src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer(0.035, 0.28);
+    src.buffer = noiseBuffer(0.032, 0.22);
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(2200, t0);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.16, t0);
-    g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.05);
-    src.connect(g);
-    g.connect(audioCtx.destination);
-    src.start(t0);
-    src.stop(t0 + 0.055);
+    g.gain.setValueAtTime(0.2, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.05);
+    src.connect(lp);
+    lp.connect(g);
+    g.connect(out);
+    src.start(t0 + 0.008);
+    src.stop(t0 + 0.06);
     var ping = audioCtx.createOscillator();
     ping.type = "sine";
-    ping.frequency.setValueAtTime(1320, t0);
-    ping.frequency.exponentialRampToValueAtTime(480, t0 + 0.08);
+    ping.frequency.setValueAtTime(1680, t0 + 0.012);
+    ping.frequency.exponentialRampToValueAtTime(520, t0 + 0.07);
     var pg = audioCtx.createGain();
-    pg.gain.setValueAtTime(0.1, t0);
+    pg.gain.setValueAtTime(0, t0 + 0.012);
+    pg.gain.linearRampToValueAtTime(0.09, t0 + 0.022);
     pg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.09);
     ping.connect(pg);
-    pg.connect(audioCtx.destination);
-    ping.start(t0);
+    pg.connect(out);
+    ping.start(t0 + 0.012);
     ping.stop(t0 + 0.095);
   }
 
   function playReloadSound() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
-    var src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer(0.12, 0.18);
+    var out = sfxDest();
+    var slide = audioCtx.createBufferSource();
+    slide.buffer = noiseBuffer(0.16, 0.14);
     var bp = audioCtx.createBiquadFilter();
     bp.type = "bandpass";
-    bp.frequency.setValueAtTime(520, t0);
-    bp.frequency.exponentialRampToValueAtTime(180, t0 + 0.22);
-    bp.Q.setValueAtTime(0.7, t0);
+    bp.frequency.setValueAtTime(420, t0);
+    bp.frequency.exponentialRampToValueAtTime(140, t0 + 0.26);
+    bp.Q.setValueAtTime(0.85, t0);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.2, t0);
-    g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.24);
-    src.connect(bp);
+    g.gain.setValueAtTime(0.22, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.28);
+    slide.connect(bp);
     bp.connect(g);
-    g.connect(audioCtx.destination);
-    src.start(t0);
-    src.stop(t0 + 0.25);
+    g.connect(out);
+    slide.start(t0);
+    slide.stop(t0 + 0.29);
     var rattle = audioCtx.createBufferSource();
-    rattle.buffer = noiseBuffer(0.08, 0.12);
+    rattle.buffer = noiseBuffer(0.1, 0.1);
     var hp = audioCtx.createBiquadFilter();
     hp.type = "highpass";
-    hp.frequency.setValueAtTime(900, t0);
+    hp.frequency.setValueAtTime(1100, t0);
     var rg = audioCtx.createGain();
-    rg.gain.setValueAtTime(0.08, t0);
-    rg.gain.exponentialRampToValueAtTime(0.01, t0 + 0.1);
+    rg.gain.setValueAtTime(0.1, t0 + 0.018);
+    rg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.12);
     rattle.connect(hp);
     hp.connect(rg);
-    rg.connect(audioCtx.destination);
-    rattle.start(t0 + 0.02);
-    rattle.stop(t0 + 0.12);
+    rg.connect(out);
+    rattle.start(t0 + 0.018);
+    rattle.stop(t0 + 0.13);
+    var cl = audioCtx.createBufferSource();
+    cl.buffer = noiseBuffer(0.022, 0.55);
+    var clp = audioCtx.createBiquadFilter();
+    clp.type = "lowpass";
+    clp.frequency.setValueAtTime(1800, t0);
+    var cg = audioCtx.createGain();
+    cg.gain.setValueAtTime(0.16, t0 + 0.22);
+    cg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.28);
+    cl.connect(clp);
+    clp.connect(cg);
+    cg.connect(out);
+    cl.start(t0 + 0.22);
+    cl.stop(t0 + 0.29);
   }
 
   function playReloadLatch() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
     var o = audioCtx.createOscillator();
     o.type = "square";
-    o.frequency.setValueAtTime(95, t0);
-    o.frequency.exponentialRampToValueAtTime(38, t0 + 0.06);
+    o.frequency.setValueAtTime(118, t0);
+    o.frequency.exponentialRampToValueAtTime(42, t0 + 0.045);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.07, t0);
-    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.07);
+    g.gain.setValueAtTime(0.09, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.055);
     o.connect(g);
-    g.connect(audioCtx.destination);
+    g.connect(out);
     o.start(t0);
-    o.stop(t0 + 0.075);
+    o.stop(t0 + 0.06);
+    var n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.018, 0.62);
+    var hp = audioCtx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.setValueAtTime(700, t0);
+    var ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.12, t0);
+    ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.04);
+    n.connect(hp);
+    hp.connect(ng);
+    ng.connect(out);
+    n.start(t0);
+    n.stop(t0 + 0.045);
   }
 
   function playWeaponSwitch(slot) {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
+    var n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.04, 0.35);
+    var hp = audioCtx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.setValueAtTime(600, t0);
+    var ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.08, t0);
+    ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.06);
+    n.connect(hp);
+    hp.connect(ng);
+    ng.connect(out);
+    n.start(t0);
+    n.stop(t0 + 0.065);
     var o = audioCtx.createOscillator();
     o.type = "triangle";
-    o.frequency.setValueAtTime(220 + slot * 55, t0);
-    o.frequency.linearRampToValueAtTime(330 + slot * 40, t0 + 0.05);
+    o.frequency.setValueAtTime(260 + slot * 48, t0);
+    o.frequency.linearRampToValueAtTime(340 + slot * 36, t0 + 0.055);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.06, t0);
-    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.07);
+    g.gain.setValueAtTime(0.07, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.075);
     o.connect(g);
-    g.connect(audioCtx.destination);
+    g.connect(out);
     o.start(t0);
     o.stop(t0 + 0.08);
   }
@@ -2577,105 +3067,542 @@
   function playKnifeSwing() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
     var src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer(0.06, 0.4);
+    src.buffer = noiseBuffer(0.075, 0.48);
     var bp = audioCtx.createBiquadFilter();
     bp.type = "bandpass";
-    bp.frequency.setValueAtTime(2400, t0);
-    bp.frequency.exponentialRampToValueAtTime(400, t0 + 0.07);
-    bp.Q.setValueAtTime(1.2, t0);
+    bp.frequency.setValueAtTime(3200, t0);
+    bp.frequency.exponentialRampToValueAtTime(380, t0 + 0.085);
+    bp.Q.setValueAtTime(1.4, t0);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.22, t0);
-    g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.08);
+    g.gain.setValueAtTime(0.26, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.095);
     src.connect(bp);
     bp.connect(g);
-    g.connect(audioCtx.destination);
+    g.connect(out);
     src.start(t0);
-    src.stop(t0 + 0.085);
+    src.stop(t0 + 0.1);
+    var whoosh = audioCtx.createBufferSource();
+    whoosh.buffer = noiseBuffer(0.12, 0.22);
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(900, t0);
+    lp.frequency.exponentialRampToValueAtTime(120, t0 + 0.1);
+    var wg = audioCtx.createGain();
+    wg.gain.setValueAtTime(0.12, t0);
+    wg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.11);
+    whoosh.connect(lp);
+    lp.connect(wg);
+    wg.connect(out);
+    whoosh.start(t0);
+    whoosh.stop(t0 + 0.115);
   }
 
   function playKnifeImpact() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
     var src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer(0.03, 0.45);
-    var bp = audioCtx.createBiquadFilter();
-    bp.type = "highpass";
-    bp.frequency.setValueAtTime(800, t0);
+    src.buffer = noiseBuffer(0.035, 0.52);
+    var hp = audioCtx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.setValueAtTime(900, t0);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.28, t0);
-    g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.05);
-    src.connect(bp);
-    bp.connect(g);
-    g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.32, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.055);
+    src.connect(hp);
+    hp.connect(g);
+    g.connect(out);
     src.start(t0);
-    src.stop(t0 + 0.055);
+    src.stop(t0 + 0.06);
+    var th = audioCtx.createOscillator();
+    th.type = "triangle";
+    th.frequency.setValueAtTime(220, t0);
+    th.frequency.exponentialRampToValueAtTime(55, t0 + 0.05);
+    var tg = audioCtx.createGain();
+    tg.gain.setValueAtTime(0.12, t0);
+    tg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.06);
+    th.connect(tg);
+    tg.connect(out);
+    th.start(t0);
+    th.stop(t0 + 0.065);
   }
 
   function playKnifeCleave() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
     var o = audioCtx.createOscillator();
     o.type = "sawtooth";
-    o.frequency.setValueAtTime(180, t0);
-    o.frequency.exponentialRampToValueAtTime(55, t0 + 0.1);
+    o.frequency.setValueAtTime(210, t0);
+    o.frequency.exponentialRampToValueAtTime(48, t0 + 0.12);
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(2800, t0);
+    lp.frequency.exponentialRampToValueAtTime(400, t0 + 0.12);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.07, t0);
-    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.11);
-    o.connect(g);
-    g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.1, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.13);
+    o.connect(lp);
+    lp.connect(g);
+    g.connect(out);
     o.start(t0);
-    o.stop(t0 + 0.115);
+    o.stop(t0 + 0.135);
+    var wet = audioCtx.createBufferSource();
+    wet.buffer = noiseBuffer(0.05, 0.38);
+    var wbp = audioCtx.createBiquadFilter();
+    wbp.type = "bandpass";
+    wbp.frequency.setValueAtTime(600, t0);
+    wbp.Q.setValueAtTime(0.9, t0);
+    var wg = audioCtx.createGain();
+    wg.gain.setValueAtTime(0.14, t0);
+    wg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.1);
+    wet.connect(wbp);
+    wbp.connect(wg);
+    wg.connect(out);
+    wet.start(t0 + 0.02);
+    wet.stop(t0 + 0.12);
   }
 
   function playEmptyMagClick() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
     var o = audioCtx.createOscillator();
     o.type = "square";
-    o.frequency.setValueAtTime(380, t0);
+    o.frequency.setValueAtTime(520, t0);
+    o.frequency.exponentialRampToValueAtTime(180, t0 + 0.022);
     var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.05, t0);
-    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.03);
+    g.gain.setValueAtTime(0.06, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.035);
     o.connect(g);
-    g.connect(audioCtx.destination);
+    g.connect(out);
     o.start(t0);
-    o.stop(t0 + 0.035);
+    o.stop(t0 + 0.04);
+    var n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.015, 0.58);
+    var hp = audioCtx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.setValueAtTime(1200, t0);
+    var ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.08, t0);
+    ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.03);
+    n.connect(hp);
+    hp.connect(ng);
+    ng.connect(out);
+    n.start(t0);
+    n.stop(t0 + 0.035);
   }
 
   function playHeal() {
     if (!audioCtx) return;
     var t0 = audioCtx.currentTime;
+    var out = sfxDest();
     var o = audioCtx.createOscillator();
     o.type = "sine";
-    o.frequency.setValueAtTime(360, t0);
-    o.frequency.exponentialRampToValueAtTime(880, t0 + 0.1);
+    o.frequency.setValueAtTime(392, t0);
+    o.frequency.exponentialRampToValueAtTime(1040, t0 + 0.12);
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(2400, t0);
     var g = audioCtx.createGain();
     g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(0.13, t0 + 0.025);
-    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.38);
-    o.connect(g);
-    g.connect(audioCtx.destination);
+    g.gain.linearRampToValueAtTime(0.12, t0 + 0.028);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.4);
+    o.connect(lp);
+    lp.connect(g);
+    g.connect(out);
     o.start(t0);
-    o.stop(t0 + 0.4);
+    o.stop(t0 + 0.42);
     var o2 = audioCtx.createOscillator();
     o2.type = "triangle";
-    o2.frequency.setValueAtTime(480, t0 + 0.06);
-    o2.frequency.linearRampToValueAtTime(720, t0 + 0.22);
+    o2.frequency.setValueAtTime(523, t0 + 0.06);
+    o2.frequency.linearRampToValueAtTime(784, t0 + 0.24);
     var g2 = audioCtx.createGain();
     g2.gain.setValueAtTime(0, t0 + 0.06);
-    g2.gain.linearRampToValueAtTime(0.07, t0 + 0.1);
-    g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.34);
+    g2.gain.linearRampToValueAtTime(0.06, t0 + 0.11);
+    g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.36);
     o2.connect(g2);
-    g2.connect(audioCtx.destination);
+    g2.connect(out);
     o2.start(t0 + 0.06);
-    o2.stop(t0 + 0.36);
+    o2.stop(t0 + 0.38);
+    var air = audioCtx.createBufferSource();
+    air.buffer = noiseBuffer(0.2, 0.12);
+    var abp = audioCtx.createBiquadFilter();
+    abp.type = "bandpass";
+    abp.frequency.setValueAtTime(1800, t0);
+    abp.Q.setValueAtTime(0.6, t0);
+    var ag = audioCtx.createGain();
+    ag.gain.setValueAtTime(0, t0 + 0.04);
+    ag.gain.linearRampToValueAtTime(0.05, t0 + 0.12);
+    ag.gain.exponentialRampToValueAtTime(0.001, t0 + 0.35);
+    air.connect(abp);
+    abp.connect(ag);
+    ag.connect(out);
+    air.start(t0 + 0.04);
+    air.stop(t0 + 0.36);
+  }
+
+  function playWaveCountTick(n) {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var f = 380 + (4 - Math.min(4, Math.max(1, n))) * 95;
+    var o = audioCtx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(f * 1.08, t0);
+    o.frequency.exponentialRampToValueAtTime(f * 0.92, t0 + 0.07);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.11, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.1);
+    o.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.11);
+    var ck = audioCtx.createOscillator();
+    ck.type = "triangle";
+    ck.frequency.setValueAtTime(f * 2.02, t0);
+    ck.frequency.exponentialRampToValueAtTime(f * 1.2, t0 + 0.05);
+    var cg = audioCtx.createGain();
+    cg.gain.setValueAtTime(0.04, t0);
+    cg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.07);
+    ck.connect(cg);
+    cg.connect(out);
+    ck.start(t0);
+    ck.stop(t0 + 0.075);
+  }
+
+  function playWaveCountFinal() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(660, t0);
+    o.frequency.linearRampToValueAtTime(980, t0 + 0.06);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.1, t0 + 0.018);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.16);
+    o.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.17);
+  }
+
+  function playGrenadeThrow() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var w = audioCtx.createBufferSource();
+    w.buffer = noiseBuffer(0.1, 0.26);
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(2800, t0);
+    lp.frequency.exponentialRampToValueAtTime(180, t0 + 0.14);
+    var wg = audioCtx.createGain();
+    wg.gain.setValueAtTime(0.22, t0);
+    wg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.16);
+    w.connect(lp);
+    lp.connect(wg);
+    wg.connect(out);
+    w.start(t0);
+    w.stop(t0 + 0.17);
+    var cl = audioCtx.createOscillator();
+    cl.type = "square";
+    cl.frequency.setValueAtTime(210, t0 + 0.04);
+    cl.frequency.exponentialRampToValueAtTime(55, t0 + 0.09);
+    var cg = audioCtx.createGain();
+    cg.gain.setValueAtTime(0, t0 + 0.04);
+    cg.gain.linearRampToValueAtTime(0.07, t0 + 0.048);
+    cg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.1);
+    cl.connect(cg);
+    cg.connect(out);
+    cl.start(t0 + 0.04);
+    cl.stop(t0 + 0.11);
+  }
+
+  function playJump() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(180, t0);
+    o.frequency.exponentialRampToValueAtTime(420, t0 + 0.08);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.08, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.11);
+    o.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.12);
+    var n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.04, 0.18);
+    var hp = audioCtx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.setValueAtTime(400, t0);
+    var ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.06, t0);
+    ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.06);
+    n.connect(hp);
+    hp.connect(ng);
+    ng.connect(out);
+    n.start(t0);
+    n.stop(t0 + 0.065);
+  }
+
+  function playLand() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.045, 0.32);
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(520, t0);
+    lp.frequency.exponentialRampToValueAtTime(90, t0 + 0.1);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.14, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.12);
+    n.connect(lp);
+    lp.connect(g);
+    g.connect(out);
+    n.start(t0);
+    n.stop(t0 + 0.13);
+    var th = audioCtx.createOscillator();
+    th.type = "triangle";
+    th.frequency.setValueAtTime(95, t0);
+    th.frequency.exponentialRampToValueAtTime(42, t0 + 0.08);
+    var tg = audioCtx.createGain();
+    tg.gain.setValueAtTime(0.1, t0);
+    tg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.09);
+    th.connect(tg);
+    tg.connect(out);
+    th.start(t0);
+    th.stop(t0 + 0.095);
+  }
+
+  function playPauseOpen() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(320, t0);
+    o.frequency.exponentialRampToValueAtTime(120, t0 + 0.12);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.06, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.14);
+    o.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.15);
+  }
+
+  function playPauseClose() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(180, t0);
+    o.frequency.linearRampToValueAtTime(380, t0 + 0.08);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.07, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.12);
+    o.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.13);
+  }
+
+  function playMedkitSpawn() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(523, t0);
+    o.frequency.linearRampToValueAtTime(784, t0 + 0.1);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.08, t0 + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.28);
+    o.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.3);
+    var o2 = audioCtx.createOscillator();
+    o2.type = "triangle";
+    o2.frequency.setValueAtTime(392, t0 + 0.04);
+    o2.frequency.linearRampToValueAtTime(660, t0 + 0.14);
+    var g2 = audioCtx.createGain();
+    g2.gain.setValueAtTime(0, t0 + 0.04);
+    g2.gain.linearRampToValueAtTime(0.05, t0 + 0.08);
+    g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.26);
+    o2.connect(g2);
+    g2.connect(out);
+    o2.start(t0 + 0.04);
+    o2.stop(t0 + 0.28);
+  }
+
+  function playFootstep() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.028, 0.2);
+    var bp = audioCtx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(380, t0);
+    bp.Q.setValueAtTime(1.4, t0);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.09, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.05);
+    n.connect(bp);
+    bp.connect(g);
+    g.connect(out);
+    n.start(t0);
+    n.stop(t0 + 0.055);
+  }
+
+  function playGrenadeReady() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    function beep(off, f) {
+      var o = audioCtx.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(f, t0 + off);
+      var g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t0 + off);
+      g.gain.linearRampToValueAtTime(0.07, t0 + off + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + off + 0.1);
+      o.connect(g);
+      g.connect(out);
+      o.start(t0 + off);
+      o.stop(t0 + off + 0.11);
+    }
+    beep(0, 520);
+    beep(0.11, 720);
+  }
+
+  function playGameOverSting() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(110, t0);
+    o.frequency.exponentialRampToValueAtTime(38, t0 + 0.45);
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(900, t0);
+    lp.frequency.exponentialRampToValueAtTime(120, t0 + 0.45);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.1, t0 + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.52);
+    o.connect(lp);
+    lp.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.54);
+    var n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.2, 0.22);
+    var nlp = audioCtx.createBiquadFilter();
+    nlp.type = "lowpass";
+    nlp.frequency.setValueAtTime(240, t0);
+    var ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.12, t0);
+    ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.35);
+    n.connect(nlp);
+    nlp.connect(ng);
+    ng.connect(out);
+    n.start(t0);
+    n.stop(t0 + 0.36);
+  }
+
+  function playUiConfirm() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(440, t0);
+    o.frequency.exponentialRampToValueAtTime(880, t0 + 0.04);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.05, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.07);
+    o.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.075);
+  }
+
+  function playReloadCancel() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(280, t0);
+    o.frequency.exponentialRampToValueAtTime(90, t0 + 0.08);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.06, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.09);
+    o.connect(g);
+    g.connect(out);
+    o.start(t0);
+    o.stop(t0 + 0.095);
+  }
+
+  function playReloadMid() {
+    if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
+    var t0 = audioCtx.currentTime;
+    var n = audioCtx.createBufferSource();
+    n.buffer = noiseBuffer(0.022, 0.2);
+    var bp = audioCtx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(700, t0);
+    bp.Q.setValueAtTime(0.9, t0);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.06, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.04);
+    n.connect(bp);
+    bp.connect(g);
+    g.connect(out);
+    n.start(t0);
+    n.stop(t0 + 0.045);
   }
 
   var raycaster = new THREE.Raycaster();
   var aimDir = new THREE.Vector3();
   var tmpPelDir = new THREE.Vector3();
   var aimOriginWorld = new THREE.Vector3();
+  var tmpBloodN = new THREE.Vector3();
+  var tmpBloodToP = new THREE.Vector3();
+  var tmpBloodRayO = new THREE.Vector3();
+  var tmpBloodRayD = new THREE.Vector3();
   var SHOTGUN_PELLETS = 14;
   var PELLET_DISK_R = 0.072;
   /* Each pellet ray stops at the first barrel or first enemy surface (no rifle-style second foe). */
@@ -2914,6 +3841,33 @@
     elLeft.textContent = String(enemies.length);
   }
 
+  function switchToBackroomsLevel() {
+    currentLevel = 2;
+    pendingMapSwitch = false;
+    factoryWorldGroup.visible = false;
+    backroomsWorldGroup.visible = true;
+    colliders = backroomsColliders;
+    shootBlockingRoots = backroomsShootBlockingRoots;
+    activeFloorMesh = floorBackrooms;
+    activeCeilingY = BR_PLAYER_CEILING;
+    applyBackroomsSceneStyle();
+    wave = 1;
+    updateMapLevelHudTitle();
+    updateWaveHudDisplay();
+    _bloodRayTargets = null;
+    player.x = BACKROOMS_SPAWN_X;
+    player.z = BACKROOMS_SPAWN_Z;
+    player.vy = 0;
+    player.kbVx = 0;
+    player.kbVz = 0;
+    player.grounded = true;
+    player._jumpPress = false;
+    player.jumpY = getGroundHeight(player.x, player.z);
+    yaw.position.set(player.x, eyeY + player.jumpY, player.z);
+    spawnWaveNow(getEnemySpawnCountForWave(wave));
+    elLeft.textContent = String(enemies.length);
+  }
+
   function disposeGroup(root) {
     root.traverse(function (o) {
       if (o.geometry && !o.geometry.userData.skipDispose) o.geometry.dispose();
@@ -2924,8 +3878,8 @@
   function doInitialSpawn() {
     if (initialSpawnDone) return;
     initialSpawnDone = true;
-    spawnWaveNow(4 + wave * 2);
-    elWave.textContent = String(wave);
+    spawnWaveNow(getEnemySpawnCountForWave(wave));
+    updateWaveHudDisplay();
   }
 
   var texLoader = new THREE.TextureLoader();
@@ -2978,9 +3932,10 @@
   );
 
   var PLAYER_MOVE_SPEED = 6.6;
-  var CHASE_MULT = 0.72;
-  var ENEMY_SEP_RADIUS = 1.08;
-  var ENEMY_SEP_WEIGHT = 2.8;
+  /* Enemy run speed as a fraction of PLAYER_MOVE_SPEED; keep under 1 so you can outrun them. */
+  var CHASE_MULT = 0.76;
+  var ENEMY_SEP_RADIUS = 1.02;
+  var ENEMY_SEP_WEIGHT = 1.35;
   var MAG_PRIMARY = 25;
   var MAG_PISTOL = 2;
   var magPrimary = 25;
@@ -2988,6 +3943,8 @@
   var reloading = false;
   var reloadWeaponSlot = 0;
   var reloadTime = 0;
+  var reloadMidPlayed = false;
+  var footstepAcc = 0;
   var reloadDurationActive = 1.85;
   var RELOAD_DURATION_PRIMARY = 1.85;
   var RELOAD_DURATION_PISTOL = 2.05;
@@ -2998,6 +3955,8 @@
   var tracers = [];
   var bulletVis = [];
   var explosions = [];
+  var bloodSplatters = [];
+  var _bloodRayTargets = null;
   var bulletTrailMat = new THREE.MeshBasicMaterial({ color: 0xffeeaa, toneMapped: false });
   var CONTACT_DPS = 8.75;
   var ENEMY_MELEE_RANGE = 0.68;
@@ -3049,6 +4008,8 @@
 
   function cancelReloadInProgress() {
     if (!reloading) return;
+    ensureAudio();
+    playReloadCancel();
     var wpn = reloadWeaponSlot === 2 ? pistolWeapon : weapon;
     if (wpn.userData && wpn.userData.mag) {
       var mag = wpn.userData.mag;
@@ -3063,6 +4024,7 @@
     reloading = false;
     reloadTime = 0;
     reloadWeaponSlot = 0;
+    reloadMidPlayed = false;
     if (elReloadHud) elReloadHud.style.display = "none";
   }
 
@@ -3128,7 +4090,7 @@
     B.active = false;
     B.collider.active = false;
     B.group.visible = false;
-    B.respawnRemaining = 60;
+    B.respawnRemaining = EXPLOSIVE_BARREL_RESPAWN;
   }
 
   function resetExplosiveBarrels() {
@@ -3152,60 +4114,619 @@
   function liveBarrelRoots() {
     var arr = [];
     for (var li = 0; li < explosiveBarrels.length; li++) {
-      if (explosiveBarrels[li].active) arr.push(explosiveBarrels[li].group);
+      if (explosiveBarrels[li].active && currentLevel === 1) arr.push(explosiveBarrels[li].group);
     }
     return arr;
   }
 
   function playExplosionSound() {
     if (!audioCtx) return;
+    var out = sfxDest();
+    if (!out) return;
     var t0 = audioCtx.currentTime;
-    var src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer(0.35, 0.55);
-    var bp = audioCtx.createBiquadFilter();
-    bp.type = "lowpass";
-    bp.frequency.setValueAtTime(420, t0);
-    bp.frequency.exponentialRampToValueAtTime(40, t0 + 0.4);
-    var g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.55, t0);
-    g.gain.exponentialRampToValueAtTime(0.01, t0 + 0.45);
-    src.connect(bp);
-    bp.connect(g);
-    g.connect(audioCtx.destination);
-    src.start(t0);
-    src.stop(t0 + 0.46);
+
+    var sub = audioCtx.createOscillator();
+    sub.type = "sine";
+    sub.frequency.setValueAtTime(62, t0);
+    sub.frequency.exponentialRampToValueAtTime(28, t0 + 0.38);
+    var sg = audioCtx.createGain();
+    sg.gain.setValueAtTime(0, t0);
+    sg.gain.linearRampToValueAtTime(0.52, t0 + 0.012);
+    sg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.48);
+    sub.connect(sg);
+    sg.connect(out);
+    sub.start(t0);
+    sub.stop(t0 + 0.5);
+
+    var sub2 = audioCtx.createOscillator();
+    sub2.type = "sine";
+    sub2.frequency.setValueAtTime(48, t0 + 0.022);
+    sub2.frequency.exponentialRampToValueAtTime(22, t0 + 0.42);
+    var s2g = audioCtx.createGain();
+    s2g.gain.setValueAtTime(0, t0 + 0.022);
+    s2g.gain.linearRampToValueAtTime(0.2, t0 + 0.038);
+    s2g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.45);
+    sub2.connect(s2g);
+    s2g.connect(out);
+    sub2.start(t0 + 0.022);
+    sub2.stop(t0 + 0.48);
+
+    var rumble = audioCtx.createBufferSource();
+    rumble.buffer = noiseBuffer(0.52, 0.42);
+    var rlp = audioCtx.createBiquadFilter();
+    rlp.type = "lowpass";
+    rlp.frequency.setValueAtTime(180, t0);
+    rlp.frequency.exponentialRampToValueAtTime(38, t0 + 0.5);
+    var rg = audioCtx.createGain();
+    rg.gain.setValueAtTime(0, t0);
+    rg.gain.linearRampToValueAtTime(0.68, t0 + 0.035);
+    rg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.58);
+    rumble.connect(rlp);
+    rlp.connect(rg);
+    rg.connect(out);
+    rumble.start(t0);
+    rumble.stop(t0 + 0.6);
+
+    var crack = audioCtx.createBufferSource();
+    crack.buffer = noiseBuffer(0.045, 0.75);
+    var cbp = audioCtx.createBiquadFilter();
+    cbp.type = "bandpass";
+    cbp.frequency.setValueAtTime(2200, t0);
+    cbp.frequency.exponentialRampToValueAtTime(380, t0 + 0.09);
+    cbp.Q.setValueAtTime(1.8, t0);
+    var cg = audioCtx.createGain();
+    cg.gain.setValueAtTime(0.46, t0);
+    cg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.11);
+    crack.connect(cbp);
+    cbp.connect(cg);
+    cg.connect(out);
+    crack.start(t0);
+    crack.stop(t0 + 0.12);
+
+    var air = audioCtx.createBufferSource();
+    air.buffer = noiseBuffer(0.11, 0.28);
+    var ahp = audioCtx.createBiquadFilter();
+    ahp.type = "highpass";
+    ahp.frequency.setValueAtTime(1800, t0);
+    var ag = audioCtx.createGain();
+    ag.gain.setValueAtTime(0.2, t0);
+    ag.gain.exponentialRampToValueAtTime(0.001, t0 + 0.14);
+    air.connect(ahp);
+    ahp.connect(ag);
+    ag.connect(out);
+    air.start(t0 + 0.003);
+    air.stop(t0 + 0.15);
+
+    var tail = audioCtx.createBufferSource();
+    tail.buffer = noiseBuffer(0.28, 0.22);
+    var tbp = audioCtx.createBiquadFilter();
+    tbp.type = "bandpass";
+    tbp.frequency.setValueAtTime(120, t0 + 0.12);
+    tbp.frequency.exponentialRampToValueAtTime(55, t0 + 0.45);
+    tbp.Q.setValueAtTime(0.55, t0 + 0.12);
+    var tg = audioCtx.createGain();
+    tg.gain.setValueAtTime(0, t0 + 0.12);
+    tg.gain.linearRampToValueAtTime(0.24, t0 + 0.18);
+    tg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.62);
+    tail.connect(tbp);
+    tbp.connect(tg);
+    tg.connect(out);
+    tail.start(t0 + 0.12);
+    tail.stop(t0 + 0.65);
   }
 
   function spawnExplosionFx(ox, oy, oz, radius) {
     var root = new THREE.Group();
     root.position.set(ox, oy, oz);
     scene.add(root);
+
+    var flash = new THREE.Mesh(
+      new THREE.SphereGeometry(0.045, 12, 10),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1 })
+    );
+    root.add(flash);
+
     var core = new THREE.Mesh(
-      new THREE.SphereGeometry(0.22, 12, 10),
-      new THREE.MeshBasicMaterial({ color: 0xff5518, transparent: true, opacity: 0.92 })
+      new THREE.SphereGeometry(0.14, 22, 18),
+      new THREE.MeshBasicMaterial({ color: 0xfff2cc, transparent: true, opacity: 0.98 })
     );
     root.add(core);
-    var pl = new THREE.PointLight(0xff9944, 4.2, radius * 2.4);
-    pl.position.set(0, 0.25, 0);
+
+    var midShell = new THREE.Mesh(
+      new THREE.SphereGeometry(0.22, 18, 16),
+      new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: 0.72 })
+    );
+    root.add(midShell);
+
+    var outerShell = new THREE.Mesh(
+      new THREE.SphereGeometry(0.36, 16, 14),
+      new THREE.MeshBasicMaterial({ color: 0xcc3a08, transparent: true, opacity: 0.52 })
+    );
+    root.add(outerShell);
+
+    var corona = new THREE.Mesh(
+      new THREE.SphereGeometry(0.52, 14, 12),
+      new THREE.MeshBasicMaterial({ color: 0x4a1510, transparent: true, opacity: 0.32 })
+    );
+    root.add(corona);
+
+    var pl = new THREE.PointLight(0xffcc99, 16, radius * 3.2, 2);
+    pl.position.set(0, 0.18, 0);
     root.add(pl);
+
+    var ringInner = Math.max(0.04, radius * 0.04);
+    var ringOuter = ringInner * 1.75;
+    var shock = new THREE.Mesh(
+      new THREE.RingGeometry(ringInner, ringOuter, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0xc4b8a8,
+        transparent: true,
+        opacity: 0.72,
+        side: THREE.DoubleSide
+      })
+    );
+    shock.rotation.x = -Math.PI * 0.5;
+    shock.position.y = 0.028;
+    root.add(shock);
+
+    var scInner = ringInner * 0.35;
+    var scOuter = ringInner * 1.1;
+    var scorch = new THREE.Mesh(
+      new THREE.RingGeometry(scInner, scOuter, 40),
+      new THREE.MeshBasicMaterial({
+        color: 0x120a08,
+        transparent: true,
+        opacity: 0.78,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
+      })
+    );
+    scorch.rotation.x = -Math.PI * 0.5;
+    scorch.position.y = 0.018;
+    root.add(scorch);
+
+    var smokes = [];
+    var smokeN = 15;
+    for (var si = 0; si < smokeN; si++) {
+      var sg = 0.18 + Math.random() * 0.52;
+      var smokeColors = [0x1a1614, 0x242018, 0x2c2620, 0x181410];
+      var grey = smokeColors[Math.floor(Math.random() * smokeColors.length)];
+      var sm = new THREE.Mesh(
+        new THREE.SphereGeometry(sg, 9, 8),
+        new THREE.MeshBasicMaterial({ color: grey, transparent: true, opacity: 0.52 })
+      );
+      var sa = Math.random() * Math.PI * 2;
+      var sh = Math.random() * 0.35 * (0.4 + radius / 10);
+      var sr = radius * (0.12 + Math.random() * 0.42);
+      sm.position.set(Math.cos(sa) * sr * 0.38, sh, Math.sin(sa) * sr * 0.38);
+      sm.userData.vx = (Math.random() - 0.5) * 2.2;
+      sm.userData.vy = 0.55 + Math.random() * 1.45;
+      sm.userData.vz = (Math.random() - 0.5) * 2.2;
+      sm.userData.grow = 0.55 + Math.random() * 0.95;
+      sm.userData.phase = Math.random() * Math.PI * 2;
+      sm.userData.spin = (Math.random() - 0.5) * 2.2;
+      root.add(sm);
+      smokes.push(sm);
+    }
+
+    var embers = [];
+    for (var ei = 0; ei < 36; ei++) {
+      var eg = 0.018 + Math.random() * 0.04;
+      var em = new THREE.Mesh(
+        new THREE.TetrahedronGeometry(eg, 0),
+        new THREE.MeshBasicMaterial({
+          color: Math.random() > 0.25 ? 0xffaa55 : 0xff4400,
+          transparent: true,
+          opacity: 0.95
+        })
+      );
+      var ea = Math.random() * Math.PI * 2;
+      var einc = Math.acos(2 * Math.random() - 1);
+      var esp = (4 + Math.random() * 11) * (0.55 + radius / 9);
+      em.userData.vx = Math.sin(einc) * Math.cos(ea) * esp;
+      em.userData.vy = Math.cos(einc) * esp * 0.55 + 1.2 + Math.random() * 4;
+      em.userData.vz = Math.sin(einc) * Math.sin(ea) * esp;
+      em.userData.drag = 2.8 + Math.random() * 2;
+      em.userData.life = 0.38 + Math.random() * 0.28;
+      root.add(em);
+      embers.push(em);
+    }
+
     var parts = [];
-    for (var pi = 0; pi < 18; pi++) {
+    var partN = 38;
+    for (var pi = 0; pi < partN; pi++) {
+      var sz = 0.038 + Math.random() * 0.1;
+      var geo =
+        Math.random() < 0.45
+          ? new THREE.BoxGeometry(sz * (0.8 + Math.random()), sz * 0.6, sz * (0.9 + Math.random()))
+          : new THREE.TetrahedronGeometry(sz, 0);
+      var dark = Math.random() > 0.32;
       var m = new THREE.Mesh(
-        new THREE.TetrahedronGeometry(0.07 + Math.random() * 0.06, 0),
-        new THREE.MeshBasicMaterial({ color: 0xff3300, transparent: true, opacity: 1 })
+        geo,
+        new THREE.MeshBasicMaterial({
+          color: dark ? 0x2a1810 : 0xff3a12,
+          transparent: true,
+          opacity: 1
+        })
       );
       var a = Math.random() * Math.PI * 2;
-      var sp = 4 + Math.random() * 7;
-      m.userData.vx = Math.cos(a) * sp;
-      m.userData.vy = 2.5 + Math.random() * 6;
-      m.userData.vz = Math.sin(a) * sp;
+      var inc = Math.acos(2 * Math.random() - 1);
+      var sp = (2.8 + Math.random() * 10) * (0.58 + radius / 8.5);
+      m.userData.vx = Math.sin(inc) * Math.cos(a) * sp;
+      m.userData.vy = Math.cos(inc) * sp * 0.48 + 1.1 + Math.random() * 5;
+      m.userData.vz = Math.sin(inc) * Math.sin(a) * sp;
+      m.userData.drag = 1.85 + Math.random() * 1.65;
+      m.userData.spx = (Math.random() - 0.5) * 18;
+      m.userData.spy = (Math.random() - 0.5) * 18;
+      m.userData.spz = (Math.random() - 0.5) * 18;
       root.add(m);
       parts.push(m);
     }
-    explosions.push({ t: 0, root: root, core: core, light: pl, parts: parts, maxT: 0.52, rad: radius });
+
+    explosions.push({
+      t: 0,
+      root: root,
+      flash: flash,
+      core: core,
+      midShell: midShell,
+      outerShell: outerShell,
+      corona: corona,
+      shock: shock,
+      scorch: scorch,
+      smokes: smokes,
+      embers: embers,
+      light: pl,
+      parts: parts,
+      maxT: 1.38,
+      rad: radius
+    });
   }
 
-  function applyExplosionDamage(ox, oy, oz, radius, playerMaxDmg) {
+  function clearBloodSplatters() {
+    for (var ci = bloodSplatters.length - 1; ci >= 0; ci--) {
+      var b = bloodSplatters[ci].mesh;
+      scene.remove(b);
+      if (b.geometry && !b.geometry.userData.skipDispose) b.geometry.dispose();
+      if (b.material) b.material.dispose();
+      bloodSplatters.splice(ci, 1);
+    }
+    _bloodRayTargets = null;
+  }
+
+  function getBloodRaycastTargets() {
+    if (!_bloodRayTargets) {
+      _bloodRayTargets = [activeFloorMesh];
+      for (var ri = 0; ri < shootBlockingRoots.length; ri++) {
+        _bloodRayTargets.push(shootBlockingRoots[ri]);
+      }
+    }
+    return _bloodRayTargets;
+  }
+
+  function bloodMeshVisibleAlongAncestors(obj) {
+    while (obj) {
+      if (obj.visible === false) return false;
+      obj = obj.parent;
+    }
+    return true;
+  }
+
+  function traceBloodFloor(ox, oz) {
+    var g0 = getGroundHeightFor(ox, oz, 0.07);
+    tmpBloodRayO.set(ox, g0 + 5.8, oz);
+    tmpBloodRayD.set(0, -1, 0);
+    raycaster.set(tmpBloodRayO, tmpBloodRayD);
+    raycaster.far = 8;
+    raycaster.near = 0.02;
+    var hits = raycaster.intersectObjects(getBloodRaycastTargets(), true);
+    for (var hi = 0; hi < hits.length; hi++) {
+      var h = hits[hi];
+      if (!bloodMeshVisibleAlongAncestors(h.object)) continue;
+      tmpBloodN.copy(h.face.normal).transformDirection(h.object.matrixWorld).normalize();
+      if (h.point.y > player.jumpY + 2.85 && tmpBloodN.y < 0.28) continue;
+      if (tmpBloodN.y < 0.2) continue;
+      var lift = 0.009;
+      return {
+        stick: "floor",
+        px: h.point.x + tmpBloodN.x * lift,
+        py: h.point.y + tmpBloodN.y * lift,
+        pz: h.point.z + tmpBloodN.z * lift
+      };
+    }
+    return { stick: "floor", px: ox, py: g0 + 0.006, pz: oz };
+  }
+
+  function traceBloodWallAt(ox, oz, rdx, rdz) {
+    if (Math.hypot(rdx, rdz) < 0.06) return null;
+    tmpBloodRayD.set(rdx, 0, rdz).normalize();
+    tmpBloodRayO.set(
+      ox - tmpBloodRayD.x * 0.12,
+      player.jumpY + 0.48,
+      oz - tmpBloodRayD.z * 0.12
+    );
+    raycaster.set(tmpBloodRayO, tmpBloodRayD);
+    raycaster.far = 1.12;
+    raycaster.near = 0.02;
+    var hits = raycaster.intersectObjects(getBloodRaycastTargets(), true);
+    for (var wi = 0; wi < hits.length; wi++) {
+      var hw = hits[wi];
+      if (!bloodMeshVisibleAlongAncestors(hw.object)) continue;
+      if (hw.distance < 0.035 || hw.distance > 1.06) continue;
+      tmpBloodN.copy(hw.face.normal).transformDirection(hw.object.matrixWorld).normalize();
+      if (Math.abs(tmpBloodN.y) > 0.52) continue;
+      tmpBloodToP.set(player.x - hw.point.x, 0, player.z - hw.point.z);
+      if (tmpBloodToP.lengthSq() > 1e-5 && tmpBloodN.dot(tmpBloodToP) < 0) tmpBloodN.negate();
+      var wLift = 0.014;
+      return {
+        stick: "wall",
+        px: hw.point.x + tmpBloodN.x * wLift,
+        py: hw.point.y + tmpBloodN.y * wLift,
+        pz: hw.point.z + tmpBloodN.z * wLift,
+        nx: tmpBloodN.x,
+        ny: tmpBloodN.y,
+        nz: tmpBloodN.z
+      };
+    }
+    return null;
+  }
+
+  var BLOOD_LEDGE_SPAN_MIN = 0.11;
+
+  function sampleBloodGroundSpread(px, pz, radius) {
+    var offs = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+      [0.7071, 0.7071],
+      [-0.7071, 0.7071],
+      [0.7071, -0.7071],
+      [-0.7071, -0.7071]
+    ];
+    var minG = 1e9;
+    var maxG = -1e9;
+    var lowG = 1e9;
+    var lowSx = px;
+    var lowSz = pz;
+    var oi;
+    for (oi = 0; oi < offs.length; oi++) {
+      var sx = px + offs[oi][0] * radius;
+      var sz = pz + offs[oi][1] * radius;
+      if (Math.abs(sx) > half - 0.28 || Math.abs(sz) > half - 0.28) continue;
+      var gy = getGroundHeightFor(sx, sz, 0.05);
+      if (gy < minG) minG = gy;
+      if (gy > maxG) maxG = gy;
+      if (gy <= lowG + 0.002) {
+        lowG = gy;
+        lowSx = sx;
+        lowSz = sz;
+      }
+    }
+    var gc = getGroundHeightFor(px, pz, 0.06);
+    minG = Math.min(minG, gc);
+    maxG = Math.max(maxG, gc);
+    if (minG > 500 || maxG < -500) {
+      return { minG: gc, maxG: gc, span: 0, dropX: 1, dropZ: 0, centerG: gc };
+    }
+    var drx = lowSx - px;
+    var drz = lowSz - pz;
+    var dlen = Math.hypot(drx, drz);
+    if (dlen < 0.035) {
+      drx = 1;
+      drz = 0;
+    } else {
+      drx /= dlen;
+      drz /= dlen;
+    }
+    return { minG: minG, maxG: maxG, span: maxG - minG, dropX: drx, dropZ: drz, centerG: gc };
+  }
+
+  function traceBloodLedgeFaceWall(px, pz, ledgeTopY, dropX, dropZ) {
+    var len = Math.hypot(dropX, dropZ);
+    if (len < 0.02) return null;
+    dropX /= len;
+    dropZ /= len;
+    tmpBloodRayO.set(px - dropX * 0.1, ledgeTopY - 0.055, pz - dropZ * 0.1);
+    tmpBloodRayD.set(dropX, 0, dropZ);
+    raycaster.set(tmpBloodRayO, tmpBloodRayD);
+    raycaster.far = 1.2;
+    raycaster.near = 0;
+    var hits = raycaster.intersectObjects(getBloodRaycastTargets(), true);
+    for (var wi = 0; wi < hits.length; wi++) {
+      var hw = hits[wi];
+      if (!bloodMeshVisibleAlongAncestors(hw.object)) continue;
+      if (hw.distance < 0.016 || hw.distance > 1.1) continue;
+      tmpBloodN.copy(hw.face.normal).transformDirection(hw.object.matrixWorld).normalize();
+      if (Math.abs(tmpBloodN.y) > 0.52) continue;
+      var wLift = 0.014;
+      return {
+        px: hw.point.x + tmpBloodN.x * wLift,
+        py: hw.point.y + tmpBloodN.y * wLift,
+        pz: hw.point.z + tmpBloodN.z * wLift,
+        nx: tmpBloodN.x,
+        ny: tmpBloodN.y,
+        nz: tmpBloodN.z
+      };
+    }
+    return null;
+  }
+
+  function resolveBloodFloorLedgeHang(px, pz, decalRadius) {
+    var sp = sampleBloodGroundSpread(px, pz, decalRadius);
+    if (sp.span < BLOOD_LEDGE_SPAN_MIN) return null;
+    var wall = traceBloodLedgeFaceWall(px, pz, sp.maxG, sp.dropX, sp.dropZ);
+    if (wall) {
+      var spin = (px * 12.9898 + pz * 7.4131) % (Math.PI * 2);
+      if (spin < 0) spin += Math.PI * 2;
+      var tuck = Math.max(0.06, Math.min(0.32, (sp.maxG - sp.minG) * 0.52 + 0.08));
+      var topX = px - sp.dropX * tuck;
+      var topZ = pz - sp.dropZ * tuck;
+      if (Math.abs(topX) > half - 0.34) topX = px - sp.dropX * tuck * 0.55;
+      if (Math.abs(topZ) > half - 0.34) topZ = pz - sp.dropZ * tuck * 0.55;
+      var topG = getGroundHeightFor(topX, topZ, 0.055);
+      var topY = topG + 0.006;
+      return {
+        stick: "ledgeFold",
+        wall: {
+          px: wall.px,
+          py: wall.py,
+          pz: wall.pz,
+          nx: wall.nx,
+          ny: wall.ny,
+          nz: wall.nz,
+          spin: spin
+        },
+        topPx: topX,
+        topPy: topY,
+        topPz: topZ,
+        useFixedFloorY: false
+      };
+    }
+    return { stick: "floor", px: px, py: sp.minG + 0.006, pz: pz, useFixedFloorY: true };
+  }
+
+  /* Blood ray-snapped to real geometry: floor by default; some splats on nearby walls. Floor decals are re-snapped each frame so they never float. */
+  function spawnPlayerDamageBloodSplatter(fromX, fromZ, intensity) {
+    if (gameOver) return;
+    var inten = intensity == null ? 0.42 : Math.max(0.12, Math.min(1, intensity));
+    var n = Math.floor(2 + inten * 7);
+    var gx = player.x;
+    var gz = player.z;
+    var rdx = 0;
+    var rdz = 1;
+    if (fromX != null && fromZ != null) {
+      rdx = gx - fromX;
+      rdz = gz - fromZ;
+      var rl = Math.hypot(rdx, rdz);
+      if (rl > 1e-4) {
+        rdx /= rl;
+        rdz /= rl;
+      } else {
+        rdx = 0;
+        rdz = 1;
+      }
+    }
+    var perpX = -rdz;
+    var perpZ = rdx;
+    for (var si = 0; si < n; si++) {
+      var along = (Math.random() - 0.28) * 0.52 * inten;
+      var side = (Math.random() - 0.5) * 0.48 * inten;
+      var ox = gx + rdx * along + perpX * side + (Math.random() - 0.5) * 0.12;
+      var oz = gz + rdz * along + perpZ * side + (Math.random() - 0.5) * 0.12;
+      if (Math.abs(ox) > half - 0.4 || Math.abs(oz) > half - 0.4) continue;
+      var place = null;
+      if (fromX != null && Math.random() < 0.38) {
+        place = traceBloodWallAt(ox, oz, rdx, rdz);
+      }
+      if (!place) place = traceBloodFloor(ox, oz);
+      var rad = 0.048 + Math.random() * 0.095;
+      if (place.stick === "floor") {
+        var ledgePick = resolveBloodFloorLedgeHang(ox, oz, rad * 1.28);
+        if (ledgePick) place = ledgePick;
+      }
+      var maxTBlood = 42 + Math.random() * 22;
+      var op = 0.38 + inten * 0.42;
+      var bloodColor = Math.random() > 0.5 ? 0x4a070d : 0x5c0c14;
+
+      if (place.stick === "ledgeFold") {
+        var wf = place.wall;
+        var sc0 = 0.82 + Math.random() * 0.55;
+        var matW = new THREE.MeshBasicMaterial({
+          color: bloodColor,
+          transparent: true,
+          opacity: op,
+          depthWrite: false,
+          polygonOffset: true,
+          polygonOffsetFactor: -3,
+          polygonOffsetUnits: -3
+        });
+        var geoW = new THREE.CircleGeometry(rad, 12);
+        var meshW = new THREE.Mesh(geoW, matW);
+        meshW.renderOrder = 2;
+        tmpBloodN.set(wf.nx, wf.ny, wf.nz);
+        meshW.rotation.set(0, 0, 0);
+        meshW.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tmpBloodN);
+        meshW.rotateOnAxis(new THREE.Vector3(0, 0, 1), wf.spin);
+        meshW.position.set(wf.px, wf.py, wf.pz);
+        meshW.scale.setScalar(sc0);
+        scene.add(meshW);
+        bloodSplatters.push({
+          mesh: meshW,
+          t: 0,
+          maxT: maxTBlood,
+          initOp: op,
+          stick: "wall",
+          fixedFloorY: null,
+          _ledgeHangChecked: true
+        });
+        var matT = matW.clone();
+        matT.opacity = op * 0.94;
+        var geoT = new THREE.CircleGeometry(rad * 0.58, 10);
+        var meshT = new THREE.Mesh(geoT, matT);
+        meshT.renderOrder = 2;
+        meshT.rotation.x = -Math.PI * 0.5;
+        meshT.rotation.z = wf.spin * 0.62 + (Math.random() - 0.5) * 0.4;
+        meshT.position.set(place.topPx, place.topPy, place.topPz);
+        meshT.scale.copy(meshW.scale).multiplyScalar(0.92);
+        scene.add(meshT);
+        bloodSplatters.push({
+          mesh: meshT,
+          t: 0,
+          maxT: maxTBlood,
+          initOp: op * 0.94,
+          stick: "floor",
+          fixedFloorY: place.topPy,
+          _ledgeHangChecked: true
+        });
+        continue;
+      }
+
+      var geo = new THREE.CircleGeometry(rad, 12);
+      var mat = new THREE.MeshBasicMaterial({
+        color: bloodColor,
+        transparent: true,
+        opacity: op,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -3,
+        polygonOffsetUnits: -3
+      });
+      var mesh = new THREE.Mesh(geo, mat);
+      mesh.renderOrder = 2;
+      if (place.stick === "wall") {
+        tmpBloodN.set(place.nx, place.ny, place.nz);
+        mesh.rotation.set(0, 0, 0);
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tmpBloodN);
+        mesh.rotateOnAxis(
+          new THREE.Vector3(0, 0, 1),
+          place.spin != null ? place.spin : Math.random() * Math.PI * 2
+        );
+        mesh.position.set(place.px, place.py, place.pz);
+      } else {
+        mesh.rotation.x = -Math.PI * 0.5;
+        mesh.rotation.z = Math.random() * Math.PI * 2;
+        mesh.position.set(place.px, place.py, place.pz);
+      }
+      mesh.scale.setScalar(0.82 + Math.random() * 0.55);
+      scene.add(mesh);
+      bloodSplatters.push({
+        mesh: mesh,
+        t: 0,
+        maxT: maxTBlood,
+        initOp: op,
+        stick: place.stick,
+        fixedFloorY: place.useFixedFloorY ? place.py : null,
+        _ledgeHangChecked: !!(place.stick === "wall" || place.useFixedFloorY)
+      });
+    }
+  }
+
+  function applyExplosionDamage(ox, oy, oz, radius, playerMaxDmg, playerFfMult) {
+    var pff = playerFfMult != null ? playerFfMult : 1;
+    var kbEff = 0.38 + 0.62 * pff;
     var rdx = player.x - ox;
     var rdz = player.z - oz;
     var pd = Math.hypot(rdx, rdz);
@@ -3214,7 +4735,7 @@
     var rd = Math.sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
     if (pd < radius && pd > 1e-5) {
       var fall = 1 - pd / radius;
-      var dmg = playerMaxDmg * fall * 0.92;
+      var dmg = playerMaxDmg * fall * 0.92 * pff;
       hp -= dmg;
       if (hp < 0) hp = 0;
       updateHpDisplay();
@@ -3222,29 +4743,33 @@
         flashDamage();
         playDamage();
       }
+      if (dmg > 0.35) {
+        spawnPlayerDamageBloodSplatter(ox, oz, Math.min(1, dmg / 26));
+      }
       if (hp <= 0 && !gameOver) {
         gameOver = true;
         hp = 0;
-        titleEl.textContent = "Mission failed";
-        subtitleEl.textContent = "You were overrun. Click here to restart.";
+        ensureAudio();
+        playGameOverSting();
+        showGameOverPanel();
         overlay.classList.remove("hidden");
         resetStartMenuControlsToggle();
         document.exitPointerLock();
       }
       var inv = rd > 1e-5 ? 1 / rd : 0;
       if (inv > 0) {
-        var kMag = (11 + 9 * fall) * fall;
+        var kMag = (11 + 9 * fall) * fall * kbEff;
         player.kbVx += rdx * inv * kMag;
         player.kbVz += rdz * inv * kMag;
-        player.vy += rdy * inv * kMag * 0.95 + JUMP_V * (0.28 + 0.52 * fall);
+        player.vy += rdy * inv * kMag * 0.95 + JUMP_V * (0.28 + 0.52 * fall) * kbEff;
         player.grounded = false;
       } else if (pd > 1e-5) {
         var nx = rdx / pd;
         var nz = rdz / pd;
-        var kH = (11 + 9 * fall) * fall;
+        var kH = (11 + 9 * fall) * fall * kbEff;
         player.kbVx += nx * kH;
         player.kbVz += nz * kH;
-        player.vy += JUMP_V * (0.28 + 0.52 * fall);
+        player.vy += JUMP_V * (0.28 + 0.52 * fall) * kbEff;
         player.grounded = false;
       }
       var kbMax = 24;
@@ -3268,25 +4793,25 @@
         playHit();
         pulseCrosshairEnemyHit();
         if (enemies.length === 0) {
-          waveIntermission = 3.4;
-          pendingSpawnCount = 4 + (wave + 1) * 2;
-          showWaveCountdownOverlay();
-          hp = Math.min(100, hp + 12);
+          onWaveClearedAfterLastEnemy();
         }
       }
     }
     for (var bi = 0; bi < explosiveBarrels.length; bi++) {
       var B = explosiveBarrels[bi];
       if (!B.active) continue;
+      if (currentLevel !== 1) continue;
       var bd = Math.hypot(B.wx - ox, B.wz - oz);
       if (bd < radius * 0.88) destroyBarrelEntry(B);
     }
   }
 
-  function detonateExplosion(ox, oy, oz, radius, playerMaxDmg) {
+  var GRENADE_PLAYER_FF_MULT = 0.34;
+
+  function detonateExplosion(ox, oy, oz, radius, playerMaxDmg, playerFfMult) {
     spawnExplosionFx(ox, oy, oz, radius);
     playExplosionSound();
-    applyExplosionDamage(ox, oy, oz, radius, playerMaxDmg);
+    applyExplosionDamage(ox, oy, oz, radius, playerMaxDmg, playerFfMult);
   }
 
   function damageBarrelFromBullet(idx) {
@@ -3300,7 +4825,34 @@
   }
 
   function detonateGrenadeExplosion(px, py, pz) {
-    detonateExplosion(px, py, pz, 6.9, 40);
+    detonateExplosion(px, py, pz, 6.9, 40, GRENADE_PLAYER_FF_MULT);
+  }
+
+  function getEnemySpawnCountForWave(targetWave) {
+    if (currentLevel === 1 && targetWave === 10) return 30;
+    return 4 + targetWave * 2;
+  }
+
+  function updateWaveHudDisplay() {
+    elWave.textContent = String(wave) + "/" + String(MAX_WAVES_UI);
+  }
+
+  function updateMapLevelHudTitle() {
+    if (elMapName) elMapName.textContent = currentLevel === 1 ? MAP_DISPLAY_NAME : MAP_DISPLAY_NAME_BACKROOMS;
+    if (elMapLevelSub) elMapLevelSub.textContent = "Level " + String(currentLevel);
+  }
+
+  function onWaveClearedAfterLastEnemy() {
+    waveIntermission = 3.4;
+    if (currentLevel === 1 && wave === 10) {
+      pendingMapSwitch = true;
+      pendingSpawnCount = 0;
+    } else {
+      pendingMapSwitch = false;
+      pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
+    }
+    showWaveCountdownOverlay();
+    hp = Math.min(100, hp + 12);
   }
 
   function spawnBulletVisual(aimOrigin, aimDirUnit, maxDist) {
@@ -3311,7 +4863,11 @@
   }
 
   function showWaveCountdownOverlay() {
-    elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
+    if (pendingMapSwitch) {
+      elWaveUpcomingLabel.textContent = "The Backrooms";
+    } else {
+      elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
+    }
     elWaveCountNum.textContent = String(Math.max(0, Math.ceil(waveIntermission)));
     elWaveCountdownLayer.classList.add("visible");
   }
@@ -3331,10 +4887,7 @@
         playHit();
         pulseCrosshairEnemyHit();
         if (enemies.length === 0) {
-          waveIntermission = 3.4;
-          pendingSpawnCount = 4 + (wave + 1) * 2;
-          showWaveCountdownOverlay();
-          hp = Math.min(100, hp + 12);
+          onWaveClearedAfterLastEnemy();
         }
         return true;
       }
@@ -3354,6 +4907,7 @@
     }
     ensureAudio();
     reloading = true;
+    reloadMidPlayed = false;
     reloadWeaponSlot = weaponSlot;
     reloadDurationActive = weaponSlot === 1 ? RELOAD_DURATION_PRIMARY : RELOAD_DURATION_PISTOL;
     reloadTime = reloadDurationActive;
@@ -3395,7 +4949,7 @@
     };
     grenadeCooldown = 60;
     updateGrenadeHud();
-    playShoot();
+    playGrenadeThrow();
   }
 
   function tryKnifeSlash() {
@@ -3601,12 +5155,12 @@
     setTimeout(function () { elDamage.classList.remove("flash"); }, 100);
   }
 
-  function tryEnemyMoveWithAvoidance(m, udx, udz, stepLen, r, e) {
+  function smartEnemyChaseMove(m, e, dirX, dirZ, stepLen, r) {
     if (stepLen < 1e-8) return false;
     var px = m.position.x;
     var pz = m.position.z;
     var feetY = e.feetY != null ? e.feetY : getGroundHeightFor(px, pz, r);
-    function tryEnemyPos(nx, nz) {
+    function tryOne(nx, nz) {
       if (enemyWalkFreeAt(nx, nz, r, feetY)) {
         m.position.x = nx;
         m.position.z = nz;
@@ -3614,24 +5168,43 @@
       }
       return tryEnemyVaultTo(m, e, nx, nz, r, feetY);
     }
-    var baseAng = Math.atan2(udx, udz);
-    var offsets = [0, 0.42, -0.42, 0.82, -0.82, 1.22, -1.22, 1.65, -1.65, 2.08, -2.08, 2.55, -2.55, 3.05, -3.05];
-    for (var oi = 0; oi < offsets.length; oi++) {
-      var ang = baseAng + offsets[oi];
-      var nx = px + Math.sin(ang) * stepLen;
-      var nz = pz + Math.cos(ang) * stepLen;
-      if (tryEnemyPos(nx, nz)) return true;
+    var wx = dirX;
+    var wz = dirZ;
+    var wmag = Math.hypot(wx, wz);
+    if (wmag < 1e-6) return false;
+    wx /= wmag;
+    wz /= wmag;
+    var mult;
+    for (mult = 1; mult >= 0.16; mult *= 0.52) {
+      var sl = stepLen * mult;
+      if (tryOne(px + wx * sl, pz + wz * sl)) return true;
     }
-    var sx = (Math.abs(udx) > 1e-6 ? Math.sign(udx) : 0) * stepLen;
-    var sz = (Math.abs(udz) > 1e-6 ? Math.sign(udz) : 0) * stepLen;
-    if (Math.abs(sx) >= Math.abs(sz)) {
-      if (tryEnemyPos(px + sx, pz)) return true;
-      if (tryEnemyPos(px, pz + sz)) return true;
+    var ax = Math.abs(wx) > 0.08 ? Math.sign(wx) : 0;
+    var az = Math.abs(wz) > 0.08 ? Math.sign(wz) : 0;
+    var card = stepLen * 0.94;
+    if (Math.abs(ax) >= Math.abs(az)) {
+      if (ax !== 0 && tryOne(px + ax * card, pz)) return true;
+      if (az !== 0 && tryOne(px, pz + az * card)) return true;
     } else {
-      if (tryEnemyPos(px, pz + sz)) return true;
-      if (tryEnemyPos(px + sx, pz)) return true;
+      if (az !== 0 && tryOne(px, pz + az * card)) return true;
+      if (ax !== 0 && tryOne(px + ax * card, pz)) return true;
     }
-    return false;
+    var sx = -wz;
+    var sz = wx;
+    var k;
+    for (k = -1; k <= 1; k += 2) {
+      if (tryOne(px + sx * stepLen * 0.7 * k, pz + sz * stepLen * 0.7 * k)) return true;
+    }
+    var baseAng = Math.atan2(wx, wz);
+    var fan = [
+      0, 0.18, -0.18, 0.36, -0.36, 0.55, -0.55, 0.78, -0.78, 1.02, -1.02,
+      1.28, -1.28, 1.55, -1.55, 1.85, -1.85, 2.15, -2.15, 2.45, -2.45, 2.75, -2.75
+    ];
+    for (var fi = 0; fi < fan.length; fi++) {
+      var ang = baseAng + fan[fi];
+      if (tryOne(px + Math.sin(ang) * stepLen, pz + Math.cos(ang) * stepLen)) return true;
+    }
+    return tryOne(px + wx * stepLen * 0.1, pz + wz * stepLen * 0.1);
   }
 
   function drawMinimap() {
@@ -3700,6 +5273,7 @@
     for (var bi = 0; bi < explosiveBarrels.length; bi++) {
       var bb = explosiveBarrels[bi];
       if (!bb.active) continue;
+      if (currentLevel !== 1) continue;
       drawMinimapExplosiveHazard(mx(bb.wx), mz(bb.wz));
     }
     for (var ei = 0; ei < enemies.length; ei++) {
@@ -3847,15 +5421,29 @@
     }
 
     if (waveIntermission > 0) {
+      var wcOld = Math.max(0, Math.ceil(waveIntermission));
       waveIntermission -= dt;
-      elWaveCountNum.textContent = String(Math.max(0, Math.ceil(waveIntermission)));
-      if (waveIntermission <= 0 && pendingSpawnCount > 0) {
-        wave++;
-        elWave.textContent = String(wave);
-        spawnWaveNow(pendingSpawnCount);
-        pendingSpawnCount = 0;
-        hideWaveCountdownOverlay();
-        playWaveReady();
+      var wcNew = Math.max(0, Math.ceil(waveIntermission));
+      elWaveCountNum.textContent = String(wcNew);
+      if (wcNew < wcOld) {
+        ensureAudio();
+        if (wcNew === 0) playWaveCountFinal();
+        else playWaveCountTick(wcNew);
+      }
+      if (waveIntermission <= 0) {
+        if (pendingMapSwitch) {
+          pendingMapSwitch = false;
+          hideWaveCountdownOverlay();
+          switchToBackroomsLevel();
+          playWaveReady();
+        } else if (pendingSpawnCount > 0) {
+          wave++;
+          updateWaveHudDisplay();
+          spawnWaveNow(pendingSpawnCount);
+          pendingSpawnCount = 0;
+          hideWaveCountdownOverlay();
+          playWaveReady();
+        }
       }
     }
 
@@ -3865,6 +5453,11 @@
       var mag = wpn.userData.mag;
       var u = 1 - Math.max(0, reloadTime) / reloadDurationActive;
       if (u > 1) u = 1;
+      if (u >= 0.48 && !reloadMidPlayed) {
+        reloadMidPlayed = true;
+        ensureAudio();
+        playReloadMid();
+      }
       if (elReloadProgressRing) elReloadProgressRing.style.strokeDashoffset = String(RELOAD_RING_CIRC * (1 - u));
       var magDrop = 0;
       if (u < 0.34) magDrop = (u / 0.34) * 0.14;
@@ -3885,6 +5478,7 @@
         reloading = false;
         reloadWeaponSlot = 0;
         reloadTime = 0;
+        reloadMidPlayed = false;
         if (weaponSlot === 1) magPrimary = MAG_PRIMARY;
         else if (weaponSlot === 2) magSecondary = MAG_PISTOL;
         mag.position.y = wpn.userData.magBaseY;
@@ -3910,7 +5504,10 @@
     }
 
     if (!gameOver) {
+      var wasGrounded = player.grounded;
       if (pointerLocked && player._jumpPress && player.grounded) {
+        ensureAudio();
+        playJump();
         player.vy = JUMP_V;
       }
       player._jumpPress = false;
@@ -3919,8 +5516,8 @@
       player.vy -= GRAVITY * dt;
       player.jumpY += player.vy * dt;
       var headY = player.jumpY + eyeY;
-      if (headY > CEILING_Y) {
-        player.jumpY = CEILING_Y - eyeY;
+      if (headY > activeCeilingY) {
+        player.jumpY = activeCeilingY - eyeY;
         if (player.vy > 0) player.vy = 0;
       }
       var groundH = getGroundHeight(player.x, player.z);
@@ -3932,6 +5529,10 @@
         player.jumpY = groundH;
         if (player.vy < 0) player.vy = 0;
         player.grounded = true;
+      }
+      if (player.grounded && !wasGrounded) {
+        ensureAudio();
+        playLand();
       }
 
       var kbAbs = Math.abs(player.kbVx) + Math.abs(player.kbVz);
@@ -3961,8 +5562,19 @@
         fz = (fz / len) * move;
         tryMove(fx, fz, player.jumpY);
         moveBob += dt * 14;
+        if (!paused && player.grounded) {
+          footstepAcc += dt;
+          if (footstepAcc >= 0.34) {
+            footstepAcc = 0;
+            ensureAudio();
+            playFootstep();
+          }
+        } else {
+          footstepAcc = 0;
+        }
       } else {
         moveBob += dt * 3;
+        footstepAcc = 0;
       }
       if (!reloading && (weaponSlot === 1 || weaponSlot === 2)) {
         var wpnB = getWpnGroup();
@@ -3972,10 +5584,15 @@
       }
     }
 
+    var prevGrenadeCd = grenadeCooldown;
     if (grenadeCooldown > 0) {
       grenadeCooldown -= dt;
       if (grenadeCooldown < 0) grenadeCooldown = 0;
       updateGrenadeHud();
+    }
+    if (prevGrenadeCd > 0 && grenadeCooldown === 0) {
+      ensureAudio();
+      playGrenadeReady();
     }
 
     if (activeGrenade) {
@@ -4014,24 +5631,179 @@
       var ex = explosions[exi];
       ex.t += dt;
       var eu = ex.t / ex.maxT;
-      if (ex.core) {
-        var scl = 0.25 + eu * 3.2 * (ex.rad / 5.5);
-        ex.core.scale.setScalar(scl / 0.22);
-        ex.core.material.opacity = 0.92 * (1 - eu);
+      var rad = ex.rad != null ? ex.rad : 5.5;
+      var rf = rad / 5.5;
+
+      if (ex.flash) {
+        var ft = Math.min(1, ex.t / 0.1);
+        ex.flash.material.opacity = Math.max(0, 1 - ft * ft * 3.2);
+        ex.flash.scale.setScalar(1 + ex.t * 52);
       }
-      if (ex.light) ex.light.intensity = 4.2 * (1 - eu);
+
+      if (ex.core) {
+        var boom = Math.min(1, ex.t / 0.2);
+        var pulse = 1 + 0.28 * Math.sin(Math.min(1, ex.t / 0.085) * Math.PI);
+        var scl = (0.14 + boom * 3.1 * rf) * pulse;
+        ex.core.scale.setScalar(scl / 0.14);
+        ex.core.material.opacity = Math.max(0, 0.98 * (1 - Math.pow(Math.min(1, ex.t / 0.42), 1.05)));
+      }
+
+      if (ex.midShell) {
+        var mb = Math.min(1, ex.t / 0.26);
+        var ms = (0.22 + mb * 3.4 * rf) / 0.22;
+        ex.midShell.scale.setScalar(ms);
+        ex.midShell.material.opacity = Math.max(0, 0.72 * (1 - Math.pow(Math.min(1, ex.t / 0.5), 0.95)));
+      }
+
+      if (ex.outerShell) {
+        var ob = Math.min(1, ex.t / 0.32);
+        var os = (0.36 + ob * 2.9 * rf) / 0.36;
+        ex.outerShell.scale.setScalar(os);
+        ex.outerShell.material.opacity = Math.max(0, 0.52 * (1 - Math.pow(Math.min(1, ex.t / 0.58), 0.88)));
+      }
+
+      if (ex.corona) {
+        var cs = (0.52 + eu * 1.85 * rf) / 0.52;
+        ex.corona.scale.setScalar(cs);
+        ex.corona.material.opacity = Math.max(0, 0.32 * (1 - eu * 0.98));
+      }
+
+      if (ex.shock) {
+        var shr = 1 + ex.t * (7.5 + rad * 0.48);
+        ex.shock.scale.setScalar(shr);
+        ex.shock.material.opacity = Math.max(0, 0.72 * (1 - Math.pow(Math.min(1, ex.t / 0.48), 1.35)));
+      }
+
+      if (ex.scorch) {
+        var scr = 1 + ex.t * (4.2 + rad * 0.22);
+        ex.scorch.scale.setScalar(scr);
+        var scOp = 0.78 * (1 - Math.pow(Math.min(1, ex.t / ex.maxT), 0.55));
+        ex.scorch.material.opacity = Math.max(0, scOp * 0.92);
+      }
+
+      if (ex.light) {
+        var liEarly = Math.exp(-ex.t * 4.2);
+        var liTail = (1 - eu) * (1 - eu);
+        ex.light.intensity = Math.max(0, 16 * (0.35 + 0.65 * liEarly) * (0.2 + 0.8 * liTail));
+      }
+
+      var smokes = ex.smokes || [];
+      for (var sji = 0; sji < smokes.length; sji++) {
+        var sm = smokes[sji];
+        var turb = Math.sin(ex.t * 8.5 + sm.userData.phase) * 0.45;
+        sm.position.x += (sm.userData.vx + turb) * dt;
+        sm.position.y += sm.userData.vy * dt;
+        sm.position.z += (sm.userData.vz + Math.cos(ex.t * 7.2 + sm.userData.phase) * 0.38) * dt;
+        sm.userData.vx *= Math.pow(0.988, dt * 60);
+        sm.userData.vy *= Math.pow(0.993, dt * 60);
+        sm.userData.vz *= Math.pow(0.988, dt * 60);
+        sm.userData.vy += 0.35 * dt;
+        sm.scale.addScalar(sm.userData.grow * dt);
+        sm.rotation.y += sm.userData.spin * dt;
+        sm.material.opacity = Math.max(0, 0.52 * (1 - Math.pow(eu, 0.72)) - ex.t * 0.06);
+      }
+
+      var embers = ex.embers || [];
+      for (var emi = 0; emi < embers.length; emi++) {
+        var em = embers[emi];
+        var d = em.userData.drag * dt;
+        em.userData.vx -= em.userData.vx * Math.min(0.55, d);
+        em.userData.vy -= em.userData.vy * Math.min(0.2, d * 0.35);
+        em.userData.vz -= em.userData.vz * Math.min(0.55, d);
+        em.position.x += em.userData.vx * dt;
+        em.position.y += em.userData.vy * dt;
+        em.position.z += em.userData.vz * dt;
+        em.userData.vy -= 18 * dt;
+        var el = em.userData.life || 0.45;
+        em.material.opacity = Math.max(0, 0.95 * (1 - ex.t / el));
+      }
+
       for (var pj = 0; pj < ex.parts.length; pj++) {
         var pr = ex.parts[pj];
+        var d = pr.userData.drag * dt;
+        pr.userData.vx -= pr.userData.vx * Math.min(0.5, d);
+        pr.userData.vy -= pr.userData.vy * Math.min(0.15, d * 0.3);
+        pr.userData.vz -= pr.userData.vz * Math.min(0.5, d);
         pr.position.x += pr.userData.vx * dt;
         pr.position.y += pr.userData.vy * dt;
         pr.position.z += pr.userData.vz * dt;
-        pr.userData.vy -= 14 * dt;
-        pr.material.opacity = Math.max(0, 1 - eu * 1.15);
+        pr.userData.vy -= 17 * dt;
+        pr.rotation.x += pr.userData.spx * dt;
+        pr.rotation.y += pr.userData.spy * dt;
+        pr.rotation.z += pr.userData.spz * dt;
+        pr.material.opacity = Math.max(0, 1 - Math.pow(eu, 0.92));
       }
+
       if (ex.t >= ex.maxT) {
         scene.remove(ex.root);
         disposeGroup(ex.root);
         explosions.splice(exi, 1);
+      }
+    }
+
+    for (var bsi = bloodSplatters.length - 1; bsi >= 0; bsi--) {
+      var bs = bloodSplatters[bsi];
+      bs.t += dt;
+      var bu = bs.t / bs.maxT;
+      bs.mesh.material.opacity = Math.max(0, bs.initOp * (1 - bu));
+      if (bs.stick !== "wall") {
+        if (bs.fixedFloorY != null) {
+          bs.mesh.position.y = bs.fixedFloorY;
+        } else {
+          if (!bs._ledgeHangChecked) {
+            bs._ledgeHangChecked = true;
+            var pr =
+              bs.mesh.geometry && bs.mesh.geometry.parameters && bs.mesh.geometry.parameters.radius != null
+                ? bs.mesh.geometry.parameters.radius * bs.mesh.scale.x
+                : 0.08;
+            var lr = resolveBloodFloorLedgeHang(bs.mesh.position.x, bs.mesh.position.z, pr * 1.08);
+            if (lr && lr.stick === "ledgeFold") {
+              bs.stick = "wall";
+              bs.mesh.rotation.set(0, 0, 0);
+              tmpBloodN.set(lr.wall.nx, lr.wall.ny, lr.wall.nz);
+              bs.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tmpBloodN);
+              bs.mesh.rotateOnAxis(new THREE.Vector3(0, 0, 1), lr.wall.spin != null ? lr.wall.spin : 0);
+              bs.mesh.position.set(lr.wall.px, lr.wall.py, lr.wall.pz);
+              bs.fixedFloorY = null;
+              var pr2 =
+                bs.mesh.geometry && bs.mesh.geometry.parameters && bs.mesh.geometry.parameters.radius != null
+                  ? bs.mesh.geometry.parameters.radius * bs.mesh.scale.x
+                  : 0.08;
+              var matTopR = bs.mesh.material.clone();
+              var geoTopR = new THREE.CircleGeometry(pr2 * 0.56, 10);
+              var meshTopR = new THREE.Mesh(geoTopR, matTopR);
+              meshTopR.renderOrder = 2;
+              meshTopR.rotation.x = -Math.PI * 0.5;
+              meshTopR.rotation.z = (lr.wall.spin != null ? lr.wall.spin : 0) * 0.62;
+              meshTopR.position.set(lr.topPx, lr.topPy, lr.topPz);
+              meshTopR.scale.copy(bs.mesh.scale).multiplyScalar(0.9);
+              meshTopR.material.opacity = bs.mesh.material.opacity * 0.94;
+              scene.add(meshTopR);
+              bloodSplatters.push({
+                mesh: meshTopR,
+                t: bs.t,
+                maxT: bs.maxT,
+                initOp: bs.initOp * 0.94,
+                stick: "floor",
+                fixedFloorY: lr.topPy,
+                _ledgeHangChecked: true
+              });
+            } else if (lr && lr.stick === "floor" && lr.useFixedFloorY) {
+              bs.fixedFloorY = lr.py;
+              bs.mesh.position.y = lr.py;
+            }
+          }
+          if (bs.stick !== "wall" && bs.fixedFloorY == null) {
+            var gSnap = getGroundHeightFor(bs.mesh.position.x, bs.mesh.position.z, 0.07);
+            bs.mesh.position.y = gSnap + 0.006;
+          }
+        }
+      }
+      if (bs.t >= bs.maxT || bs.mesh.material.opacity < 0.03) {
+        scene.remove(bs.mesh);
+        bs.mesh.geometry.dispose();
+        bs.mesh.material.dispose();
+        bloodSplatters.splice(bsi, 1);
       }
     }
 
@@ -4043,7 +5815,7 @@
       var e = enemies[i];
       var m = e.mesh;
       var r = 0.42;
-      if (!gameOver && waveIntermission <= 0 && pointerLocked) {
+      if (!gameOver && pointerLocked) {
         var toPx = player.x - m.position.x;
         var toPz = player.z - m.position.z;
         var distChase = Math.hypot(toPx, toPz) || 1;
@@ -4063,8 +5835,10 @@
             repZ += (ddz / dSep) * push * ENEMY_SEP_WEIGHT;
           }
         }
-        var vx = dirX + repX;
-        var vz = dirZ + repZ;
+        var sepBlend = Math.min(1, distChase / 5.5);
+        var repScale = 0.22 + 0.58 * (1 - sepBlend);
+        var vx = dirX + repX * repScale;
+        var vz = dirZ + repZ * repScale;
         var vlen = Math.hypot(vx, vz) || 1;
         vx /= vlen;
         vz /= vlen;
@@ -4073,9 +5847,7 @@
         var stepZ = vz * chaseSpeed * dt;
         var stepLen = Math.hypot(stepX, stepZ);
         if (stepLen > 1e-8) {
-          var udx = stepX / stepLen;
-          var udz = stepZ / stepLen;
-          tryEnemyMoveWithAvoidance(m, udx, udz, stepLen, r, e);
+          smartEnemyChaseMove(m, e, vx, vz, stepLen, r);
         }
 
         m.rotation.y = Math.atan2(player.x - m.position.x, player.z - m.position.z);
@@ -4090,12 +5862,14 @@
           if (Math.random() < 0.1) {
             flashDamage();
             playDamage();
+            spawnPlayerDamageBloodSplatter(m.position.x, m.position.z, 0.38);
           }
           if (hp <= 0 && !gameOver) {
             gameOver = true;
             hp = 0;
-            titleEl.textContent = "Mission failed";
-            subtitleEl.textContent = "You were overrun. Click here to restart.";
+            ensureAudio();
+            playGameOverSting();
+            showGameOverPanel();
             overlay.classList.remove("hidden");
             resetStartMenuControlsToggle();
             document.exitPointerLock();
@@ -4180,6 +5954,8 @@
       medkitBob = 0;
       medkitGroup.position.set(sx, gq + 0.055, sz);
       medkitGroup.rotation.y = Math.random() * Math.PI * 2;
+      ensureAudio();
+      playMedkitSpawn();
       return;
     }
   }
@@ -4251,13 +6027,26 @@
     else if (canVault && tryVaultTo(player.x, nz, feetY)) { }
   }
 
+  var fpsHudTPrev = performance.now();
+  var fpsEma = 60;
+  var fpsHudTextAt = 0;
+
   function tick() {
+    var tNow = performance.now();
+    var dtFrame = (tNow - fpsHudTPrev) * 0.001;
+    fpsHudTPrev = tNow;
     var dt = Math.min(clock.getDelta(), 0.05);
     if (!paused) update(dt);
     else updateHpVignette();
     drawMinimap();
     renderer.render(scene, camera);
     renderHotbarWeaponPreviews();
+    if (elFpsVal && tNow - fpsHudTextAt > 220) {
+      fpsHudTextAt = tNow;
+      var instFps = 1 / Math.max(0.0008, Math.min(dtFrame, 0.25));
+      fpsEma = fpsEma * 0.88 + instFps * 0.12;
+      elFpsVal.textContent = String(Math.round(fpsEma));
+    }
     requestAnimationFrame(tick);
   }
 
