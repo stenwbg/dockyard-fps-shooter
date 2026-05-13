@@ -1396,23 +1396,24 @@
   var explosiveBarrels = [];
 
   function addExplosiveBarrel(wx, wz, r, ht) {
-    var rr = r * 1.12;
+    var rMesh = r * 1.22;
+    var rr = rMesh * 1.16;
     addCollider(wx - rr, wx + rr, wz - rr, wz + rr, 0, ht, true);
     var coll = colliders[colliders.length - 1];
     var idx = explosiveBarrels.length;
     var group = new THREE.Group();
     group.position.set(wx, ht / 2, wz);
     group.userData.explosiveBarrelIndex = idx;
-    var cyl = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.05, ht, 14), explosiveDrumMat);
+    var cyl = new THREE.Mesh(new THREE.CylinderGeometry(rMesh, rMesh * 1.05, ht, 14), explosiveDrumMat);
     cyl.castShadow = true;
     cyl.receiveShadow = true;
     group.add(cyl);
-    var decal = new THREE.Mesh(new THREE.PlaneGeometry(r * 2.1, ht * 0.95), fireDecalMat.clone());
-    decal.position.set(0, 0, r * 1.08);
+    var decal = new THREE.Mesh(new THREE.PlaneGeometry(rMesh * 2.1, ht * 0.95), fireDecalMat.clone());
+    decal.position.set(0, 0, rMesh * 1.08);
     decal.rotation.y = Math.PI / 2;
     group.add(decal);
     var decal2 = decal.clone();
-    decal2.position.set(0, 0, -r * 1.08);
+    decal2.position.set(0, 0, -rMesh * 1.08);
     decal2.rotation.y = -Math.PI / 2;
     group.add(decal2);
     addStaticMesh(group, true);
@@ -1577,7 +1578,7 @@
       var bx = (Math.random() * 2 - 1) * (half - 3.5);
       var bz = (Math.random() * 2 - 1) * (half - 3.5);
       if (Math.hypot(bx - SPAWN_X, bz - SPAWN_Z) < 2.75) continue;
-      if (!enemyWalkFree(bx, bz, r * 1.35)) continue;
+      if (!enemyWalkFree(bx, bz, r * 1.58)) continue;
       if (getGroundHeightFor(bx, bz, 0.38) > 0.12) continue;
       addExplosiveBarrel(bx, bz, r, ht);
       return;
