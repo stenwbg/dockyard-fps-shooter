@@ -4,12 +4,12 @@
 <meta charset="UTF-8" />
 <!-- If the face texture stays blank, open via http://localhost:8765/fps-shooter.html (serve-game.ps1) so the browser allows cross-origin images for WebGL. -->
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Warehouse FPS — local</title>
+<title>Abandoned Factory FPS — local</title>
 <style>
   html, body {
     margin: 0;
     height: 100%;
-    background: #08090c;
+    background: #0c0a08;
     overflow: hidden;
     font-family: "Segoe UI", system-ui, sans-serif;
     color: #e4e6eb;
@@ -191,15 +191,32 @@
     font-variant-numeric: tabular-nums;
     color: #ffb86b;
   }
-  #reloadHud.topHudReload {
-    font-size: clamp(13px, 2vw, 15px);
-    padding: 4px 14px;
-    border-radius: 6px;
-    background: rgba(12, 14, 22, 0.75);
-    border: 1px solid #3a4252;
+  #reloadHud.crosshair-reload {
+    position: fixed;
+    left: 50%;
+    top: calc(50% + 18px);
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    margin: 0;
+    z-index: 8;
+    pointer-events: none;
+    display: none;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.35));
   }
-  .dim {
-    color: #9aa3b2;
+  #reloadHud.crosshair-reload > svg:first-child {
+    display: block;
+    width: 50px;
+    height: 50px;
+  }
+  #reloadHud.crosshair-reload .reload-arrows {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 28px;
+    height: 28px;
+    margin: -14px 0 0 -14px;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
   }
   #mapNameHud {
     position: fixed;
@@ -277,33 +294,176 @@
   #overlay {
     position: fixed;
     inset: 0;
+    z-index: 10;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(5, 6, 10, 0.94);
-    z-index: 10;
+    padding: min(28px, 5vw);
+    background:
+      radial-gradient(ellipse 120% 80% at 50% 20%, rgba(55, 62, 78, 0.35) 0%, transparent 55%),
+      radial-gradient(ellipse 90% 60% at 70% 100%, rgba(40, 36, 32, 0.5) 0%, transparent 50%),
+      rgba(6, 7, 10, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     cursor: pointer;
     text-align: center;
-    padding: 24px;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.32s;
+  }
+  #overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.26s ease, visibility 0.26s;
+  }
+  #overlay .menu-shell {
+    width: 100%;
+    max-width: 520px;
+    animation: menuIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes menuIn {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  #overlay .menu-card {
+    position: relative;
+    padding: clamp(22px, 4vw, 34px) clamp(22px, 4vw, 36px) clamp(26px, 4vw, 36px);
+    border-radius: 18px;
+    background: linear-gradient(165deg, rgba(28, 30, 38, 0.94) 0%, rgba(14, 15, 20, 0.97) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      0 24px 64px rgba(0, 0, 0, 0.65),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  #overlay .menu-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(120, 140, 170, 0.35), rgba(60, 55, 50, 0.15));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  #overlay .menu-kicker {
+    margin: 0 0 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #8b93a5;
   }
   #overlay h1 {
-    margin: 0 0 12px;
-    font-size: clamp(1.35rem, 4vw, 1.9rem);
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    margin: 0 0 14px;
+    font-size: clamp(1.65rem, 5vw, 2.35rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    background: linear-gradient(180deg, #f4f6fb 0%, #b8c0d4 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.45));
   }
-  #overlay p { margin: 8px 0; max-width: 460px; color: #aeb6c5; }
+  #overlay .menu-lead {
+    margin: 0 0 18px;
+    font-size: clamp(0.98rem, 2.4vw, 1.12rem);
+    line-height: 1.45;
+    color: #a8b0c2;
+    max-width: 44em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #overlay .menu-divider {
+    height: 1px;
+    margin: 0 0 16px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  }
+  #overlay .menu-controls {
+    margin: 0 0 14px;
+    text-align: left;
+    font-size: clamp(0.82rem, 1.9vw, 0.92rem);
+    line-height: 1.65;
+    color: #9aa3b2;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  #overlay .menu-controls p {
+    margin: 0 0 10px;
+  }
+  #overlay .menu-controls p:last-child {
+    margin-bottom: 0;
+  }
+  #overlay .menu-notes {
+    margin: 0 0 22px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #6f7788;
+    max-width: 42em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #overlay .menu-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #1a1510;
+    background: linear-gradient(180deg, #ffd8a8 0%, #ffb86b 38%, #e88a32 100%);
+    box-shadow:
+      0 4px 0 rgba(120, 60, 10, 0.45),
+      0 12px 32px rgba(0, 0, 0, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  }
+  #overlay:hover .menu-cta {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow:
+      0 5px 0 rgba(120, 60, 10, 0.45),
+      0 16px 40px rgba(0, 0, 0, 0.5);
+  }
+  #overlay:active .menu-cta {
+    transform: translateY(1px);
+    box-shadow:
+      0 2px 0 rgba(120, 60, 10, 0.45),
+      0 8px 24px rgba(0, 0, 0, 0.45);
+  }
   #overlay kbd {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: #1e232d;
-    border: 1px solid #3a4252;
-    font-family: inherit;
-    font-size: 0.9em;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: rgba(22, 24, 32, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 0.82em;
+    font-weight: 600;
+    color: #e4e8f2;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
   }
-  #overlay.hidden { display: none; }
+  #overlay .menu-controls kbd {
+    background: rgba(32, 36, 48, 0.95);
+  }
   #damage {
     position: fixed;
     inset: 0;
@@ -366,6 +526,13 @@
   #magReadout .dim {
     font-size: clamp(17px, 2.6vw, 24px) !important;
   }
+  #magReadout #magRowG strong {
+    font-size: 1.12em;
+    color: #9dd4a8;
+  }
+  #magReadout #magRowG strong.grenadeCdTick {
+    color: #ffb86b;
+  }
   #minimap {
     width: 176px;
     height: 176px;
@@ -378,30 +545,113 @@
   #pauseLayer {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.58);
-    z-index: 9;
-    display: none;
+    z-index: 11;
+    display: flex;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
+    padding: min(24px, 5vw);
+    background: rgba(4, 5, 8, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: #e8ecf5;
-    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    font-size: clamp(1rem, 2.4vw, 1.15rem);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.75);
+    opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    text-shadow: 0 1px 6px #000;
+    transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.28s;
   }
-  #pauseLayer.visible { display: flex; }
-  #pauseLayer .dim {
+  #pauseLayer.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  #pauseLayer .pause-panel {
+    width: 100%;
+    max-width: 400px;
+    padding: clamp(24px, 4vw, 32px) clamp(22px, 4vw, 30px);
+    border-radius: 18px;
+    text-align: center;
+    background: linear-gradient(165deg, rgba(26, 28, 36, 0.96) 0%, rgba(12, 13, 18, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.45),
+      0 20px 56px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #pauseLayer.visible .pause-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  #pauseLayer .pause-badge {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
     color: #9aa3b2;
-    font-size: 15px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  #pauseLayer .pause-title {
+    margin: 0 0 12px;
+    font-size: clamp(1.5rem, 4vw, 1.95rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #f0f3f8;
+  }
+  #pauseLayer .pause-hint {
+    margin: 0 0 22px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: #9aa3b2;
+  }
+  #pauseLayer .pause-resume {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #14151a;
+    background: linear-gradient(180deg, #e8ecf8 0%, #b9c4dc 100%);
+    box-shadow: 0 4px 0 rgba(40, 48, 64, 0.55), 0 10px 28px rgba(0, 0, 0, 0.4);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  }
+  #pauseLayer .pause-resume:hover {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+  #pauseLayer .pause-resume:focus-visible {
+    outline: 2px solid #ffb86b;
+    outline-offset: 3px;
+  }
+  #pauseLayer .pause-resume:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgba(40, 48, 64, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
   }
   #pauseLayer kbd {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: #1e232d;
-    border: 1px solid #3a4252;
-    font-family: inherit;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
     font-size: 0.85em;
+    font-weight: 600;
+    color: #e4e8f2;
   }
   #hpBarWrap {
     position: fixed;
@@ -555,8 +805,35 @@
     <span class="chx-line"></span><span class="chx-line"></span>
   </div>
 </div>
+<div id="reloadHud" class="crosshair-reload" style="display: none" aria-live="polite" aria-label="Reloading">
+  <svg viewBox="0 0 56 56" aria-hidden="true">
+    <circle cx="28" cy="28" r="23" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="3.5" />
+    <circle
+      id="reloadProgressRing"
+      cx="28"
+      cy="28"
+      r="23"
+      fill="none"
+      stroke="#ffffff"
+      stroke-width="3.5"
+      stroke-linecap="round"
+      transform="rotate(-90 28 28)"
+      stroke-dasharray="144.51"
+      stroke-dashoffset="144.51"
+    />
+  </svg>
+  <svg class="reload-arrows" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+    <path
+      d="M21 12a9 9 0 00-9-9 9.75 9.75 0 00-6.74 2.74L3 8M3 3v5h5M3 12a9 9 0 009 9 9.75 9.75 0 006.74-2.74L21 16M21 21v-5h-5"
+      stroke="#ffffff"
+      stroke-width="2.35"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+</div>
 <div id="mapNameHud" aria-hidden="true">
-  <span id="mapNameText" class="mapNameTitle">Dockyard Warehouse</span>
+  <span id="mapNameText" class="mapNameTitle">Abandoned Factory</span>
 </div>
 <div id="waveCountdownLayer">
   <div class="waveCountdownPanel">
@@ -570,9 +847,15 @@
     <div class="topHudPill"><span class="lbl">Wave</span> <strong id="wave">1</strong></div>
     <div class="topHudPill"><span class="lbl">Enemies</span> <strong id="left">0</strong></div>
   </div>
-  <div id="reloadHud" class="topHudReload dim" style="display:none">Reloading…</div>
 </div>
-<div id="pauseLayer"><strong>Paused</strong><p class="dim" style="margin-top:12px;font-size:15px">Press <kbd>P</kbd> to resume</p></div>
+<div id="pauseLayer" role="dialog" aria-modal="true" aria-labelledby="pauseTitle" aria-hidden="true">
+  <div class="pause-panel">
+    <span class="pause-badge">Paused</span>
+    <h2 id="pauseTitle" class="pause-title">Take a break</h2>
+    <p class="pause-hint">Press <kbd>P</kbd> or <kbd>Esc</kbd> to resume, or use the button below.</p>
+    <button type="button" class="pause-resume" id="pauseResumeBtn">Resume game</button>
+  </div>
+</div>
 <div id="hotbar" aria-hidden="true">
   <div class="hotbar-slot active" data-slot="1" title="Rifle">
     <div class="hotbar-preview-wrap"></div>
@@ -595,11 +878,11 @@
       <div class="keys"><kbd>3</kbd><span class="quick"><kbd>G</kbd> quick</span></div>
     </div>
   </div>
-  <div class="hotbar-slot" data-slot="4" title="Knife">
+  <div class="hotbar-slot" data-slot="4" title="Knife (hold F — slashes on press)">
     <div class="hotbar-preview-wrap"></div>
     <div class="hotbar-meta">
       <span class="name">Knife</span>
-      <div class="keys"><kbd>4</kbd></div>
+      <div class="keys"><kbd>4</kbd><span class="quick"><kbd>F</kbd> quick</span></div>
     </div>
   </div>
 </div>
@@ -607,6 +890,7 @@
   <div id="magReadout" aria-hidden="true">
     <div class="row active" id="magRowR"><span class="lbl">R</span> <strong id="magValR">25</strong><span id="magCapR" class="dim" style="color:#aeb6c5"></span></div>
     <div class="row" id="magRowP"><span class="lbl">S</span> <strong id="magValP">2</strong><span id="magCapP" class="dim" style="color:#aeb6c5"></span></div>
+    <div class="row" id="magRowG"><span class="lbl">Gr</span> <strong id="magValG">Ready</strong><span id="magCapG" class="dim" style="color:#aeb6c5"></span></div>
   </div>
   <canvas id="minimap" width="176" height="176"></canvas>
 </div>
@@ -618,11 +902,21 @@
   <div id="hpBarTrack" class="hpBarTrack"><div id="hpBarFill" class="hpBarFill"></div></div>
 </div>
 <div id="overlay">
-  <h1 id="title">Dockyard Warehouse</h1>
-  <p id="subtitle">Click to capture the mouse and enter first person.</p>
-  <p><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> move · <kbd>Space</kbd> jump · <kbd>R</kbd> reload · <kbd>1</kbd> auto rifle (penetrates 1 foe) · <kbd>2</kbd> double shotgun (no penetration) · <kbd>3</kbd>–<kbd>4</kbd> · wheel · <kbd>G</kbd> grenade · <kbd>P</kbd> pause · <kbd>LMB</kbd> hold fire</p>
-  <p style="font-size:13px">Face photo from Wikimedia Commons. Jump onto crates, drums, and pallets. Explore the full floor — ceiling strips are visual only.</p>
-  <p style="margin-top:20px;color:#ffb86b">Click anywhere to start</p>
+  <div class="menu-shell">
+    <div class="menu-card">
+      <p class="menu-kicker">Local FPS</p>
+      <h1 id="title">Abandoned Factory</h1>
+      <p id="subtitle" class="menu-lead">Click anywhere to capture the mouse and enter first person.</p>
+      <div class="menu-divider"></div>
+      <div class="menu-controls">
+        <p><strong>Move</strong> <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> · <kbd>Space</kbd> jump · <kbd>R</kbd> reload</p>
+        <p><strong>Weapons</strong> <kbd>1</kbd> rifle · <kbd>2</kbd> shotgun · <kbd>3</kbd> grenade · <kbd>4</kbd> knife · <kbd>G</kbd> quick grenade · <kbd>F</kbd> quick knife · wheel</p>
+        <p><strong>Other</strong> <kbd>P</kbd> or <kbd>Esc</kbd> pause · <kbd>LMB</kbd> hold fire · <kbd>Enter</kbd> start</p>
+      </div>
+      <p class="menu-notes">Face photo from Wikimedia Commons. Ruined floor, tanks, and partitions — ceiling girders are visual only.</p>
+      <div class="menu-cta"><span>Start</span><kbd>Enter</kbd></div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
@@ -665,6 +959,8 @@
   var elHpBarFill = document.getElementById("hpBarFill");
   var elHpBarText = document.getElementById("hpBarText");
   var elReloadHud = document.getElementById("reloadHud");
+  var elReloadProgressRing = document.getElementById("reloadProgressRing");
+  var RELOAD_RING_CIRC = 2 * Math.PI * 23;
   var elDamage = document.getElementById("damage");
   var elHpVignette = document.getElementById("hpVignette");
   var elWaveCountdownLayer = document.getElementById("waveCountdownLayer");
@@ -678,10 +974,14 @@
   var elMagCapP = document.getElementById("magCapP");
   var elMagRowR = document.getElementById("magRowR");
   var elMagRowP = document.getElementById("magRowP");
+  var elMagRowG = document.getElementById("magRowG");
+  var elMagValG = document.getElementById("magValG");
+  var elMagCapG = document.getElementById("magCapG");
   var pauseLayer = document.getElementById("pauseLayer");
+  var pauseResumeBtn = document.getElementById("pauseResumeBtn");
   var elHotbarSlots = document.querySelectorAll("#hotbar .hotbar-slot");
 
-  var MAP_DISPLAY_NAME = "Dockyard Warehouse";
+  var MAP_DISPLAY_NAME = "Abandoned Factory";
   var elMapName = document.getElementById("mapNameText");
   if (elMapName) elMapName.textContent = MAP_DISPLAY_NAME;
 
@@ -700,8 +1000,8 @@
   }
 
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x181c26);
-  scene.fog = new THREE.Fog(0x181c26, 30, 118);
+  scene.background = new THREE.Color(0x14110e);
+  scene.fog = new THREE.Fog(0x221c18, 22, 102);
 
   var camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.06, 280);
   var yaw = new THREE.Group();
@@ -719,12 +1019,12 @@
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   document.body.appendChild(renderer.domElement);
 
-  var hemi = new THREE.HemisphereLight(0xb8c8e8, 0x2a2c34, 0.72);
+  var hemi = new THREE.HemisphereLight(0x9a9db0, 0x1e1a16, 0.55);
   scene.add(hemi);
-  var ambient = new THREE.AmbientLight(0xd0d8e8, 0.38);
+  var ambient = new THREE.AmbientLight(0x6a6258, 0.42);
   scene.add(ambient);
-  var dir = new THREE.DirectionalLight(0xfff4e8, 1.05);
-  dir.position.set(-18, 34, 14);
+  var dir = new THREE.DirectionalLight(0xffe8d4, 0.82);
+  dir.position.set(26, 38, -10);
   dir.castShadow = true;
   dir.shadow.mapSize.set(2048, 2048);
   dir.shadow.camera.near = 2;
@@ -734,11 +1034,11 @@
   dir.shadow.camera.top = 56;
   dir.shadow.camera.bottom = -56;
   scene.add(dir);
-  var fill = new THREE.PointLight(0xa8c8ff, 0.58, 72);
-  fill.position.set(12, 9, -9);
+  var fill = new THREE.PointLight(0xffb070, 0.22, 48);
+  fill.position.set(-14, 5.5, 16);
   scene.add(fill);
-  var rim = new THREE.DirectionalLight(0xb8d0ff, 0.45);
-  rim.position.set(22, 14, -20);
+  var rim = new THREE.DirectionalLight(0x5a5048, 0.28);
+  rim.position.set(-20, 12, 22);
   scene.add(rim);
 
   var arena = 50;
@@ -748,6 +1048,7 @@
     return v * worldU;
   }
   var colliders = [];
+  var shootBlockingRoots = [];
 
   function addCollider(minX, maxX, minZ, maxZ, y0, y1, walkableTop) {
     colliders.push({
@@ -762,45 +1063,69 @@
     });
   }
 
+  function aabbOverlap(px, pz, r, box) {
+    var cx = Math.max(box.minX, Math.min(px, box.maxX));
+    var cz = Math.max(box.minZ, Math.min(pz, box.maxZ));
+    var dx = px - cx;
+    var dz = pz - cz;
+    return dx * dx + dz * dz < r * r;
+  }
+
+  function getGroundHeightFor(px, pz, agentR) {
+    var best = 0;
+    var ar = agentR == null ? 0.35 : agentR;
+    for (var gi = 0; gi < colliders.length; gi++) {
+      var b = colliders[gi];
+      if (b.active === false) continue;
+      if (!b.top) continue;
+      if (!aabbOverlap(px, pz, ar * 0.95, b)) continue;
+      best = Math.max(best, b.y1);
+    }
+    return best;
+  }
+
   var wallH = 6.2;
 
   var concreteMat = new THREE.MeshStandardMaterial({
-    color: 0x5c616a,
-    metalness: 0.1,
-    roughness: 0.88
+    color: 0x4a4d52,
+    metalness: 0.06,
+    roughness: 0.92
   });
   var rustMetalMat = new THREE.MeshStandardMaterial({
-    color: 0x5c5248,
-    metalness: 0.55,
-    roughness: 0.48
+    color: 0x5a5e64,
+    metalness: 0.48,
+    roughness: 0.58
   });
   var darkBeamMat = new THREE.MeshStandardMaterial({
-    color: 0x2a2c32,
-    metalness: 0.35,
-    roughness: 0.65
+    color: 0x2e3238,
+    metalness: 0.28,
+    roughness: 0.86
   });
   var crateMat = new THREE.MeshStandardMaterial({
-    color: 0x6d5238,
-    metalness: 0.12,
-    roughness: 0.88
-  });
-  var crateMat2 = new THREE.MeshStandardMaterial({
-    color: 0x4a4036,
+    color: 0x4a5056,
     metalness: 0.1,
     roughness: 0.9
   });
+  var crateMat2 = new THREE.MeshStandardMaterial({
+    color: 0x3a3e44,
+    metalness: 0.08,
+    roughness: 0.92
+  });
   var windowMat = new THREE.MeshStandardMaterial({
-    color: 0x1a2438,
-    emissive: 0x0a1528,
-    emissiveIntensity: 0.6,
+    color: 0x14161a,
+    emissive: 0x0a0c10,
+    emissiveIntensity: 0.18,
     metalness: 0.2,
-    roughness: 0.25
+    roughness: 0.72
   });
 
   function addStaticMesh(mesh, castShadow) {
     mesh.castShadow = !!castShadow;
     mesh.receiveShadow = true;
     scene.add(mesh);
+    if (!mesh.userData || typeof mesh.userData.explosiveBarrelIndex !== "number") {
+      shootBlockingRoots.push(mesh);
+    }
   }
 
   var floor = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), concreteMat);
@@ -809,16 +1134,16 @@
   scene.add(floor);
 
   var ceil = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), new THREE.MeshStandardMaterial({
-    color: 0x22242c,
-    roughness: 0.92,
-    metalness: 0.06
+    color: 0x1a1c20,
+    roughness: 0.96,
+    metalness: 0.03
   }));
   ceil.rotation.x = Math.PI / 2;
   ceil.position.y = 9.2;
   ceil.receiveShadow = true;
   scene.add(ceil);
 
-  function addWallMesh(w, h, d, x, z, ry, mat, skipCollider) {
+  function addWallMesh(w, h, d, x, z, ry, mat, skipCollider, walkableTop) {
     var g = new THREE.BoxGeometry(w, h, d);
     var m = new THREE.Mesh(g, mat || rustMetalMat);
     m.position.set(x, h / 2, z);
@@ -826,35 +1151,71 @@
     m.castShadow = true;
     m.receiveShadow = true;
     scene.add(m);
-    if (skipCollider) return;
+    if (!skipCollider) {
+      var cos = Math.cos(ry || 0);
+      var sin = Math.sin(ry || 0);
+      var hw = w / 2;
+      var hd = d / 2;
+      var corners = [
+        { lx: -hw, lz: -hd }, { lx: hw, lz: -hd },
+        { lx: hw, lz: hd }, { lx: -hw, lz: hd }
+      ];
+      var minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      for (var i = 0; i < corners.length; i++) {
+        var wx = x + corners[i].lx * cos - corners[i].lz * sin;
+        var wz = z + corners[i].lx * sin + corners[i].lz * cos;
+        minX = Math.min(minX, wx); maxX = Math.max(maxX, wx);
+        minZ = Math.min(minZ, wz); maxZ = Math.max(maxZ, wz);
+      }
+      var useTop = walkableTop === undefined ? true : !!walkableTop;
+      addCollider(minX, maxX, minZ, maxZ, 0, h, useTop);
+      shootBlockingRoots.push(m);
+    }
+  }
+
+  function addObstacleBox(w, h, d, cx, yBottom, cz, ry, mat, walkableTop) {
+    var yCenter = yBottom + h * 0.5;
+    var g = new THREE.BoxGeometry(w, h, d);
+    var mesh = new THREE.Mesh(g, mat || rustMetalMat);
+    mesh.position.set(cx, yCenter, cz);
+    mesh.rotation.y = ry || 0;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+    shootBlockingRoots.push(mesh);
     var cos = Math.cos(ry || 0);
     var sin = Math.sin(ry || 0);
-    var hw = w / 2;
-    var hd = d / 2;
+    var hw = w * 0.5;
+    var hd = d * 0.5;
     var corners = [
       { lx: -hw, lz: -hd }, { lx: hw, lz: -hd },
       { lx: hw, lz: hd }, { lx: -hw, lz: hd }
     ];
     var minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
-    for (var i = 0; i < corners.length; i++) {
-      var wx = x + corners[i].lx * cos - corners[i].lz * sin;
-      var wz = z + corners[i].lx * sin + corners[i].lz * cos;
+    var ci;
+    for (ci = 0; ci < 4; ci++) {
+      var wx = cx + corners[ci].lx * cos - corners[ci].lz * sin;
+      var wz = cz + corners[ci].lx * sin + corners[ci].lz * cos;
       minX = Math.min(minX, wx); maxX = Math.max(maxX, wx);
       minZ = Math.min(minZ, wz); maxZ = Math.max(maxZ, wz);
     }
-    addCollider(minX, maxX, minZ, maxZ, 0, h, false);
+    var wt = walkableTop === undefined ? h >= 0.55 : !!walkableTop;
+    addCollider(minX, maxX, minZ, maxZ, yBottom, yBottom + h, wt);
   }
 
   var wallT = 1.15;
-  addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, -half - wallT / 2, 0);
-  addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, half + wallT / 2, 0);
-  addWallMesh(wallT, wallH, arena * 2 + wallT * 2, -half - wallT / 2, 0, 0);
-  addWallMesh(wallT, wallH, arena * 2 + wallT * 2, half + wallT / 2, 0, 0);
+  addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, -half - wallT / 2, 0, rustMetalMat, false, false);
+  addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, half + wallT / 2, 0, rustMetalMat, false, false);
+  addWallMesh(wallT, wallH, arena * 2 + wallT * 2, -half - wallT / 2, 0, 0, rustMetalMat, false, false);
+  addWallMesh(wallT, wallH, arena * 2 + wallT * 2, half + wallT / 2, 0, 0, rustMetalMat, false, false);
 
-  for (var b = 0; b < 9; b++) {
-    var bx = -half + 3 + (b % 3) * (arena / 3);
-    var bz = -half + 4 + Math.floor(b / 3) * 10;
-    addWallMesh(arena * 0.32, 0.35, 0.45, bx, bz, 0, darkBeamMat, true);
+  for (var b = 0; b < 22; b++) {
+    var ang = (b / 22) * Math.PI * 2 + 0.35;
+    var rad = 7.2 + (b % 5) * 2.15;
+    var bx = Math.cos(ang) * rad + (b % 3) * 0.4;
+    var bz = Math.sin(ang) * rad * 0.92 + (b % 2) * 0.55;
+    var sh = 0.14 + (b % 4) * 0.05;
+    addWallMesh(0.55 + (b % 6) * 0.12, sh, 0.38 + (b % 3) * 0.1, bx, bz, ang * 0.08, darkBeamMat, false, false);
   }
 
   function addCrate(wx, wz, w, h, d, rotY) {
@@ -879,65 +1240,60 @@
     addCollider(minX, maxX, minZ, maxZ, 0, h, true);
   }
 
-  function addPillar(px, pz) {
-    var mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.62, wallH, 10), rustMetalMat);
+  function addSquareColumn(px, pz, w, d) {
+    var mesh = new THREE.Mesh(new THREE.BoxGeometry(w, wallH, d), rustMetalMat);
     mesh.position.set(px, wallH / 2, pz);
+    mesh.rotation.y = (px + pz) * 0.02;
     addStaticMesh(mesh, true);
-    var r = 0.62;
-    addCollider(px - r, px + r, pz - r, pz + r, 0, wallH, false);
+    var hw = w * 0.5 + 0.04;
+    var hd = d * 0.5 + 0.04;
+    addCollider(px - hw, px + hw, pz - hd, pz + hd, 0, wallH, true);
   }
 
-  var pillarSpots = [[-10, -10], [10, -8], [-6, 6], [12, 5], [-12, 10], [4, -12], [7, -5]];
-  for (var p = 0; p < pillarSpots.length; p++) addPillar(wu(pillarSpots[p][0]), wu(pillarSpots[p][1]));
+  var pillarSpots = [
+    [-12, -9, 0.78, 0.78],
+    [-12, 0, 0.78, 0.78],
+    [-12, 9, 0.78, 0.78],
+    [12, -9, 0.78, 0.78],
+    [12, 0, 0.78, 0.78],
+    [12, 9, 0.78, 0.78],
+    [-6, -16, 0.8, 0.8],
+    [6, -16, 0.8, 0.8]
+  ];
+  for (var p = 0; p < pillarSpots.length; p++) {
+    addSquareColumn(wu(pillarSpots[p][0]), wu(pillarSpots[p][1]), pillarSpots[p][2], pillarSpots[p][3]);
+  }
 
-  addCrate(wu(-14), wu(-4), 2.2, 1.5, 1.8, 0.2);
-  addCrate(wu(-12.8), wu(-4.1), 2.0, 1.4, 1.6, 0.5);
-  addCrate(wu(8), wu(10), 2.6, 1.7, 2.0, -0.3);
-  addCrate(wu(9.3), wu(9.2), 1.8, 1.2, 1.5, 0.1);
-  addCrate(wu(-4), wu(-12), 3.0, 1.6, 2.2, 0.4);
-  addCrate(wu(2), wu(4), 2.4, 1.3, 1.9, -0.5);
-  addCrate(wu(14), wu(-6), 2.0, 1.8, 1.8, 0.15);
-  addCrate(wu(-8), wu(12), 2.5, 1.5, 2.1, 0.35);
+  addWallMesh(0.38, 3.85, wu(11), half - wu(2.05), wu(8.5), 0, rustMetalMat, false, true);
+  addWallMesh(0.38, 3.85, wu(11), half - wu(2.05), wu(-6.2), 0, windowMat, false, false);
+  addWallMesh(wu(9.5), 2.95, 0.36, wu(-14.2), half - wu(2.15), wu(0.4), rustMetalMat, false, false);
 
-  addWallMesh(wu(14), 4.2, 0.35, wu(-4), -half + wu(2.5), 0.08, rustMetalMat);
-  addWallMesh(0.35, 4.2, wu(10), half - wu(2.2), wu(3), 0, windowMat);
-  addWallMesh(0.35, 4.2, wu(10), half - wu(2.2), wu(-4), 0, windowMat);
-
-  var fluoroMat = new THREE.MeshStandardMaterial({
-    color: 0xf8f8f0,
-    emissive: 0xc8e0ff,
-    emissiveIntensity: 0.55,
-    roughness: 0.35,
-    metalness: 0.15
+  var sodiumMat = new THREE.MeshStandardMaterial({
+    color: 0xffb060,
+    emissive: 0xff6600,
+    emissiveIntensity: 0.28,
+    roughness: 0.55,
+    metalness: 0.12
   });
-  var palletMat = new THREE.MeshStandardMaterial({ color: 0x4d4030, roughness: 0.92, metalness: 0.05 });
-  var pipeMat = new THREE.MeshStandardMaterial({ color: 0x3a4048, roughness: 0.45, metalness: 0.55 });
-  var hazardMat = new THREE.MeshStandardMaterial({ color: 0xc9a012, roughness: 0.65, metalness: 0.1 });
-  var floorPathMat = new THREE.MeshStandardMaterial({
-    color: 0x6d7078,
-    roughness: 0.9,
-    metalness: 0.05,
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1
+  var palletMat = new THREE.MeshStandardMaterial({ color: 0x45494e, roughness: 0.92, metalness: 0.06 });
+  var pipeMat = new THREE.MeshStandardMaterial({ color: 0x3a3d42, roughness: 0.68, metalness: 0.42 });
+  var hazardMat = new THREE.MeshStandardMaterial({ color: 0xb07028, roughness: 0.7, metalness: 0.08 });
+  var oilMat = new THREE.MeshStandardMaterial({
+    color: 0x0e1014,
+    roughness: 0.98,
+    metalness: 0.02
   });
-  var dockStripeMat = new THREE.MeshStandardMaterial({
-    color: 0xc9a51e,
-    roughness: 0.72,
-    metalness: 0.1,
-    polygonOffset: true,
-    polygonOffsetFactor: -1,
-    polygonOffsetUnits: -1
+  var sootWallMat = new THREE.MeshStandardMaterial({
+    color: 0x3a3d42,
+    metalness: 0.22,
+    roughness: 0.88
   });
-  var rackPostMat = new THREE.MeshStandardMaterial({
-    color: 0x3a3634,
-    roughness: 0.82,
-    metalness: 0.32
-  });
-  var rackBeamMat = new THREE.MeshStandardMaterial({
-    color: 0x4a443e,
-    roughness: 0.78,
-    metalness: 0.4
+  var tankPatinaMat = new THREE.MeshStandardMaterial({
+    color: 0x4a5358,
+    metalness: 0.38,
+    roughness: 0.55,
+    emissive: 0x050608,
+    emissiveIntensity: 0.06
   });
 
   function makeFireLogoTexture() {
@@ -1040,134 +1396,152 @@
     addCollider(minX, maxX, minZ, maxZ, 0, 0.12, true);
   }
 
-  function addFloorDecal(w, d, x, z, rotY, mat, y) {
+  function addFloorDecal(w, d, x, z, rotY, mat, y, renderOrder) {
     var m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat);
     m.rotation.x = -Math.PI / 2;
     if (rotY) m.rotation.y = rotY;
     m.position.set(x, y === undefined ? 0.018 : y, z);
     m.receiveShadow = true;
+    if (renderOrder != null) m.renderOrder = renderOrder;
     scene.add(m);
   }
 
-  function addRackingRow(px, pz, len, alongZ) {
-    var postW = 0.11;
-    var postD = 0.11;
-    var postH = 3.55;
-    var spacing = 2.05;
-    var n = Math.max(2, Math.floor(len / spacing));
-    var i;
-    if (alongZ) {
-      for (i = 0; i <= n; i++) {
-        var zz = pz - len / 2 + (i / n) * len;
-        var post = new THREE.Mesh(new THREE.BoxGeometry(postW, postH, postD), rackPostMat);
-        post.position.set(px, postH / 2, zz);
-        addStaticMesh(post, true);
-      }
-      var beam = new THREE.Mesh(new THREE.BoxGeometry(postW * 2.2, 0.12, len + 0.2), rackBeamMat);
-      beam.position.set(px, postH + 0.04, pz);
-      addStaticMesh(beam, true);
-    } else {
-      for (i = 0; i <= n; i++) {
-        var xx = px - len / 2 + (i / n) * len;
-        var postH2 = new THREE.Mesh(new THREE.BoxGeometry(postW, postH, postD), rackPostMat);
-        postH2.position.set(xx, postH / 2, pz);
-        addStaticMesh(postH2, true);
-      }
-      var beam2 = new THREE.Mesh(new THREE.BoxGeometry(len + 0.2, 0.12, postD * 2.2), rackBeamMat);
-      beam2.position.set(px, postH + 0.04, pz);
-      addStaticMesh(beam2, true);
+  function addIndustrialTank(wx, wz, r, h) {
+    var mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.04, h, 20), tankPatinaMat);
+    mesh.position.set(wx, h * 0.5, wz);
+    addStaticMesh(mesh, true);
+    var rr = r * 1.06;
+    addCollider(wx - rr, wx + rr, wz - rr, wz + rr, 0, h, true);
+  }
+
+  function buildAbandonedFactoryInterior() {
+    addFloorDecal(5.5, 4.2, wu(-12), wu(-6), 0.2, oilMat, 0.012, 20);
+    addFloorDecal(7, 3.5, wu(8), wu(5), -0.35, oilMat, 0.011, 21);
+    addFloorDecal(3.5, 9, wu(2), wu(-11), 0.6, oilMat, 0.013, 19);
+
+    addWallMesh(wu(24), 1.25, 0.44, wu(0), wu(-9.2), 0, sootWallMat, false, true);
+    addWallMesh(wu(24), 1.25, 0.44, wu(0), wu(9.2), 0, sootWallMat, false, true);
+
+    addWallMesh(0.44, 2.85, wu(8.5), wu(-12), wu(-16.25), 0, sootWallMat, false, true);
+    addWallMesh(0.44, 2.85, wu(8.5), wu(-12), wu(16.25), 0, sootWallMat, false, true);
+    addWallMesh(0.44, 2.85, wu(8.5), wu(12), wu(-16.25), 0, sootWallMat, false, true);
+    addWallMesh(0.44, 2.85, wu(8.5), wu(12), wu(16.25), 0, sootWallMat, false, true);
+
+    addWallMesh(wu(7.5), 1.35, 0.42, wu(-16), wu(0), 0, rustMetalMat, false, true);
+    addWallMesh(wu(7.5), 1.35, 0.42, wu(16), wu(0), 0, rustMetalMat, false, true);
+
+    addWallMesh(wu(14), 2.15, 0.42, wu(0), wu(-15.6), 0, sootWallMat, false, true);
+
+    addWallMesh(wu(5.2), 0.52, wu(3.8), wu(-6.5), wu(0), 0.08, rustMetalMat, false, true);
+    addWallMesh(wu(5.2), 0.52, wu(3.8), wu(6.5), wu(0), -0.06, rustMetalMat, false, true);
+
+    addIndustrialTank(wu(-8), wu(13.5), 1.32, 2.35);
+    addIndustrialTank(wu(8), wu(13.5), 1.32, 2.35);
+
+    addWallMesh(wu(6), 1.85, 0.4, wu(0), wu(14.2), 0.12, sootWallMat, false, true);
+
+    addObstacleBox(wu(18), 0.34, 0.5, wu(0), 1.88, wu(-4.2), 0, darkBeamMat, false);
+    addObstacleBox(wu(1.1), 0.28, wu(6.5), wu(-10), 1.42, wu(4), 0, darkBeamMat, false);
+    addObstacleBox(wu(1.1), 0.28, wu(6.5), wu(10), 1.42, wu(-4), 0, darkBeamMat, false);
+
+    var fallen = new THREE.Mesh(new THREE.BoxGeometry(wu(5.8), 0.18, wu(2.1)), rustMetalMat);
+    fallen.position.set(wu(-7.5), 0.48, wu(11.5));
+    fallen.rotation.set(0.1, 0.32, 0.04);
+    fallen.castShadow = true;
+    fallen.receiveShadow = true;
+    scene.add(fallen);
+    addWallMesh(wu(5.8), 0.22, wu(2.1), wu(-7.5), wu(11.5), 0.32, sootWallMat, false, true);
+  }
+
+  buildAbandonedFactoryInterior();
+
+  var sodiumPts = [
+    [-11, 2], [-3, -4], [3, 7], [11, -1], [-7, -10], [7, 12], [13, 4], [-1, 13], [9, -11], [-14, -1]
+  ];
+  for (var si = 0; si < sodiumPts.length; si++) {
+    var sm = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.09, 0.4), sodiumMat);
+    sm.position.set(wu(sodiumPts[si][0]), 8.58 + (si % 3) * 0.07, wu(sodiumPts[si][1]));
+    sm.rotation.y = si * 0.41;
+    sm.castShadow = false;
+    scene.add(sm);
+  }
+
+  var trunk = new THREE.Mesh(new THREE.BoxGeometry(arena - 13, 0.46, 0.82), pipeMat);
+  trunk.position.set(wu(1.2), 7.62, wu(-11.5));
+  trunk.rotation.y = 0.16;
+  trunk.castShadow = true;
+  scene.add(trunk);
+  var trunk2 = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.4, arena - 17), pipeMat);
+  trunk2.position.set(wu(-13.5), 7.38, wu(1.8));
+  trunk2.castShadow = true;
+  scene.add(trunk2);
+
+  function pickSpawnOpen(radius, minDistFromOrigin) {
+    var md = minDistFromOrigin == null ? 0 : minDistFromOrigin;
+    for (var sp = 0; sp < 260; sp++) {
+      var sx = (Math.random() * 2 - 1) * (half - 2.8);
+      var sz = (Math.random() * 2 - 1) * (half - 2.8);
+      if (!enemyWalkFree(sx, sz, radius)) continue;
+      if (getGroundHeightFor(sx, sz, radius) > 0.14) continue;
+      if (md > 0 && Math.hypot(sx, sz) < md) continue;
+      return { x: sx, z: sz };
+    }
+    return { x: wu(4), z: wu(-2) };
+  }
+  var spawnPick = pickSpawnOpen(0.36, 0);
+  var SPAWN_X = spawnPick.x;
+  var SPAWN_Z = spawnPick.z;
+
+  function tryPlaceBarrel(r, ht) {
+    for (var tb = 0; tb < 100; tb++) {
+      var bx = (Math.random() * 2 - 1) * (half - 3.5);
+      var bz = (Math.random() * 2 - 1) * (half - 3.5);
+      if (Math.hypot(bx - SPAWN_X, bz - SPAWN_Z) < 2.75) continue;
+      if (!enemyWalkFree(bx, bz, r * 1.35)) continue;
+      if (getGroundHeightFor(bx, bz, 0.38) > 0.12) continue;
+      addExplosiveBarrel(bx, bz, r, ht);
+      return;
     }
   }
+  tryPlaceBarrel(0.35, 1.02);
+  tryPlaceBarrel(0.34, 0.94);
+  tryPlaceBarrel(0.37, 1.08);
+  tryPlaceBarrel(0.33, 0.9);
+  tryPlaceBarrel(0.36, 0.98);
+  tryPlaceBarrel(0.35, 1.04);
 
-  function buildWarehouseRouting() {
-    addFloorDecal(wu(3.2), arena * 1.72, 0, 0, 0, floorPathMat, 0.011);
-    addFloorDecal(arena * 1.72, wu(3.2), 0, 0, 0, floorPathMat, 0.011);
-    addFloorDecal(wu(1.1), arena * 1.72, wu(-0.05), 0, 0, dockStripeMat, 0.021);
-    addFloorDecal(arena * 1.72, wu(1.1), 0, wu(-0.05), 0, dockStripeMat, 0.023);
-    addFloorDecal(arena - 4, wu(1.35), 0, -half + wu(2.85), 0, dockStripeMat, 0.025);
-
-    addWallMesh(0.34, 3.35, wu(7.2), wu(-11.2), wu(-8.6), 0);
-    addWallMesh(0.34, 3.35, wu(7.2), wu(-11.2), wu(8.6), 0);
-    addWallMesh(0.34, 3.35, wu(7.2), wu(11.2), wu(-8.6), 0);
-    addWallMesh(0.34, 3.35, wu(7.2), wu(11.2), wu(8.6), 0);
-
-    addWallMesh(wu(8.4), 3.35, 0.34, wu(-5.8), wu(-12.4), 0);
-    addWallMesh(wu(8.4), 3.35, 0.34, wu(5.8), wu(-12.4), 0);
-    addWallMesh(wu(8.4), 3.35, 0.34, wu(-5.8), wu(12.4), 0);
-    addWallMesh(wu(8.4), 3.35, 0.34, wu(5.8), wu(12.4), 0);
-
-    addRackingRow(wu(-14.5), wu(-5), wu(16), true);
-    addRackingRow(wu(-14.5), wu(6), wu(14), true);
-    addRackingRow(wu(14.5), wu(-4), wu(15), true);
-    addRackingRow(wu(14.5), wu(7), wu(13), true);
-    addRackingRow(wu(-5), wu(-14.2), wu(12), false);
-    addRackingRow(wu(6), wu(14.2), wu(12), false);
-
-    var conn = new THREE.Mesh(new THREE.BoxGeometry(wu(4.2), 0.22, wu(1.4)), darkBeamMat);
-    conn.position.set(wu(-11.2), 1.05, 0);
-    conn.castShadow = true;
-    conn.receiveShadow = true;
-    scene.add(conn);
-    var conn2 = conn.clone();
-    conn2.position.set(wu(11.2), 1.05, 0);
-    scene.add(conn2);
-    var conn3 = new THREE.Mesh(new THREE.BoxGeometry(wu(1.4), 0.22, wu(4.2)), darkBeamMat);
-    conn3.position.set(0, 1.05, wu(-12.4));
-    conn3.castShadow = true;
-    conn3.receiveShadow = true;
-    scene.add(conn3);
-    var conn4 = conn3.clone();
-    conn4.position.set(0, 1.05, wu(12.4));
-    scene.add(conn4);
+  function tryPlacePalette(rotY) {
+    for (var tp = 0; tp < 80; tp++) {
+      var px = (Math.random() * 2 - 1) * (half - 3.2);
+      var pz = (Math.random() * 2 - 1) * (half - 3.2);
+      if (Math.hypot(px - SPAWN_X, pz - SPAWN_Z) < 2.75) continue;
+      if (!enemyWalkFree(px, pz, 0.55)) continue;
+      if (getGroundHeightFor(px, pz, 0.5) > 0.1) continue;
+      addPalette(px, pz, rotY + (tp % 7) * 0.08);
+      return;
+    }
   }
+  tryPlacePalette(0.22);
+  tryPlacePalette(-0.35);
+  tryPlacePalette(0.68);
 
-  for (var fl = 0; fl < 10; fl++) {
-    var fx = -half + 2.5 + fl * 3.1;
-    var fz = (fl % 2 === 0 ? -1 : 1) * (half - 3.5);
-    var strip = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.12, 0.55), fluoroMat);
-    strip.position.set(fx, 8.75, fz);
-    strip.rotation.y = fl % 2 === 0 ? 0 : Math.PI / 2;
-    strip.castShadow = false;
-    scene.add(strip);
+  function tryPlaceCrate(w, h, d, rotY) {
+    for (var tc = 0; tc < 90; tc++) {
+      var cx = (Math.random() * 2 - 1) * (half - 3.8);
+      var cz = (Math.random() * 2 - 1) * (half - 3.8);
+      if (Math.hypot(cx - SPAWN_X, cz - SPAWN_Z) < 2.75) continue;
+      if (!enemyWalkFree(cx, cz, Math.max(w, d) * 0.55)) continue;
+      if (getGroundHeightFor(cx, cz, 0.45) > 0.1) continue;
+      addCrate(cx, cz, w, h, d, rotY + tc * 0.03);
+      return;
+    }
   }
-
-  for (var vd = 0; vd < 4; vd++) {
-    var duct = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.45, arena - 8), pipeMat);
-    duct.position.set(half - 2.4, 7.8 - vd * 0.55, 0);
-    duct.castShadow = true;
-    scene.add(duct);
-  }
-
-  addExplosiveBarrel(wu(-5.2), wu(8.1), 0.36, 1.05);
-  addExplosiveBarrel(wu(11.5), wu(-3.2), 0.34, 0.92);
-  addExplosiveBarrel(wu(-11), wu(2.4), 0.38, 1.1);
-  addExplosiveBarrel(wu(6.2), wu(-10.5), 0.33, 0.88);
-  addPalette(wu(-6.5), wu(-8.2), 0.15);
-  addPalette(wu(12), wu(4.5), -0.4);
-  addPalette(wu(-10), wu(11), 0.9);
-  addCrate(wu(-1), wu(-6), 1.8, 1.2, 1.4, 0.1);
-  addCrate(wu(5), wu(-8), 2.0, 1.1, 1.6, -0.2);
-  addCrate(wu(-12), wu(-2), 1.6, 1.0, 1.3, 0.35);
-  addCrate(wu(3), wu(11), 1.9, 1.4, 1.7, 0.05);
-  addCrate(wu(-7), wu(4), 2.1, 1.5, 1.8, -0.25);
-
-  buildWarehouseRouting();
-
-  for (var rail = 0; rail < 14; rail++) {
-    var rx = -half + 4 + rail * 2.1;
-    var post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.85, 6), hazardMat);
-    post.position.set(rx, 0.42, -half + 2.2);
-    post.castShadow = true;
-    scene.add(post);
-  }
-  var railBar = new THREE.Mesh(new THREE.BoxGeometry(arena - 6, 0.06, 0.08), hazardMat);
-  railBar.position.set(0, 0.78, -half + 2.2);
-  railBar.castShadow = true;
-  scene.add(railBar);
-
+  tryPlaceCrate(1.85, 1.15, 1.45, 0.1);
+  tryPlaceCrate(1.98, 1.28, 1.58, -0.22);
+  tryPlaceCrate(1.68, 1.02, 1.28, 0.42);
+  tryPlaceCrate(2.02, 1.38, 1.62, -0.08);
+  tryPlaceCrate(1.9, 1.18, 1.42, 0.18);
   var eyeY = 1.65;
-  var SPAWN_X = wu(4.5);
-  var SPAWN_Z = wu(3.2);
   var GRAVITY = 26;
   var JUMP_V = 10.2;
   var PLAYER_BODY_H = 1.78;
@@ -1176,8 +1550,11 @@
 
   for (var cone = 0; cone < 16; cone++) {
     var co = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.5, 8), hazardMat);
-    co.position.set((Math.random() - 0.5) * (arena - 8), 0.25, (Math.random() - 0.5) * (arena - 8));
-    if (Math.abs(co.position.x - SPAWN_X) < 2 && Math.abs(co.position.z - SPAWN_Z) < 2) continue;
+    var cox = (Math.random() - 0.5) * (arena - 8);
+    var coz = (Math.random() - 0.5) * (arena - 8);
+    co.position.set(cox, 0.25, coz);
+    if (Math.abs(cox - SPAWN_X) < 2 && Math.abs(coz - SPAWN_Z) < 2) continue;
+    if (!enemyWalkFree(cox, coz, 0.32)) continue;
     co.castShadow = true;
     scene.add(co);
   }
@@ -1186,12 +1563,13 @@
     var sx = (Math.random() - 0.5) * (arena - 6);
     var sz = (Math.random() - 0.5) * (arena - 6);
     if (Math.abs(sx) < 3 && Math.abs(sz) < 3) continue;
-    var junk = new THREE.Mesh(
-      new THREE.BoxGeometry(0.3 + Math.random() * 0.5, 0.12, 0.25 + Math.random() * 0.45),
-      darkBeamMat
-    );
+    if (!enemyWalkFree(sx, sz, 0.28)) continue;
+    var jw = 0.3 + Math.random() * 0.5;
+    var jd = 0.25 + Math.random() * 0.45;
+    var jrot = Math.random() * Math.PI;
+    var junk = new THREE.Mesh(new THREE.BoxGeometry(jw, 0.12, jd), darkBeamMat);
     junk.position.set(sx, 0.06, sz);
-    junk.rotation.y = Math.random() * Math.PI;
+    junk.rotation.y = jrot;
     junk.receiveShadow = true;
     scene.add(junk);
   }
@@ -1295,6 +1673,8 @@
   weapon.userData.baseY = weapon.position.y;
 
   var weaponSlot = 1;
+  var quickKnifePrevSlot = 1;
+  var quickKnifeReturnOnFRelease = false;
 
   var pistolWeapon = new THREE.Group();
   pistolWeapon.name = "shotgun";
@@ -1397,59 +1777,151 @@
   knifeWeapon.visible = false;
   camera.add(knifeWeapon);
 
-  var kBladeMat = new THREE.MeshStandardMaterial({
-    color: 0xc4cad1,
-    metalness: 0.86,
-    roughness: 0.24
+  var kBladePolish = new THREE.MeshStandardMaterial({
+    color: 0xd6dee8,
+    metalness: 0.91,
+    roughness: 0.19
   });
-  var kEdgeMat = new THREE.MeshStandardMaterial({
-    color: 0x5c636a,
-    metalness: 0.65,
-    roughness: 0.42
+  var kBladeGrind = new THREE.MeshStandardMaterial({
+    color: 0x5c6672,
+    metalness: 0.64,
+    roughness: 0.42,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1
+  });
+  var kBladeSpineMat = new THREE.MeshStandardMaterial({
+    color: 0xa8b2bd,
+    metalness: 0.87,
+    roughness: 0.25
+  });
+  var kEdgeFlash = new THREE.MeshStandardMaterial({
+    color: 0xf4f8ff,
+    metalness: 0.94,
+    roughness: 0.1
   });
   var kHandleMat = new THREE.MeshStandardMaterial({
-    color: 0x3d2b24,
-    roughness: 0.91,
+    color: 0x2e211a,
+    roughness: 0.93,
     metalness: 0.03
   });
+  var kHandleScaleMat = new THREE.MeshStandardMaterial({
+    color: 0x4a3c34,
+    roughness: 0.9,
+    metalness: 0.05
+  });
+  var kPinMat = new THREE.MeshStandardMaterial({
+    color: 0xc4a050,
+    metalness: 0.7,
+    roughness: 0.3
+  });
 
-  var bladeLen = 0.31;
-  var bladeW = 0.024;
-  var bladeTh = 0.0021;
-  var bladeHeelZ = -0.072;
+  var bladeLen = 0.33;
+  var bladeW = 0.027;
+  var bladeTh = 0.00225;
+  var bladeHeelZ = -0.074;
   var bladeTipZ = bladeHeelZ - bladeLen;
   var bladeCenterZ = (bladeHeelZ + bladeTipZ) / 2;
-
   var gripX = 0.052;
 
-  var kBlade = new THREE.Mesh(new THREE.BoxGeometry(bladeW, bladeTh, bladeLen), kBladeMat);
+  var kBlade = new THREE.Mesh(new THREE.BoxGeometry(bladeW, bladeTh, bladeLen), kBladePolish);
   kBlade.position.set(gripX, 0, bladeCenterZ);
   kBlade.castShadow = true;
   kBlade.receiveShadow = true;
   knifeWeapon.add(kBlade);
 
-  var kEdgeLine = new THREE.Mesh(
-    new THREE.BoxGeometry(bladeW * 1.02, 0.0007, bladeLen * 0.97),
-    kEdgeMat
+  var kSpine = new THREE.Mesh(
+    new THREE.BoxGeometry(bladeW * 0.9, bladeTh * 1.45, bladeLen * 0.22),
+    kBladeSpineMat
   );
-  kEdgeLine.position.set(gripX, -bladeTh * 0.45, bladeCenterZ);
+  kSpine.position.set(gripX, bladeTh * 0.42, bladeHeelZ - bladeLen * 0.1);
+  kSpine.castShadow = true;
+  kSpine.receiveShadow = true;
+  knifeWeapon.add(kSpine);
+
+  var kFuller = new THREE.Mesh(
+    new THREE.BoxGeometry(bladeW * 0.4, 0.00055, bladeLen * 0.58),
+    kBladeGrind
+  );
+  kFuller.position.set(gripX - bladeW * 0.13, bladeTh * 0.52, bladeCenterZ + bladeLen * 0.07);
+  knifeWeapon.add(kFuller);
+
+  var kGrindPanel = new THREE.Mesh(
+    new THREE.BoxGeometry(bladeW * 0.97, 0.0005, bladeLen * 0.86),
+    kBladeGrind
+  );
+  kGrindPanel.position.set(gripX, -bladeTh * 0.52, bladeCenterZ + bladeLen * 0.02);
+  knifeWeapon.add(kGrindPanel);
+
+  var kEdgeLine = new THREE.Mesh(
+    new THREE.BoxGeometry(bladeW * 1.02, 0.0005, bladeLen * 0.99),
+    kEdgeFlash
+  );
+  kEdgeLine.position.set(gripX, -bladeTh * 0.48, bladeCenterZ);
   knifeWeapon.add(kEdgeLine);
 
-  var kBolster = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.019, 0.036), gunMetal);
-  kBolster.position.set(gripX, 0, -0.052);
+  var kClip = new THREE.Mesh(new THREE.BoxGeometry(bladeW * 0.52, bladeTh * 1.05, bladeLen * 0.095), kBladeSpineMat);
+  kClip.position.set(gripX - bladeW * 0.1, 0, bladeTipZ + bladeLen * 0.048);
+  kClip.rotation.y = -0.15;
+  kClip.castShadow = true;
+  knifeWeapon.add(kClip);
+
+  var kBolster = new THREE.Mesh(new THREE.BoxGeometry(0.036, 0.022, 0.041), gunDark);
+  kBolster.position.set(gripX, 0, -0.056);
   kBolster.castShadow = true;
+  kBolster.receiveShadow = true;
   knifeWeapon.add(kBolster);
 
-  var handleLen = 0.09;
-  var handleCenterZ = 0.056;
-  var kHandle = new THREE.Mesh(new THREE.BoxGeometry(0.021, 0.014, handleLen), kHandleMat);
+  var kGuard = new THREE.Mesh(new THREE.BoxGeometry(0.054, 0.0042, 0.016), gunMetal);
+  kGuard.position.set(gripX, 0, -0.041);
+  kGuard.castShadow = true;
+  kGuard.receiveShadow = true;
+  knifeWeapon.add(kGuard);
+
+  var handleLen = 0.096;
+  var handleCenterZ = 0.058;
+  var kHandle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.0105, 0.0132, handleLen, 14, 1),
+    kHandleMat
+  );
+  kHandle.rotation.x = -Math.PI / 2;
   kHandle.position.set(gripX, 0, handleCenterZ);
   kHandle.castShadow = true;
+  kHandle.receiveShadow = true;
   knifeWeapon.add(kHandle);
 
-  var kButt = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.015, 0.011), gunMetal);
-  kButt.position.set(gripX, 0, handleCenterZ + handleLen / 2 + 0.008);
-  kButt.castShadow = true;
+  var stripGeo = new THREE.BoxGeometry(0.0018, 0.0115, handleLen * 0.9);
+  var kScaleL = new THREE.Mesh(stripGeo, kHandleScaleMat);
+  kScaleL.position.set(gripX - 0.0098, 0, handleCenterZ);
+  kScaleL.castShadow = true;
+  knifeWeapon.add(kScaleL);
+  var kScaleR = new THREE.Mesh(stripGeo, kHandleScaleMat);
+  kScaleR.position.set(gripX + 0.0098, 0, handleCenterZ);
+  kScaleR.castShadow = true;
+  knifeWeapon.add(kScaleR);
+
+  var kPinL = new THREE.Mesh(new THREE.CylinderGeometry(0.0032, 0.0032, 0.019, 8, 1), kPinMat);
+  kPinL.rotation.x = Math.PI / 2;
+  kPinL.position.set(gripX - 0.007, 0, handleCenterZ + 0.014);
+  kPinL.castShadow = true;
+  knifeWeapon.add(kPinL);
+  var kPinR = new THREE.Mesh(new THREE.CylinderGeometry(0.0032, 0.0032, 0.019, 8, 1), kPinMat);
+  kPinR.rotation.x = Math.PI / 2;
+  kPinR.position.set(gripX + 0.007, 0, handleCenterZ - 0.016);
+  kPinR.castShadow = true;
+  knifeWeapon.add(kPinR);
+
+  var kButt = new THREE.Group();
+  kButt.position.set(gripX, 0, handleCenterZ + handleLen * 0.5 + 0.009);
+  var kButtDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.0155, 0.0155, 0.0075, 16, 1), gunMetal);
+  kButtDisc.rotation.x = Math.PI / 2;
+  kButtDisc.castShadow = true;
+  kButt.add(kButtDisc);
+  var kButtDome = new THREE.Mesh(new THREE.SphereGeometry(0.0105, 12, 10), gunDark);
+  kButtDome.scale.set(1.08, 0.68, 1.08);
+  kButtDome.position.z = 0.014;
+  kButtDome.castShadow = true;
+  kButt.add(kButtDome);
   knifeWeapon.add(kButt);
 
   knifeWeapon.userData.mag = kHandle;
@@ -1536,6 +2008,38 @@
   var recoilKick = 0;
   var moveBob = 0;
 
+  function openPauseMenu() {
+    if (!pointerLocked || gameOver || paused) return;
+    paused = true;
+    document.exitPointerLock();
+    pauseLayer.classList.add("visible");
+    pauseLayer.setAttribute("aria-hidden", "false");
+    Object.keys(keys).forEach(function (k) {
+      keys[k] = false;
+    });
+    fireMouseHeld = false;
+    requestAnimationFrame(function () {
+      if (pauseResumeBtn) pauseResumeBtn.focus();
+    });
+    updateHeldGrenadeVisible();
+  }
+
+  function closePauseMenuAndPlay() {
+    if (!paused) return;
+    paused = false;
+    pauseLayer.classList.remove("visible");
+    pauseLayer.setAttribute("aria-hidden", "true");
+    updateHeldGrenadeVisible();
+    renderer.domElement.requestPointerLock();
+  }
+
+  function togglePauseMenuFromInput() {
+    if (!overlay.classList.contains("hidden") && !gameOver) return;
+    if (gameOver) return;
+    if (!paused) openPauseMenu();
+    else closePauseMenuAndPlay();
+  }
+
   var keys = {};
   window.addEventListener("keydown", function (e) {
     if (e.code === "Space") {
@@ -1560,31 +2064,66 @@
       return;
     }
     if (e.code === "Digit4") {
-      if (pointerLocked) selectWeaponSlot(4);
+      if (pointerLocked) {
+        quickKnifeReturnOnFRelease = false;
+        selectWeaponSlot(4);
+      }
+      return;
+    }
+    if (e.code === "KeyF") {
+      if (pointerLocked && !gameOver && !paused && !e.repeat) {
+        if (weaponSlot !== 4) {
+          quickKnifePrevSlot = weaponSlot;
+          quickKnifeReturnOnFRelease = true;
+          selectWeaponSlot(4);
+        } else {
+          quickKnifeReturnOnFRelease = false;
+        }
+        tryKnifePrimaryFire();
+      }
       return;
     }
     if (e.code === "KeyG") {
       if (pointerLocked && !e.repeat) tryThrowGrenade();
       return;
     }
-    if (e.code === "KeyP") {
-      if (!e.repeat && overlay.classList.contains("hidden")) {
-        paused = !paused;
-        if (paused) {
-          document.exitPointerLock();
-          pauseLayer.classList.add("visible");
-          Object.keys(keys).forEach(function (k) { keys[k] = false; });
-          fireMouseHeld = false;
-        } else {
-          pauseLayer.classList.remove("visible");
-        }
-        updateHeldGrenadeVisible();
+    if (e.code === "Escape") {
+      if (!overlay.classList.contains("hidden")) return;
+      if (gameOver) return;
+      if (paused) {
+        e.preventDefault();
+        closePauseMenuAndPlay();
+        return;
       }
+      if (pointerLocked) {
+        e.preventDefault();
+        openPauseMenu();
+        return;
+      }
+      return;
+    }
+    if (e.code === "Enter" || e.code === "NumpadEnter") {
+      if (!gameOver && !paused && overlay && !overlay.classList.contains("hidden")) {
+        e.preventDefault();
+        overlay.click();
+      }
+      return;
+    }
+    if (e.code === "KeyP") {
+      if (!e.repeat) togglePauseMenuFromInput();
       return;
     }
     keys[e.code] = true;
   });
-  window.addEventListener("keyup", function (e) { keys[e.code] = false; });
+  window.addEventListener("keyup", function (e) {
+    keys[e.code] = false;
+    if (e.code === "KeyF" && pointerLocked) {
+      if (quickKnifeReturnOnFRelease && weaponSlot === 4) {
+        selectWeaponSlot(quickKnifePrevSlot);
+      }
+      quickKnifeReturnOnFRelease = false;
+    }
+  });
 
   var pointerLocked = false;
   var euler = new THREE.Euler(0, 0, 0, "YXZ");
@@ -1610,11 +2149,22 @@
     pointerLocked = document.pointerLockElement === renderer.domElement;
     crosshair.classList.toggle("active", pointerLocked);
     if (!pointerLocked) {
-      overlay.classList.remove("hidden");
       fireMouseHeld = false;
       weaponWheelAcc = 0;
+      quickKnifeReturnOnFRelease = false;
+      if (!paused || gameOver) overlay.classList.remove("hidden");
+    } else {
+      overlay.classList.add("hidden");
     }
   });
+
+  if (pauseResumeBtn) {
+    pauseResumeBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      closePauseMenuAndPlay();
+    });
+  }
 
   overlay.addEventListener("click", function () {
     ensureAudio();
@@ -1640,6 +2190,7 @@
       magPrimary = MAG_PRIMARY;
       magSecondary = MAG_PISTOL;
       weaponSlot = 1;
+      quickKnifeReturnOnFRelease = false;
       weapon.visible = true;
       pistolWeapon.visible = false;
       knifeWeapon.visible = false;
@@ -1657,6 +2208,7 @@
       resetExplosiveBarrels();
       paused = false;
       pauseLayer.classList.remove("visible");
+      pauseLayer.setAttribute("aria-hidden", "true");
       updateAmmoHud();
       updateGrenadeHud();
       updateHotbar();
@@ -2162,6 +2714,7 @@
         sx = Math.cos(ang) * dist;
         sz = Math.sin(ang) * dist;
         if (!enemyWalkFree(sx, sz, rad)) continue;
+        if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
         if (Math.hypot(sx - player.x, sz - player.z) < minFromPlayer) continue;
         var buddyOk = true;
         for (var p = 0; p < placed.length; p++) {
@@ -2182,6 +2735,7 @@
             sx = Math.cos(ang2) * ring;
             sz = Math.sin(ang2) * ring;
             if (!enemyWalkFree(sx, sz, rad)) continue;
+            if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
             if (Math.hypot(sx - player.x, sz - player.z) < minFromPlayer) continue;
             buddyOk = true;
             for (var p2 = 0; p2 < placed.length; p2++) {
@@ -2318,6 +2872,18 @@
 
   function updateGrenadeHud() {
     updateHeldGrenadeVisible();
+    if (elMagRowG) elMagRowG.classList.toggle("active", weaponSlot === 3);
+    if (elMagValG && elMagCapG) {
+      if (grenadeCooldown > 0) {
+        elMagValG.textContent = grenadeCooldown.toFixed(1);
+        elMagCapG.textContent = "s";
+        elMagValG.classList.add("grenadeCdTick");
+      } else {
+        elMagValG.textContent = activeGrenade ? "…" : "Ready";
+        elMagCapG.textContent = "";
+        elMagValG.classList.remove("grenadeCdTick");
+      }
+    }
   }
 
   function updateHotbarAvailability() {
@@ -2326,8 +2892,7 @@
     var grenUnavailable =
       grenadeCooldown > 0 ||
       !!activeGrenade ||
-      gameOver ||
-      waveIntermission > 0;
+      gameOver;
     var states = [rifleOut, pistolOut, grenUnavailable, false];
     for (var ui = 0; ui < elHotbarSlots.length; ui++) {
       elHotbarSlots[ui].classList.toggle("unavailable", !!states[ui]);
@@ -2355,6 +2920,7 @@
 
   function selectWeaponSlot(slot) {
     if (reloading && slot !== weaponSlot) cancelReloadInProgress();
+    if (weaponSlot === 4 && slot !== 4) quickKnifeReturnOnFRelease = false;
     weaponSlot = slot;
     weapon.visible = slot === 1;
     pistolWeapon.visible = slot === 2;
@@ -2404,6 +2970,7 @@
     var idx = order.indexOf(weaponSlot);
     if (idx < 0) idx = 0;
     var next = order[(idx + dir + 4) % 4];
+    if (next === 4) quickKnifeReturnOnFRelease = false;
     selectWeaponSlot(next);
   }, { passive: false });
 
@@ -2641,13 +3208,14 @@
     reloadWeaponSlot = weaponSlot;
     reloadDurationActive = weaponSlot === 1 ? RELOAD_DURATION_PRIMARY : RELOAD_DURATION_PISTOL;
     reloadTime = reloadDurationActive;
+    if (elReloadProgressRing) elReloadProgressRing.style.strokeDashoffset = String(RELOAD_RING_CIRC);
     if (elReloadHud) elReloadHud.style.display = "block";
     playReloadLatch();
     playReloadSound();
   }
 
   function tryThrowGrenade() {
-    if (grenadeCooldown > 0 || activeGrenade || gameOver || waveIntermission > 0) return;
+    if (grenadeCooldown > 0 || activeGrenade || gameOver) return;
     ensureAudio();
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     var dir = raycaster.ray.direction.clone();
@@ -2682,7 +3250,7 @@
   }
 
   function tryKnifeSlash() {
-    if (gameOver || waveIntermission > 0 || reloading) return;
+    if (gameOver || waveIntermission > 0 || reloading) return false;
     ensureAudio();
     playKnifeSwing();
     var prevFar = raycaster.far;
@@ -2694,14 +3262,14 @@
     var hits = raycaster.intersectObjects(enemyRoots, true);
     raycaster.far = prevFar;
     raycaster.near = prevNear;
-    if (!hits.length) return;
+    if (!hits.length) return true;
     var hitRoot = getEnemyRootFromHit(hits[0].object);
-    if (!hitRoot) return;
+    if (!hitRoot) return true;
     var hx = hitRoot.position.x;
     var hz = hitRoot.position.z;
-    if (!removeEnemyByRoot(hitRoot)) return;
+    if (!removeEnemyByRoot(hitRoot)) return true;
     playKnifeImpact();
-    if (enemies.length === 0) return;
+    if (enemies.length === 0) return true;
     var best = -1;
     var bestD = 1e9;
     for (var kj = 0; kj < enemies.length; kj++) {
@@ -2716,6 +3284,14 @@
       removeEnemyByRoot(enemies[best].mesh);
       playKnifeCleave();
     }
+    return true;
+  }
+
+  function tryKnifePrimaryFire() {
+    if (!pointerLocked || gameOver || paused) return;
+    if (weaponSlot !== 4) return;
+    if (fireCooldown > 0) return;
+    if (tryKnifeSlash()) fireCooldown = 0.42;
   }
 
   function shoot() {
@@ -2745,7 +3321,7 @@
       weapon.userData.muzzle.getWorldPosition(aimOrigin);
       raycaster.ray.origin.copy(aimOrigin);
       var enemyRoots = enemies.map(function (e) { return e.mesh; });
-      var combined = enemyRoots.concat(liveBarrelRoots());
+      var combined = enemyRoots.concat(liveBarrelRoots()).concat(shootBlockingRoots);
       var hits = raycaster.intersectObjects(combined, true);
       var killed = [];
       for (var hi = 0; hi < hits.length; hi++) {
@@ -2763,7 +3339,10 @@
           killed.push(root);
           tracerEndDist = h.distance;
           if (killed.length >= 2) break;
+          continue;
         }
+        tracerEndDist = h.distance;
+        break;
       }
     } else {
       var bR = new THREE.Vector3();
@@ -2791,7 +3370,7 @@
         raycaster.ray.direction.copy(tmpPelDir);
 
         var rootsNow = enemies.map(function (e) { return e.mesh; });
-        var combinedNow = rootsNow.concat(liveBarrelRoots());
+        var combinedNow = rootsNow.concat(liveBarrelRoots()).concat(shootBlockingRoots);
         var ph = raycaster.intersectObjects(combinedNow, true);
         var pdist = missLen;
         var sgPelletKilled = [];
@@ -2810,6 +3389,8 @@
             if (removeEnemyByRoot(rt)) sgPelletKilled.push(rt);
             break;
           }
+          pdist = pe.distance;
+          break;
         }
         farPellet = Math.max(farPellet, pdist);
 
@@ -2846,10 +3427,7 @@
       return;
     }
     if (weaponSlot === 4) {
-      if (fireCooldown <= 0) {
-        tryKnifeSlash();
-        fireCooldown = 0.42;
-      }
+      tryKnifePrimaryFire();
       return;
     }
     fireMouseHeld = true;
@@ -2919,7 +3497,7 @@
     var ctx2 = minimapCtx;
     var mapR = half;
     ctx2.clearRect(0, 0, sz, sz);
-    ctx2.fillStyle = "rgba(10, 12, 18, 0.96)";
+    ctx2.fillStyle = "rgba(14, 12, 10, 0.97)";
     ctx2.fillRect(0, 0, sz, sz);
     function mx(x) {
       return (x / mapR * 0.5 + 0.5) * sz;
@@ -2972,7 +3550,7 @@
       var bw = b.maxX - b.minX;
       var bd = b.maxZ - b.minZ;
       if (bw < 0.1 && bd < 0.1) continue;
-      ctx2.fillStyle = b.top ? "rgba(120, 95, 72, 0.42)" : "rgba(52, 58, 78, 0.58)";
+      ctx2.fillStyle = b.top ? "rgba(95, 82, 58, 0.44)" : "rgba(42, 38, 36, 0.6)";
       var x0 = mx(b.minX);
       var y0 = mz(b.minZ);
       ctx2.fillRect(x0, y0, Math.max(1, mx(b.maxX) - x0), Math.max(1, mz(b.maxZ) - y0));
@@ -2996,6 +3574,25 @@
     ctx2.strokeStyle = "#0a1810";
     ctx2.lineWidth = 1.2;
     ctx2.stroke();
+    euler.setFromQuaternion(yaw.quaternion);
+    var lookYa = euler.y;
+    var pcx = mx(player.x);
+    var pcy = mz(player.z);
+    ctx2.save();
+    ctx2.translate(pcx, pcy);
+    ctx2.rotate(-lookYa);
+    ctx2.beginPath();
+    ctx2.moveTo(0, -8.5);
+    ctx2.lineTo(3.6, 2.4);
+    ctx2.lineTo(0, 0.35);
+    ctx2.lineTo(-3.6, 2.4);
+    ctx2.closePath();
+    ctx2.fillStyle = "#f4fffa";
+    ctx2.strokeStyle = "#061812";
+    ctx2.lineWidth = 1.05;
+    ctx2.fill();
+    ctx2.stroke();
+    ctx2.restore();
     if (medkitActive) {
       drawMinimapMedkitCase(mx(medkitX), mz(medkitZ));
     }
@@ -3017,11 +3614,11 @@
 
   function updateHpVignette() {
     var stress = Math.max(0, Math.min(1, (100 - hp) / 100));
-    var outer = 32 + stress * 148;
-    var inner = 18 + stress * 92;
-    var alpha = 0.035 + stress * 0.52;
+    var outer = 38 + stress * 172;
+    var inner = 22 + stress * 108;
+    var alpha = 0.065 + stress * 0.72;
     elHpVignette.style.boxShadow =
-      "inset 0 0 " + outer + "px " + inner + "px rgba(215, 42, 52, " + alpha + ")";
+      "inset 0 0 " + outer + "px " + inner + "px rgba(228, 32, 48, " + alpha + ")";
   }
 
   function update(dt) {
@@ -3121,6 +3718,7 @@
       var mag = wpn.userData.mag;
       var u = 1 - Math.max(0, reloadTime) / reloadDurationActive;
       if (u > 1) u = 1;
+      if (elReloadProgressRing) elReloadProgressRing.style.strokeDashoffset = String(RELOAD_RING_CIRC * (1 - u));
       var magDrop = 0;
       if (u < 0.34) magDrop = (u / 0.34) * 0.14;
       else if (u < 0.72) magDrop = 0.14 + Math.sin((u - 0.34) * 22) * 0.01;
@@ -3297,7 +3895,7 @@
     for (var i = enemies.length - 1; i >= 0; i--) {
       var e = enemies[i];
       var m = e.mesh;
-      if (!gameOver && waveIntermission <= 0) {
+      if (!gameOver && waveIntermission <= 0 && pointerLocked) {
         m.position.y = 0;
 
         var toPx = player.x - m.position.x;
@@ -3377,14 +3975,6 @@
     updateHotbarAvailability();
   }
 
-  function aabbOverlap(px, pz, r, box) {
-    var cx = Math.max(box.minX, Math.min(px, box.maxX));
-    var cz = Math.max(box.minZ, Math.min(pz, box.maxZ));
-    var dx = px - cx;
-    var dz = pz - cz;
-    return dx * dx + dz * dz < r * r;
-  }
-
   function enemyWalkFree(px, pz, rad) {
     if (Math.abs(px) > half - 0.45 || Math.abs(pz) > half - 0.45) return false;
     for (var ec = 0; ec < colliders.length; ec++) {
@@ -3399,8 +3989,8 @@
       var sx = (Math.random() * 2 - 1) * (half - 2.6);
       var sz = (Math.random() * 2 - 1) * (half - 2.6);
       if (!enemyWalkFree(sx, sz, 0.42)) continue;
-      var gq = getGroundHeight(sx, sz);
-      if (gq > 0.32) continue;
+      var gq = getGroundHeightFor(sx, sz, 0.42);
+      if (gq > 0.12) continue;
       if (Math.hypot(sx - player.x, sz - player.z) < 4.5) continue;
       medkitX = sx;
       medkitZ = sz;
@@ -3424,15 +4014,7 @@
   }
 
   function getGroundHeight(px, pz) {
-    var best = 0;
-    for (var gi = 0; gi < colliders.length; gi++) {
-      var b = colliders[gi];
-      if (b.active === false) continue;
-      if (!b.top) continue;
-      if (!aabbOverlap(px, pz, player.radius * 0.95, b)) continue;
-      best = Math.max(best, b.y1);
-    }
-    return best;
+    return getGroundHeightFor(px, pz, player.radius);
   }
 
   function playerFree(x, z, feetY) {
