@@ -555,6 +555,57 @@
       0 2px 0 rgba(20, 60, 90, 0.5),
       0 8px 24px rgba(0, 0, 0, 0.45);
   }
+  #overlay .menu-card--mission {
+    max-width: 520px;
+    text-align: left;
+  }
+  #overlay .menu-mission-scroll {
+    max-height: min(42vh, 320px);
+    overflow-y: auto;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #c5cad6;
+  }
+  #overlay .menu-mission-scroll p {
+    margin: 0 0 10px;
+  }
+  #overlay .menu-mission-scroll p:last-child {
+    margin-bottom: 0;
+  }
+  #overlay .menu-mission-scroll strong {
+    color: #f0f3f8;
+  }
+  #overlay .menu-play-btn {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #0a1018;
+    background: linear-gradient(180deg, #c8f0d8 0%, #4ad090 38%, #1e9860 100%);
+    box-shadow: 0 4px 0 rgba(12, 80, 48, 0.65), 0 12px 32px rgba(0, 0, 0, 0.45);
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+  #overlay .menu-play-btn:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+  #overlay .menu-play-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgba(12, 80, 48, 0.55), 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
   #damage {
     position: fixed;
     inset: 0;
@@ -744,10 +795,11 @@
     font-weight: 600;
     color: #e4e8f2;
   }
-  #graveyardVictoryLayer {
+  #graveyardVictoryLayer,
+  #campaignCompleteLayer {
     position: fixed;
     inset: 0;
-    z-index: 12;
+    z-index: 13;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -763,12 +815,14 @@
     pointer-events: none;
     transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.28s;
   }
-  #graveyardVictoryLayer.visible {
+  #graveyardVictoryLayer.visible,
+  #campaignCompleteLayer.visible {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
   }
-  #graveyardVictoryLayer .gy-victory-panel {
+  #graveyardVictoryLayer .gy-victory-panel,
+  #campaignCompleteLayer .gy-victory-panel {
     width: 100%;
     max-width: 440px;
     padding: clamp(26px, 4vw, 34px) clamp(22px, 4vw, 30px);
@@ -784,11 +838,13 @@
     opacity: 0;
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  #graveyardVictoryLayer.visible .gy-victory-panel {
+  #graveyardVictoryLayer.visible .gy-victory-panel,
+  #campaignCompleteLayer.visible .gy-victory-panel {
     transform: translateY(0) scale(1);
     opacity: 1;
   }
-  #graveyardVictoryLayer .gy-victory-badge {
+  #graveyardVictoryLayer .gy-victory-badge,
+  #campaignCompleteLayer .gy-victory-badge {
     display: inline-block;
     margin-bottom: 12px;
     padding: 5px 12px;
@@ -801,7 +857,8 @@
     background: rgba(0, 40, 32, 0.45);
     border: 1px solid rgba(100, 200, 170, 0.35);
   }
-  #graveyardVictoryLayer .gy-victory-title {
+  #graveyardVictoryLayer .gy-victory-title,
+  #campaignCompleteLayer .gy-victory-title {
     margin: 0 0 14px;
     font-size: clamp(1.35rem, 3.8vw, 1.75rem);
     font-weight: 800;
@@ -809,19 +866,22 @@
     line-height: 1.25;
     color: #f4faf8;
   }
-  #graveyardVictoryLayer .gy-victory-hint {
+  #graveyardVictoryLayer .gy-victory-hint,
+  #campaignCompleteLayer .gy-victory-hint {
     margin: 0 0 22px;
     font-size: 0.92rem;
     line-height: 1.45;
     color: #9aa3b2;
   }
-  #graveyardVictoryLayer .gy-victory-actions {
+  #graveyardVictoryLayer .gy-victory-actions,
+  #campaignCompleteLayer .gy-victory-actions {
     display: flex;
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
-  #graveyardVictoryLayer .gy-victory-btn {
+  #graveyardVictoryLayer .gy-victory-btn,
+  #campaignCompleteLayer .gy-victory-btn {
     display: block;
     width: 100%;
     padding: 14px 18px;
@@ -836,20 +896,29 @@
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.35);
     transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
   }
-  #graveyardVictoryLayer .gy-victory-btn:hover {
+  #graveyardVictoryLayer .gy-victory-btn:hover,
+  #campaignCompleteLayer .gy-victory-btn:hover {
     border-color: rgba(140, 220, 200, 0.45);
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.42);
   }
-  #graveyardVictoryLayer .gy-victory-btn:focus-visible {
+  #graveyardVictoryLayer .gy-victory-btn:focus-visible,
+  #campaignCompleteLayer .gy-victory-btn:focus-visible {
     outline: 2px solid #6ee7c8;
     outline-offset: 3px;
   }
-  #graveyardVictoryLayer .gy-victory-btn:active {
+  #graveyardVictoryLayer .gy-victory-btn:active,
+  #campaignCompleteLayer .gy-victory-btn:active {
     transform: translateY(2px);
   }
-  #graveyardVictoryLayer .gy-victory-btn--primary {
+  #graveyardVictoryLayer .gy-victory-btn--primary,
+  #campaignCompleteLayer .gy-victory-btn--primary {
     background: linear-gradient(180deg, rgba(56, 120, 100, 0.95), rgba(28, 72, 58, 0.98));
     border-color: rgba(120, 210, 180, 0.4);
+  }
+  #campaignCompleteLayer .gy-victory-badge--campaign {
+    color: #ffb86b;
+    background: rgba(48, 36, 18, 0.5);
+    border-color: rgba(220, 170, 90, 0.42);
   }
   #hpBarWrap {
     position: fixed;
@@ -1064,16 +1133,35 @@
   aria-hidden="true"
 >
   <div class="gy-victory-panel" id="graveyardVictoryPanel">
-    <span class="gy-victory-badge">Victory</span>
-    <h2 id="gyVictoryTitle" class="gy-victory-title">Congratulations! You won! (for now)</h2>
+    <span class="gy-victory-badge">Graveyard</span>
+    <h2 id="gyVictoryTitle" class="gy-victory-title">Sector complete</h2>
     <p class="gy-victory-hint">Choose how to continue.</p>
     <div class="gy-victory-actions">
-      <button type="button" class="gy-victory-btn gy-victory-btn--primary" id="graveyardVictoryRestartBtn">
-        Restart at level 1
+      <button type="button" class="gy-victory-btn gy-victory-btn--primary" id="graveyardVictorySubwayBtn">
+        Continue to City Metro (level 4)
       </button>
       <button type="button" class="gy-victory-btn" id="graveyardVictoryContinueBtn">
-        Continue with waves on level 3
+        Stay in graveyard — endless waves
       </button>
+      <button type="button" class="gy-victory-btn" id="graveyardVictoryRestartBtn">
+        Restart campaign at level 1
+      </button>
+    </div>
+  </div>
+</div>
+<div id="campaignCompleteLayer" role="dialog" aria-modal="true" aria-labelledby="campaignCompleteTitle" aria-hidden="true">
+  <div class="gy-victory-panel" id="campaignCompletePanel">
+    <span class="gy-victory-badge gy-victory-badge--campaign">Victory</span>
+    <h2 id="campaignCompleteTitle" class="gy-victory-title">Congratulations! You won! (for now)</h2>
+    <p class="gy-victory-hint">
+      All sectors cleared. You held the factory, the liminal halls, the graveyard, the metro, and the construction site. Return to the title,
+      or keep clearing waves on the construction site in endless mode.
+    </p>
+    <div class="gy-victory-actions">
+      <button type="button" class="gy-victory-btn gy-victory-btn--primary" id="campaignCompleteEndlessBtn">
+        Continue on construction site — endless waves
+      </button>
+      <button type="button" class="gy-victory-btn" id="campaignCompleteBtn">Return to title</button>
     </div>
   </div>
 </div>
@@ -1124,7 +1212,17 @@
 </div>
 <div id="overlay">
   <div class="menu-shell">
-    <div class="menu-card" id="startMenuPanel">
+    <div class="menu-card menu-card--mission" id="missionIntroPanel">
+      <p class="menu-kicker">Briefing</p>
+      <h1 class="menu-title" style="margin: 0 0 8px; font-size: clamp(1.35rem, 4vw, 1.85rem)">Dockyard OPS</h1>
+      <div class="menu-mission-scroll">
+        <p><strong>Mission.</strong> Clear each sector wave by wave. Survive, manage ammo, and use grenades on groups or red explosive drums. The rifle reaches farther; the shotgun hits harder up close.</p>
+        <p><strong>Progress.</strong> You begin in an <strong>abandoned industrial yard</strong>, push into <strong>liminal corridors</strong>, then a <strong>graveyard sector</strong>. After that, an <strong>in-service metro hall</strong> and an <strong>open-air construction site</strong> await—same haunted-industrial tone, new ground to hold.</p>
+        <p><strong>Controls.</strong> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Space</kbd> jump · <kbd>LMB</kbd> fire · <kbd>R</kbd> reload · <kbd>1</kbd>–<kbd>4</kbd> weapons · <kbd>3</kbd>/<kbd>G</kbd> grenade · <kbd>E</kbd> use sector portal (stand in the ring) · <kbd>P</kbd> pause.</p>
+      </div>
+      <button type="button" class="menu-play-btn" id="missionPlayBtn">Play</button>
+    </div>
+    <div class="menu-card" id="startMenuPanel" hidden>
       <p class="menu-kicker">Local FPS</p>
       <h1 id="title">Abandoned Factory</h1>
       <p id="subtitle" class="menu-lead">Click anywhere to capture the mouse and enter first person.</p>
@@ -1138,7 +1236,7 @@
       <div class="menu-controls" id="menuControlsPanel" hidden aria-hidden="true">
         <p><strong>Move</strong> <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> · <kbd>Space</kbd> jump · <kbd>R</kbd> reload</p>
         <p><strong>Weapons</strong> <kbd>1</kbd> rifle · <kbd>2</kbd> shotgun · <kbd>3</kbd> grenade · <kbd>4</kbd> knife · <kbd>G</kbd> quick grenade · <kbd>F</kbd> quick knife · wheel</p>
-        <p><strong>Other</strong> <kbd>P</kbd> or <kbd>Esc</kbd> pause · <kbd>LMB</kbd> hold fire · <kbd>Enter</kbd> start</p>
+        <p><strong>Other</strong> <kbd>E</kbd> sector portal (in ring) · <kbd>P</kbd> or <kbd>Esc</kbd> pause · <kbd>LMB</kbd> hold for rifle auto · click per shotgun shot · <kbd>Enter</kbd> start</p>
       </div>
       <p class="menu-notes">Face photo from Wikimedia Commons. Modular factory floor with structural bays and industrial tanks.</p>
       <div class="menu-cta"><span>Start</span><kbd>Enter</kbd></div>
@@ -1179,12 +1277,21 @@
     syncStartMenuControlsPanel();
   }
 
+  function showMissionIntroPanel() {
+    if (missionIntroPanel) missionIntroPanel.hidden = false;
+    if (startMenuPanel) startMenuPanel.hidden = true;
+    if (gameOverPanel) gameOverPanel.hidden = true;
+    resetStartMenuControlsToggle();
+  }
+
   function showStartMenuPanel() {
+    if (missionIntroPanel) missionIntroPanel.hidden = true;
     if (startMenuPanel) startMenuPanel.hidden = false;
     if (gameOverPanel) gameOverPanel.hidden = true;
   }
 
   function showGameOverPanel() {
+    if (missionIntroPanel) missionIntroPanel.hidden = true;
     if (startMenuPanel) startMenuPanel.hidden = true;
     if (gameOverPanel) gameOverPanel.hidden = false;
   }
@@ -1260,11 +1367,32 @@
   var graveyardVictoryPanel = document.getElementById("graveyardVictoryPanel");
   var graveyardVictoryRestartBtn = document.getElementById("graveyardVictoryRestartBtn");
   var graveyardVictoryContinueBtn = document.getElementById("graveyardVictoryContinueBtn");
+  var graveyardVictorySubwayBtn = document.getElementById("graveyardVictorySubwayBtn");
+  var missionIntroPanel = document.getElementById("missionIntroPanel");
+  var missionPlayBtn = document.getElementById("missionPlayBtn");
+  var campaignCompleteLayer = document.getElementById("campaignCompleteLayer");
+  var campaignCompleteBtn = document.getElementById("campaignCompleteBtn");
+  var campaignCompleteEndlessBtn = document.getElementById("campaignCompleteEndlessBtn");
   var elHotbarSlots = document.querySelectorAll("#hotbar .hotbar-slot");
+
+  if (missionPlayBtn && missionIntroPanel) {
+    missionPlayBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      showStartMenuPanel();
+    });
+  }
+  if (missionIntroPanel) {
+    missionIntroPanel.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
 
   var MAP_DISPLAY_NAME = "Abandoned Factory";
   var MAP_DISPLAY_NAME_BACKROOMS = "The Backrooms";
   var MAP_DISPLAY_NAME_GRAVEYARD = "Graveyard";
+  var MAP_DISPLAY_NAME_SUBWAY = "City Metro";
+  var MAP_DISPLAY_NAME_MAINTENANCE = "Construction Site";
   var elMapName = document.getElementById("mapNameText");
   var elMapLevelSub = document.getElementById("mapLevelSub");
   if (elMapName) elMapName.textContent = MAP_DISPLAY_NAME;
@@ -1296,9 +1424,17 @@
   var graveyardWorldGroup = new THREE.Group();
   graveyardWorldGroup.name = "graveyardWorld";
   graveyardWorldGroup.visible = false;
+  var subwayWorldGroup = new THREE.Group();
+  subwayWorldGroup.name = "subwayWorld";
+  subwayWorldGroup.visible = false;
+  var maintenanceWorldGroup = new THREE.Group();
+  maintenanceWorldGroup.name = "maintenanceWorld";
+  maintenanceWorldGroup.visible = false;
   scene.add(factoryWorldGroup);
   scene.add(backroomsWorldGroup);
   scene.add(graveyardWorldGroup);
+  scene.add(subwayWorldGroup);
+  scene.add(maintenanceWorldGroup);
   var mapBuildParent = factoryWorldGroup;
 
   var camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.06, 280);
@@ -1412,6 +1548,52 @@
     rim.position.set(16, 18, -24);
   }
 
+  function applySubwaySceneStyle() {
+    renderer.shadowMap.enabled = false;
+    dir.castShadow = false;
+    scene.background.setHex(0x1a2832);
+    scene.fog.color.setHex(0x283842);
+    scene.fog.near = 4.2;
+    scene.fog.far = 56;
+    hemi.color.setHex(0x8cb4d0);
+    hemi.groundColor.setHex(0x2a3844);
+    hemi.intensity = 0.52;
+    ambient.color.setHex(0x5a7088);
+    ambient.intensity = 0.46;
+    dir.color.setHex(0xfffaf0);
+    dir.intensity = 0.74;
+    dir.position.set(8, 52, 14);
+    dir.target.position.set(0, 0.8, 0);
+    fill.color.setHex(0xa8e8e0);
+    fill.intensity = 0.1;
+    fill.position.set(0, 4.2, -2);
+    rim.color.setHex(0x5a7898);
+    rim.intensity = 0.08;
+  }
+
+  function applyMaintenanceSceneStyle() {
+    renderer.shadowMap.enabled = false;
+    dir.castShadow = false;
+    scene.background.setHex(0xb0c0d0);
+    scene.fog.color.setHex(0xd0d8d4);
+    scene.fog.near = 10;
+    scene.fog.far = 62;
+    hemi.color.setHex(0xe8f0fa);
+    hemi.groundColor.setHex(0x5a5048);
+    hemi.intensity = 0.54;
+    ambient.color.setHex(0xc8d0d4);
+    ambient.intensity = 0.42;
+    dir.color.setHex(0xfffaf0);
+    dir.intensity = 0.66;
+    dir.position.set(-36, 78, 26);
+    dir.target.position.set(0, 0, 0);
+    fill.color.setHex(0xffe0a8);
+    fill.intensity = 0.1;
+    fill.position.set(8, 12, -4);
+    rim.color.setHex(0x708090);
+    rim.intensity = 0.06;
+  }
+
   var arena = 50;
   var half = arena / 2;
   var worldU = arena / 34;
@@ -1424,6 +1606,10 @@
   var backroomsShootBlockingRoots = [];
   var graveyardColliders = [];
   var graveyardShootBlockingRoots = [];
+  var subwayColliders = [];
+  var subwayShootBlockingRoots = [];
+  var maintenanceColliders = [];
+  var maintenanceShootBlockingRoots = [];
   var colliders = factoryColliders;
   var shootBlockingRoots = factoryShootBlockingRoots;
 
@@ -1449,14 +1635,20 @@
     return dx * dx + dz * dz < r * r;
   }
 
-  function getGroundHeightFor(px, pz, agentR) {
+  function getGroundHeightFor(px, pz, agentR, refFeetY) {
     var best = 0;
     var ar = agentR == null ? 0.35 : agentR;
+    var useRef =
+      refFeetY != null &&
+      typeof refFeetY === "number" &&
+      !Number.isNaN(refFeetY);
+    var highCut = useRef ? refFeetY + 0.78 : null;
     for (var gi = 0; gi < colliders.length; gi++) {
       var b = colliders[gi];
       if (b.active === false) continue;
       if (!b.top) continue;
       if (!aabbOverlap(px, pz, ar * 0.95, b)) continue;
+      if (useRef && b.y1 > highCut) continue;
       best = Math.max(best, b.y1);
     }
     return best;
@@ -1526,6 +1718,31 @@
   ceil.receiveShadow = false;
   mapBuildParent.add(ceil);
 
+  var factoryCeilLightMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false
+  });
+  var factoryCeilGrid = [-16, -5, 5, 16];
+  var cgx;
+  var cgz;
+  for (cgx = 0; cgx < factoryCeilGrid.length; cgx++) {
+    for (cgz = 0; cgz < factoryCeilGrid.length; cgz++) {
+      var cpx = factoryCeilGrid[cgx];
+      var cpz = factoryCeilGrid[cgz];
+      var ceilPanel = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.5), factoryCeilLightMat);
+      ceilPanel.rotation.x = Math.PI * 0.5;
+      ceilPanel.position.set(cpx, ceilingSlabY - 0.14, cpz);
+      mapBuildParent.add(ceilPanel);
+      var ceilPl = new THREE.PointLight(0xf2f8ff, 0.58, 30, 2);
+      ceilPl.position.set(cpx, ceilingSlabY - 0.34, cpz);
+      mapBuildParent.add(ceilPl);
+    }
+  }
+
   function addWallMesh(w, h, d, x, z, ry, mat, skipCollider, walkableTop, isPerimeter) {
     var g = new THREE.BoxGeometry(w, h, d);
     var m = new THREE.Mesh(g, mat || rustMetalMat);
@@ -1590,9 +1807,16 @@
       minX = Math.min(minX, wx); maxX = Math.max(maxX, wx);
       minZ = Math.min(minZ, wz); maxZ = Math.max(maxZ, wz);
     }
-    var wt = walkableTop === undefined ? h >= 0.55 : !!walkableTop;
-    if (!wt && yBottom <= 0.02 && yBottom + h <= 1.55 && h >= 0.2) {
+    var wt;
+    if (walkableTop === true) {
       wt = true;
+    } else if (walkableTop === false) {
+      wt = h >= 0.035;
+    } else {
+      wt = h >= 0.55;
+      if (!wt && yBottom <= 0.02 && yBottom + h <= 1.55 && h >= 0.2) {
+        wt = true;
+      }
     }
     addCollider(minX, maxX, minZ, maxZ, yBottom, yBottom + h, wt, lowDarkFloor);
     var boxCol = colliders[colliders.length - 1];
@@ -1731,7 +1955,8 @@
   /* Seconds before a destroyed explosive barrel respawns (higher = lower spawn rate). */
   var EXPLOSIVE_BARREL_RESPAWN = 70;
 
-  function addExplosiveBarrel(wx, wz, r, ht) {
+  function addExplosiveBarrel(wx, wz, r, ht, mapLevel) {
+    var mapLv = mapLevel == null ? 1 : mapLevel;
     var rMesh = r * 1.22;
     var rr = rMesh * 1.16;
     addCollider(wx - rr, wx + rr, wz - rr, wz + rr, 0, ht, true);
@@ -1776,7 +2001,8 @@
       wz: wz,
       r: r,
       ht: ht,
-      respawnRemaining: 0
+      respawnRemaining: 0,
+      mapLevel: mapLv
     });
   }
 
@@ -2011,8 +2237,8 @@
   var JUMP_V = 10.2;
   var PLAYER_BODY_H = 1.78;
   var ENEMY_BODY_H = 1.74;
-  var VAULT_MIN_LIFT = 0.1;
-  var VAULT_MAX_HEIGHT = 1.14;
+  var VAULT_MIN_LIFT = 0.06;
+  var VAULT_MAX_HEIGHT = 1.58;
   var SKIN_Y = 0.08;
   var CEILING_Y = 8.85;
   var activeCeilingY = CEILING_Y;
@@ -2052,7 +2278,7 @@
   }
 
   function addWalkableTopCapsForColliderList(collList, shootList, parentGroup) {
-    var TOP_HITBOX_MAX_Y = 2.12;
+    var TOP_HITBOX_MAX_Y = 8.2;
     var TOP_SLAB = 0.052;
     var hitMat = new THREE.MeshBasicMaterial({
       transparent: true,
@@ -2081,7 +2307,118 @@
     }
   }
 
+  var sectorPortals = [];
+  var PORTAL_USE_RADIUS = 2.05;
+
+  function addLabeledSectorPortal(parentGroup, x, z, rotY, title, subtitle, ringColorHex, portalTargetLevel) {
+    var grp = new THREE.Group();
+    grp.position.set(x, 0, z);
+    grp.rotation.y = rotY;
+    grp.userData.isSectorPortal = true;
+    grp.userData.portalTargetLevel = portalTargetLevel;
+
+    var ringMat = new THREE.MeshStandardMaterial({
+      color: ringColorHex,
+      emissive: ringColorHex,
+      emissiveIntensity: 0.42,
+      roughness: 0.38,
+      metalness: 0.45
+    });
+    var ring = new THREE.Mesh(new THREE.TorusGeometry(1.48, 0.1, 14, 48), ringMat);
+    ring.position.y = 1.74;
+    ring.castShadow = true;
+    grp.add(ring);
+
+    var glowMat = new THREE.MeshBasicMaterial({
+      color: ringColorHex,
+      transparent: true,
+      opacity: 0.18,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false
+    });
+    var glow = new THREE.Mesh(new THREE.CircleGeometry(1.12, 36), glowMat);
+    glow.position.set(0, 1.74, -0.05);
+    grp.add(glow);
+
+    var c = document.createElement("canvas");
+    c.width = 640;
+    c.height = 208;
+    var ctx = c.getContext("2d");
+    ctx.fillStyle = "rgba(8, 12, 18, 0.88)";
+    ctx.fillRect(0, 0, 640, 208);
+    ctx.strokeStyle = "rgba(140, 200, 255, 0.55)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(10, 10, 620, 188);
+    ctx.fillStyle = "#e8f4ff";
+    var titleFontPx = title.length > 36 ? 26 : title.length > 28 ? 32 : 40;
+    ctx.font = "bold " + titleFontPx + "px system-ui, Segoe UI, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(title, 320, 78);
+    ctx.fillStyle = "rgba(200, 215, 235, 0.92)";
+    var subFontPx = subtitle.length > 42 ? 20 : subtitle.length > 32 ? 23 : 26;
+    ctx.font = subFontPx + "px system-ui, Segoe UI, sans-serif";
+    ctx.fillText(subtitle, 320, 138);
+
+    var tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    var sprMat = new THREE.SpriteMaterial({
+      map: tex,
+      transparent: true,
+      depthWrite: false,
+      toneMapped: false
+    });
+    var spr = new THREE.Sprite(sprMat);
+    spr.position.set(0, 2.92, 0);
+    spr.scale.set(4.4, 1.42, 1);
+    grp.add(spr);
+
+    parentGroup.add(grp);
+    if (portalTargetLevel != null && portalTargetLevel >= 1 && portalTargetLevel <= 5) {
+      sectorPortals.push({ target: portalTargetLevel, x: x, z: z, group: parentGroup });
+    }
+  }
+
+  function addCrossLevelPortalsForLevel(parentGroup, fromLevel, spots) {
+    var destFull = [
+      "",
+      MAP_DISPLAY_NAME,
+      MAP_DISPLAY_NAME_BACKROOMS,
+      MAP_DISPLAY_NAME_GRAVEYARD,
+      MAP_DISPLAY_NAME_SUBWAY,
+      MAP_DISPLAY_NAME_MAINTENANCE
+    ];
+    var destColor = [0, 0x9ab0c8, 0xe0d088, 0x72a890, 0x66b0d8, 0xf2c028];
+    var defaultSpots = [
+      { x: -18.5, z: -19.2, r: Math.PI * 0.2 },
+      { x: 18.5, z: -19.2, r: -Math.PI * 0.2 },
+      { x: 19, z: 14, r: -Math.PI * 0.55 },
+      { x: -18.5, z: 14, r: Math.PI * 0.55 }
+    ];
+    var plist = spots || defaultSpots;
+    var si = 0;
+    for (var lv = 1; lv <= 5; lv++) {
+      if (lv === fromLevel) continue;
+      var sp = plist[si++];
+      if (!sp) break;
+      addLabeledSectorPortal(
+        parentGroup,
+        sp.x,
+        sp.z,
+        sp.r,
+        "PORTAL → " + destFull[lv],
+        "Level " + lv + " · hold E in ring to travel",
+        destColor[lv],
+        lv
+      );
+    }
+  }
+
   addWalkableTopCapsForColliderList(factoryColliders, factoryShootBlockingRoots, factoryWorldGroup);
+  addCrossLevelPortalsForLevel(factoryWorldGroup, 1, null);
 
   var backroomsBuilt = false;
   var floorBackrooms = null;
@@ -2100,6 +2437,30 @@
   var GY_PLAYER_CEILING = 12.2;
   var GRAVEYARD_SPAWN_X = 0;
   var GRAVEYARD_SPAWN_Z = 0;
+  var subwayBuilt = false;
+  var floorSubway = null;
+  var SUBWAY_PLAYER_CEILING = 5.42;
+  var SUBWAY_SPAWN_X = 0;
+  var SUBWAY_SPAWN_Z = 0;
+  var SUBWAY_TRACK_HALF_X = 2.55;
+  var SUBWAY_TRAIN_INTERVAL = 60;
+  var subwayTrainGroup = null;
+  var subwayTrainHalfLen = 11.2;
+  var subwayTrainHalfW = 2.12;
+  var subwayTrainBodyY = 0.58;
+  var subwayTrainSpeed = 42;
+  var subwayTrainActive = false;
+  var subwayTrainVelZ = 0;
+  var subwayTrainZ = 0;
+  var subwayTrainCooldown = 48;
+  var subwayTrainHitPlayer = false;
+  var subwayTrainHornPlayed = false;
+  var subwayTrainPassSfx = null;
+  var maintenanceBuilt = false;
+  var floorMaintenance = null;
+  var MAINTENANCE_PLAYER_CEILING = 9.4;
+  var MAINTENANCE_SPAWN_X = 0;
+  var MAINTENANCE_SPAWN_Z = 0;
 
   function makeBackroomsFloorTexture() {
     var c = document.createElement("canvas");
@@ -2281,6 +2642,37 @@
     var slen = Math.hypot(sdx, sdz) || 1;
     BACKROOMS_SPAWN_X = sx0 + (sdx / slen) * wu(0.65);
     BACKROOMS_SPAWN_Z = sz0 + (sdz / slen) * wu(0.65);
+
+    var brPLen = brPath.length;
+    function brOffsetSpot(iA, iB, lateralWU, rotOff) {
+      var ia = Math.max(0, Math.min(brPLen - 1, iA));
+      var ib = Math.max(0, Math.min(brPLen - 1, iB));
+      var px = brPath[ia][0];
+      var pz = brPath[ia][1];
+      var qx = brPath[ib][0];
+      var qz = brPath[ib][1];
+      var ddx = qx - px;
+      var ddz = qz - pz;
+      var plen = Math.hypot(ddx, ddz) || 1;
+      var ox = (-ddz / plen) * wu(lateralWU);
+      var oz = (ddx / plen) * wu(lateralWU);
+      return {
+        x: px + ox,
+        z: pz + oz,
+        r: Math.atan2(ddx, ddz) + (rotOff || 0)
+      };
+    }
+    var i0 = Math.max(1, Math.floor(brPLen * 0.08));
+    var i1 = Math.max(1, Math.floor(brPLen * 0.32));
+    var i2 = Math.max(1, Math.floor(brPLen * 0.58));
+    var i3 = Math.max(1, brPLen - 2);
+    var brPortalSpots = [
+      brOffsetSpot(i0, Math.min(i0 + 1, brPLen - 1), 0.55, 0),
+      brOffsetSpot(i1, Math.min(i1 + 1, brPLen - 1), -0.55, 0),
+      brOffsetSpot(i2, Math.min(i2 + 1, brPLen - 1), 0.55, 0),
+      brOffsetSpot(i3, Math.min(i3 + 1, brPLen - 1), -0.55, 0)
+    ];
+    addCrossLevelPortalsForLevel(backroomsWorldGroup, 2, brPortalSpots);
 
     addWalkableTopCapsForColliderList(backroomsColliders, backroomsShootBlockingRoots, backroomsWorldGroup);
 
@@ -2481,7 +2873,6 @@
       return m;
     }
 
-    chMesh(new THREE.BoxGeometry(24, 0.5, 28), churchStoneDark).position.set(0, 0.25, -0.5);
     chMesh(new THREE.BoxGeometry(12.5, 6.2, 18.5), churchStone).position.set(0, 3.35, -0.8);
     chMesh(new THREE.BoxGeometry(2.4, 4.4, 16), churchStoneDark).position.set(-7.35, 2.35, -0.6);
     chMesh(new THREE.BoxGeometry(2.4, 4.4, 16), churchStoneDark).position.set(7.35, 2.35, -0.6);
@@ -2543,6 +2934,31 @@
     }
 
     mapBuildParent.add(chGrp);
+
+    var chScX = 1.62;
+    var chScY = 1.62;
+    var chScZ = 1.42;
+    var slabW = 24 * chScX;
+    var slabH = 0.5 * chScY;
+    var slabD = 28 * chScZ;
+    var slabCx = 0;
+    var slabCz = chZ + -0.5 * chScZ;
+    var slabYBottom = 0.25 * chScY - slabH * 0.5;
+    var slabMinX = slabCx - slabW * 0.5;
+    var slabMinZ = slabCz - slabD * 0.5;
+    var slabCols = 8;
+    var slabRows = 7;
+    var slabPw = slabW / slabCols;
+    var slabPd = slabD / slabRows;
+    var spi;
+    var spj;
+    for (spj = 0; spj < slabRows; spj++) {
+      for (spi = 0; spi < slabCols; spi++) {
+        var spcx = slabMinX + slabPw * (spi + 0.5);
+        var spcz = slabMinZ + slabPd * (spj + 0.5);
+        addObstacleBox(slabPw, slabH, slabPd, spcx, slabYBottom, spcz, 0, churchStoneDark, true);
+      }
+    }
 
     var pickGeo = new THREE.BoxGeometry(0.14, 1.12, 0.14);
     var fi;
@@ -2624,6 +3040,14 @@
     GRAVEYARD_SPAWN_X = wu(0);
     GRAVEYARD_SPAWN_Z = wu(-16);
 
+    var gySpots = [
+      { x: wu(11), z: wu(11), r: 0 },
+      { x: wu(-11), z: wu(11), r: Math.PI },
+      { x: wu(13), z: wu(-6), r: -Math.PI * 0.35 },
+      { x: wu(-13), z: wu(-5), r: Math.PI * 0.35 }
+    ];
+    addCrossLevelPortalsForLevel(graveyardWorldGroup, 3, gySpots);
+
     addWalkableTopCapsForColliderList(graveyardColliders, graveyardShootBlockingRoots, graveyardWorldGroup);
 
     colliders = factoryColliders;
@@ -2631,35 +3055,912 @@
     mapBuildParent = factoryWorldGroup;
   }
 
+  function buildSubwayMap() {
+    if (subwayBuilt) return;
+    subwayBuilt = true;
+    colliders = subwayColliders;
+    shootBlockingRoots = subwayShootBlockingRoots;
+    mapBuildParent = subwayWorldGroup;
+
+    var tileCanvas = document.createElement("canvas");
+    tileCanvas.width = 256;
+    tileCanvas.height = 256;
+    var tcx = tileCanvas.getContext("2d");
+    tcx.fillStyle = "#6e7178";
+    tcx.fillRect(0, 0, 256, 256);
+    var gx;
+    var gy;
+    for (gy = 0; gy < 32; gy++) {
+      for (gx = 0; gx < 32; gx++) {
+        tcx.strokeStyle = "rgba(42, 44, 48, 0.42)";
+        tcx.strokeRect(gx * 8 + 0.5, gy * 8 + 0.5, 7, 7);
+      }
+    }
+    var li;
+    for (li = 0; li < 48; li++) {
+      tcx.fillStyle = "rgba(38, 40, 44, " + (0.06 + Math.random() * 0.1) + ")";
+      tcx.fillRect(Math.random() * 252, Math.random() * 252, 2 + Math.random() * 18, 1 + Math.random() * 2);
+    }
+    for (li = 0; li < 24; li++) {
+      tcx.fillStyle = "rgba(92, 94, 100, " + (0.05 + Math.random() * 0.08) + ")";
+      tcx.fillRect(Math.random() * 250, Math.random() * 250, 1 + Math.random() * 3, 8 + Math.random() * 40);
+    }
+    var stationConcTex = new THREE.CanvasTexture(tileCanvas);
+    stationConcTex.colorSpace = THREE.SRGBColorSpace;
+    stationConcTex.wrapS = stationConcTex.wrapT = THREE.RepeatWrapping;
+    stationConcTex.repeat.set(16, 16);
+
+    var stationConcMat = new THREE.MeshStandardMaterial({
+      map: stationConcTex,
+      color: 0xb4b6ba,
+      roughness: 0.9,
+      metalness: 0.05,
+      emissive: 0x101214,
+      emissiveIntensity: 0.03
+    });
+    var columnMat = new THREE.MeshStandardMaterial({
+      color: 0x4a6480,
+      roughness: 0.78,
+      metalness: 0.32,
+      emissive: 0x081820,
+      emissiveIntensity: 0.04
+    });
+    var railMat = new THREE.MeshStandardMaterial({
+      color: 0x242a32,
+      roughness: 0.42,
+      metalness: 0.68,
+      emissive: 0x030508,
+      emissiveIntensity: 0.03
+    });
+    var neonMat = new THREE.MeshStandardMaterial({
+      color: 0xeef6ff,
+      emissive: 0xc8def8,
+      emissiveIntensity: 0.38,
+      roughness: 0.42,
+      metalness: 0.06,
+      polygonOffset: true,
+      polygonOffsetFactor: 3,
+      polygonOffsetUnits: 1
+    });
+    var orangeHazard = new THREE.MeshStandardMaterial({
+      color: 0xff8c22,
+      emissive: 0x663010,
+      emissiveIntensity: 0.22,
+      roughness: 0.52,
+      metalness: 0.12
+    });
+    var tileBlue = new THREE.MeshStandardMaterial({
+      color: 0x2a5580,
+      roughness: 0.76,
+      metalness: 0.22,
+      emissive: 0x051830,
+      emissiveIntensity: 0.1
+    });
+    var grimeMetal = new THREE.MeshStandardMaterial({
+      color: 0x3a4450,
+      roughness: 0.88,
+      metalness: 0.38,
+      emissive: 0x06080c,
+      emissiveIntensity: 0.05
+    });
+    var swWallCv = document.createElement("canvas");
+    swWallCv.width = 256;
+    swWallCv.height = 256;
+    var swWcx = swWallCv.getContext("2d");
+    var swCell = 32;
+    var swUx;
+    var swVy;
+    for (swVy = 0; swVy < 256; swVy += swCell) {
+      for (swUx = 0; swUx < 256; swUx += swCell) {
+        var swAlt = (Math.floor(swUx / swCell) + Math.floor(swVy / swCell)) % 2;
+        swWcx.fillStyle = swAlt ? "#f4f7fb" : "#d4e8f6";
+        swWcx.fillRect(swUx, swVy, swCell, swCell);
+      }
+    }
+    for (swUx = 0; swUx <= 256; swUx += 64) {
+      swWcx.fillStyle = "#6eb6e8";
+      swWcx.fillRect(swUx, 0, 3, 256);
+    }
+    for (swUx = 31; swUx <= 256; swUx += 64) {
+      swWcx.fillStyle = "rgba(120, 190, 235, 0.45)";
+      swWcx.fillRect(swUx, 0, 1, 256);
+    }
+    var swWallTileTex = new THREE.CanvasTexture(swWallCv);
+    swWallTileTex.colorSpace = THREE.SRGBColorSpace;
+    swWallTileTex.wrapS = swWallTileTex.wrapT = THREE.RepeatWrapping;
+    swWallTileTex.repeat.set(20, 5.5);
+    var swWallTileMat = new THREE.MeshStandardMaterial({
+      map: swWallTileTex,
+      color: 0xffffff,
+      roughness: 0.74,
+      metalness: 0.05,
+      emissive: 0x0a1828,
+      emissiveIntensity: 0.03
+    });
+    var benchWood = new THREE.MeshStandardMaterial({
+      color: 0x6b4a38,
+      roughness: 0.9,
+      metalness: 0.04,
+      emissive: 0x120804,
+      emissiveIntensity: 0.04
+    });
+    var swTrHalf = 2.55;
+    SUBWAY_TRACK_HALF_X = swTrHalf;
+    var swPlatSpan = half - swTrHalf;
+    var swTrackY = -0.62;
+    var swRailY = swTrackY + 0.18;
+
+    floorSubway = new THREE.Group();
+    floorSubway.name = "floorSubway";
+    var swPlL = new THREE.Mesh(new THREE.PlaneGeometry(swPlatSpan, arena * 2), stationConcMat);
+    swPlL.rotation.x = -Math.PI / 2;
+    swPlL.position.set(-half + swPlatSpan * 0.5, 0, 0);
+    swPlL.receiveShadow = false;
+    floorSubway.add(swPlL);
+    var swPlR = new THREE.Mesh(new THREE.PlaneGeometry(swPlatSpan, arena * 2), stationConcMat);
+    swPlR.rotation.x = -Math.PI / 2;
+    swPlR.position.set(half - swPlatSpan * 0.5, 0, 0);
+    swPlR.receiveShadow = false;
+    floorSubway.add(swPlR);
+    mapBuildParent.add(floorSubway);
+    addCollider(-half, -swTrHalf, -half, half, 0, 0.05, true);
+    addCollider(swTrHalf, half, -half, half, 0, 0.05, true);
+    addCollider(-swTrHalf, swTrHalf, -half + 0.6, half - 0.6, swTrackY - 0.14, swTrackY - 0.08, true);
+
+    var lipMat = new THREE.MeshStandardMaterial({
+      color: 0x5a5c62,
+      roughness: 0.88,
+      metalness: 0.12,
+      emissive: 0x080808,
+      emissiveIntensity: 0.02
+    });
+    var swLipH = 0.52;
+    var swLipZ = arena * 1.96;
+    var swLipL = new THREE.Mesh(new THREE.BoxGeometry(0.16, swLipH, swLipZ), lipMat);
+    swLipL.position.set(-swTrHalf - 0.08, swLipH * 0.5, 0);
+    swLipL.castShadow = true;
+    mapBuildParent.add(swLipL);
+    var swLipR = new THREE.Mesh(new THREE.BoxGeometry(0.16, swLipH, swLipZ), lipMat);
+    swLipR.position.set(swTrHalf + 0.08, swLipH * 0.5, 0);
+    swLipR.castShadow = true;
+    mapBuildParent.add(swLipR);
+
+    var trackBedMat = new THREE.MeshStandardMaterial({
+      color: 0x323028,
+      roughness: 0.96,
+      metalness: 0.03
+    });
+    var trackBed = new THREE.Mesh(new THREE.PlaneGeometry(swTrHalf * 2 - 0.08, swLipZ), trackBedMat);
+    trackBed.rotation.x = -Math.PI / 2;
+    trackBed.position.set(0, swTrackY + 0.02, 0);
+    trackBed.receiveShadow = false;
+    mapBuildParent.add(trackBed);
+
+    var tieMat = new THREE.MeshStandardMaterial({
+      color: 0x4a3a2c,
+      roughness: 0.9,
+      metalness: 0.03
+    });
+    var tz;
+    for (tz = -23; tz <= 23; tz += 2.05) {
+      var swTie = new THREE.Mesh(new THREE.BoxGeometry(swTrHalf * 2 - 0.22, 0.07, 0.38), tieMat);
+      swTie.position.set(0, swTrackY + 0.06, tz);
+      mapBuildParent.add(swTie);
+    }
+
+    var railGeo = new THREE.CylinderGeometry(0.055, 0.055, swLipZ - 0.4, 10, 1);
+    var railMeshL = new THREE.Mesh(railGeo, railMat);
+    railMeshL.rotation.x = Math.PI / 2;
+    railMeshL.position.set(-0.78, swRailY, 0);
+    mapBuildParent.add(railMeshL);
+    var railMeshR = new THREE.Mesh(railGeo, railMat);
+    railMeshR.rotation.x = Math.PI / 2;
+    railMeshR.position.set(0.78, swRailY, 0);
+    mapBuildParent.add(railMeshR);
+
+    var tactileMat = new THREE.MeshStandardMaterial({
+      color: 0xf0d820,
+      roughness: 0.55,
+      metalness: 0.08,
+      emissive: 0x504008,
+      emissiveIntensity: 0.08
+    });
+    var swTactD = arena * 1.92;
+    var swTactL = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.045, swTactD), tactileMat);
+    swTactL.position.set(-swTrHalf + 0.28, 0.022, 0);
+    swTactL.castShadow = true;
+    mapBuildParent.add(swTactL);
+    var swTactR = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.045, swTactD), tactileMat);
+    swTactR.position.set(swTrHalf - 0.28, 0.022, 0);
+    swTactR.castShadow = true;
+    mapBuildParent.add(swTactR);
+
+    var subwayCeilMat = new THREE.MeshStandardMaterial({
+      color: 0x2a3844,
+      roughness: 0.9,
+      metalness: 0.08,
+      emissive: 0x0a141c,
+      emissiveIntensity: 0.06,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1
+    });
+    var subwayCeilSoffitMat = new THREE.MeshStandardMaterial({
+      color: 0x222a34,
+      roughness: 0.92,
+      metalness: 0.1,
+      emissive: 0x05070a,
+      emissiveIntensity: 0.05,
+      polygonOffset: true,
+      polygonOffsetFactor: 2,
+      polygonOffsetUnits: 1
+    });
+    var subwayCeilingY = 5.38;
+    var swWallFullH = subwayCeilingY - 0.06;
+    var swBlueColH = subwayCeilingY - 0.02;
+    var subwayCeil = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), subwayCeilMat);
+    subwayCeil.rotation.x = Math.PI / 2;
+    subwayCeil.position.y = subwayCeilingY;
+    subwayCeil.receiveShadow = false;
+    mapBuildParent.add(subwayCeil);
+    var subwayCeilSoffit = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), subwayCeilSoffitMat);
+    subwayCeilSoffit.rotation.x = Math.PI / 2;
+    subwayCeilSoffit.position.y = subwayCeilingY - 0.28;
+    subwayCeilSoffit.receiveShadow = false;
+    mapBuildParent.add(subwayCeilSoffit);
+    var subwayRoofSlabMat = subwayCeilMat.clone();
+    subwayRoofSlabMat.polygonOffset = false;
+    subwayRoofSlabMat.polygonOffsetFactor = 0;
+    subwayRoofSlabMat.polygonOffsetUnits = 0;
+    var subwayRoofSlab = new THREE.Mesh(
+      new THREE.BoxGeometry(arena * 2 + 0.12, 0.32, arena * 2 + 0.12),
+      subwayRoofSlabMat
+    );
+    subwayRoofSlab.position.set(0, subwayCeilingY + 0.2, 0);
+    subwayRoofSlab.castShadow = true;
+    subwayRoofSlab.receiveShadow = true;
+    mapBuildParent.add(subwayRoofSlab);
+
+    var swCeilXs = [-17, -6, 6, 17];
+    var swCeilZs = [-18, -8, 3, 9];
+    var swLix;
+    var swLiz;
+    for (swLix = 0; swLix < swCeilXs.length; swLix++) {
+      for (swLiz = 0; swLiz < swCeilZs.length; swLiz++) {
+        var swLx = swCeilXs[swLix];
+        var swLz = swCeilZs[swLiz];
+        var swPlight = new THREE.PointLight(0xf4f8ff, 0.72, 34, 2);
+        swPlight.position.set(swLx, subwayCeilingY - 0.38, swLz);
+        mapBuildParent.add(swPlight);
+      }
+    }
+
+    var swTun = 0.5;
+    addObstacleBox(arena * 2 + swTun * 2, swWallFullH, swTun, 0, 0, -half - swTun * 0.5, 0, swWallTileMat, false, true);
+    addObstacleBox(arena * 2 + swTun * 2, swWallFullH, swTun, 0, 0, half + swTun * 0.5, 0, swWallTileMat, false, true);
+    addObstacleBox(swTun, swWallFullH, arena * 2 + swTun * 2, -half - swTun * 0.5, 0, 0, 0, swWallTileMat, false, true);
+    addObstacleBox(swTun, swWallFullH, arena * 2 + swTun * 2, half + swTun * 0.5, 0, 0, 0, swWallTileMat, false, true);
+
+    var trainHoleMat = new THREE.MeshStandardMaterial({
+      color: 0x040406,
+      roughness: 0.97,
+      metalness: 0.04,
+      emissive: 0x000000,
+      emissiveIntensity: 0
+    });
+    var swHoleW = swTrHalf * 2 + 1.55;
+    var swHoleH = swWallFullH - 0.14;
+    var swHoleN = new THREE.Mesh(new THREE.BoxGeometry(swHoleW, swHoleH, 0.07), trainHoleMat);
+    swHoleN.position.set(0, swHoleH * 0.5, -half + 0.22);
+    swHoleN.castShadow = false;
+    swHoleN.receiveShadow = true;
+    mapBuildParent.add(swHoleN);
+    var swHoleS = new THREE.Mesh(new THREE.BoxGeometry(swHoleW, swHoleH, 0.07), trainHoleMat);
+    swHoleS.position.set(0, swHoleH * 0.5, half - 0.22);
+    swHoleS.castShadow = false;
+    swHoleS.receiveShadow = true;
+    mapBuildParent.add(swHoleS);
+
+    var subSpClearR = 5.8;
+    var subSpX = 0;
+    var subSpZ = (-8 * arena) / 34;
+    function subClearSpawn(px, pz) {
+      return Math.hypot(px - subSpX, pz - subSpZ) >= subSpClearR;
+    }
+
+    var cz;
+    for (cz = -32; cz <= 32; cz += 8) {
+      addObstacleBox(1.15, swWallFullH - 0.1, 1.15, -12.2, 0, cz, 0, columnMat, false);
+      addObstacleBox(1.15, swWallFullH - 0.1, 1.15, 12.2, 0, cz, 0, columnMat, false);
+    }
+    for (cz = -28; cz <= 28; cz += 7) {
+      addObstacleBox(0.62, swBlueColH, 0.62, -6.2, 0, cz, 0, tileBlue, false);
+      addObstacleBox(0.62, swBlueColH, 0.62, 6.2, 0, cz, 0, tileBlue, false);
+    }
+    var swRailCapW = swPlatSpan - 0.35;
+    var swRailCapCx = swTrHalf + 0.35 + swRailCapW * 0.5;
+    addObstacleBox(swRailCapW, 1.25, 0.35, -swRailCapCx, 0, -half + 1.2, 0, railMat, false, true);
+    addObstacleBox(swRailCapW, 1.25, 0.35, swRailCapCx, 0, -half + 1.2, 0, railMat, false, true);
+    addObstacleBox(swRailCapW, 1.25, 0.35, -swRailCapCx, 0, half - 1.2, 0, railMat, false, true);
+    addObstacleBox(swRailCapW, 1.25, 0.35, swRailCapCx, 0, half - 1.2, 0, railMat, false, true);
+    addObstacleBox(0.45, swWallFullH, 24, -half + 0.7, 0, 0, 0, swWallTileMat, false, true);
+    addObstacleBox(0.45, swWallFullH, 24, half - 0.7, 0, 0, 0, swWallTileMat, false, true);
+
+    addObstacleBox(4.2, 2.05, 2.4, -10.5, 0, -6.8, -0.5, grimeMetal, false);
+
+    var bz;
+    for (bz = -20; bz <= 22; bz += 4) {
+      addObstacleBox(1.6, 0.46, 0.55, -17.2, 0, bz, 0, benchWood, false);
+      addObstacleBox(1.6, 0.46, 0.55, 17.2, 0, bz, 0, benchWood, false);
+    }
+    for (bz = -18; bz <= 18; bz += 3.5) {
+      addObstacleBox(1.35, 0.44, 0.52, -9.4, 0, bz, Math.PI * 0.5, benchWood, false);
+      addObstacleBox(1.35, 0.44, 0.52, 9.4, 0, bz, -Math.PI * 0.5, benchWood, false);
+    }
+    addObstacleBox(2.2, 1.65, 0.12, -14.5, 0, 6, 0, tileBlue, false);
+    addObstacleBox(2.2, 1.65, 0.12, 14.5, 0, -5, 0, tileBlue, false);
+    addObstacleBox(0.38, 0.95, 0.38, -13.2, 0, 16, 0, grimeMetal, false);
+    addObstacleBox(0.38, 0.95, 0.38, 12.8, 0, -15, 0.2, grimeMetal, false);
+    addObstacleBox(0.38, 0.95, 0.38, -8.5, 0, -19, 0.4, grimeMetal, false);
+    addObstacleBox(0.38, 0.95, 0.38, 8.2, 0, 18, -0.3, grimeMetal, false);
+    var rx;
+    var rz;
+    for (rx = -20; rx <= 20; rx += 5) {
+      for (rz = -16; rz <= 16; rz += 7) {
+        if (!subClearSpawn(rx, rz)) continue;
+        if (Math.abs(rx) < 8 && Math.abs(rz) < 6) continue;
+        if (Math.abs(rx) < swTrHalf + 1.4) continue;
+        addObstacleBox(0.52 + (Math.abs(rx + rz) % 4) * 0.06, 0.32, 0.5, rx, 0, rz, rx * 0.04, grimeMetal, false);
+      }
+    }
+    addObstacleBox(0.35, 2.1, 0.35, -20.5, 0, 4, 0, grimeMetal, false);
+    addObstacleBox(0.35, 2.1, 0.35, 20.5, 0, -5, 0, grimeMetal, false);
+    addObstacleBox(0.22, swWallFullH - 0.1, 0.22, -14, 0, 12, 0, columnMat, false, false);
+    addObstacleBox(0.22, swWallFullH - 0.1, 0.22, 14, 0, -11, 0, columnMat, false, false);
+    addObstacleBox(0.14, 0.1, 7.6, -half + 2.58, subwayCeilingY - 0.42, -14, Math.PI * 0.5, neonMat, false);
+    addObstacleBox(0.14, 0.1, 7.6, half - 2.58, subwayCeilingY - 0.42, 16, Math.PI * 0.5, neonMat, false);
+    addObstacleBox(2.4, 0.55, 1.8, -11, 0, 20, 0.35, orangeHazard, false);
+    addObstacleBox(2.4, 0.55, 1.8, 11, 0, -19, -0.2, orangeHazard, false);
+    addObstacleBox(1.2, 0.82, 1.2, -18, 0, -18, 0.2, grimeMetal, false);
+    addObstacleBox(1.05, 0.72, 1.05, -18, 0.82, -18, 0.2, grimeMetal, false);
+    addObstacleBox(1.1, 0.62, 1.1, 18, 0, 19, -0.4, grimeMetal, false);
+    addObstacleBox(0.98, 0.58, 0.98, 18, 0.62, 19, -0.4, grimeMetal, false);
+    addObstacleBox(0.9, 0.52, 0.9, -4.5, 0, 16, 0, grimeMetal, false);
+    addObstacleBox(0.9, 0.52, 0.9, 5.2, 0, -17, 0.15, grimeMetal, false);
+
+    if (!subwayTrainGroup) {
+      var trainBodyMat = new THREE.MeshStandardMaterial({
+        color: 0x4a5666,
+        roughness: 0.52,
+        metalness: 0.45,
+        emissive: 0x060a12,
+        emissiveIntensity: 0.05
+      });
+      var trainWinMat = new THREE.MeshStandardMaterial({
+        color: 0x1a2332,
+        roughness: 0.35,
+        metalness: 0.2,
+        emissive: 0x304060,
+        emissiveIntensity: 0.2
+      });
+      var trainStripeMat = new THREE.MeshStandardMaterial({
+        color: 0xc42828,
+        roughness: 0.5,
+        metalness: 0.12,
+        emissive: 0x401010,
+        emissiveIntensity: 0.06
+      });
+      subwayTrainGroup = new THREE.Group();
+      subwayTrainGroup.name = "subwayTrain";
+      subwayTrainGroup.userData.wheelMeshes = [];
+      var carLenZ = 4.15;
+      var carH = 2.95;
+      var carW = 3.75;
+      var wheelR = 0.102;
+      var wheelYLocal = swRailY + wheelR - (swRailY + carH * 0.48);
+      var trainWheelMat = new THREE.MeshStandardMaterial({
+        color: 0x343a42,
+        roughness: 0.48,
+        metalness: 0.62,
+        emissive: 0x040608,
+        emissiveIntensity: 0.03
+      });
+      var trainWheelHubMat = new THREE.MeshStandardMaterial({
+        color: 0x4a525c,
+        roughness: 0.42,
+        metalness: 0.5,
+        emissive: 0x05070a,
+        emissiveIntensity: 0.04
+      });
+      var wheelGeo = new THREE.CylinderGeometry(wheelR, wheelR, 0.092, 16);
+      wheelGeo.rotateZ(Math.PI * 0.5);
+      var carZi;
+      for (carZi = -2; carZi <= 2; carZi++) {
+        var carZ = carZi * carLenZ * 1.02;
+        var carBody = new THREE.Mesh(new THREE.BoxGeometry(carW, carH, carLenZ), trainBodyMat);
+        carBody.position.set(0, carH * 0.5 + 0.12, carZ);
+        carBody.castShadow = true;
+        carBody.receiveShadow = true;
+        subwayTrainGroup.add(carBody);
+        var wz;
+        for (wz = -1; wz <= 1; wz += 2) {
+          var wzPos = carZ + wz * carLenZ * 0.36;
+          var wx;
+          for (wx = -1; wx <= 1; wx += 2) {
+            var bogie = new THREE.Group();
+            bogie.position.set(wx * 0.785, wheelYLocal, wzPos);
+            var wmesh = new THREE.Mesh(wheelGeo, trainWheelMat);
+            wmesh.castShadow = true;
+            wmesh.receiveShadow = true;
+            bogie.add(wmesh);
+            var hub = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.042, 0.11, 10), trainWheelHubMat);
+            hub.rotateZ(Math.PI * 0.5);
+            bogie.add(hub);
+            subwayTrainGroup.add(bogie);
+            subwayTrainGroup.userData.wheelMeshes.push(bogie);
+          }
+        }
+        var winF = new THREE.Mesh(new THREE.BoxGeometry(carW * 0.86, carH * 0.36, 0.07), trainWinMat);
+        winF.position.set(0, carH * 0.54 + 0.12, carZ + carLenZ * 0.43);
+        subwayTrainGroup.add(winF);
+        var winB = new THREE.Mesh(new THREE.BoxGeometry(carW * 0.86, carH * 0.36, 0.07), trainWinMat);
+        winB.position.set(0, carH * 0.54 + 0.12, carZ - carLenZ * 0.43);
+        subwayTrainGroup.add(winB);
+        if (carZi === 0) {
+          var stripe = new THREE.Mesh(new THREE.BoxGeometry(carW + 0.08, 0.22, carLenZ * 0.9), trainStripeMat);
+          stripe.position.set(0, carH * 0.74 + 0.12, carZ);
+          subwayTrainGroup.add(stripe);
+        }
+      }
+      subwayTrainHalfLen = carLenZ * 2.5 * 1.02 + carLenZ * 0.52;
+      subwayTrainHalfW = carW * 0.5 + 0.18;
+      subwayTrainBodyY = swRailY + carH * 0.48;
+      subwayTrainGroup.visible = false;
+      mapBuildParent.add(subwayTrainGroup);
+    }
+
+    SUBWAY_SPAWN_X = wu(-11);
+    SUBWAY_SPAWN_Z = wu(-8);
+
+    var swSpots = [
+      { x: -19, z: 18, r: Math.PI * 0.15 },
+      { x: 19, z: 18, r: -Math.PI * 0.15 },
+      { x: 7, z: -19, r: Math.PI * 0.85 },
+      { x: -8, z: -18, r: -Math.PI * 0.85 }
+    ];
+    addCrossLevelPortalsForLevel(subwayWorldGroup, 4, swSpots);
+
+    addWalkableTopCapsForColliderList(subwayColliders, subwayShootBlockingRoots, subwayWorldGroup);
+
+    colliders = factoryColliders;
+    shootBlockingRoots = factoryShootBlockingRoots;
+    mapBuildParent = factoryWorldGroup;
+  }
+
+  function buildMaintenanceMap() {
+    if (maintenanceBuilt) return;
+    maintenanceBuilt = true;
+    colliders = maintenanceColliders;
+    shootBlockingRoots = maintenanceShootBlockingRoots;
+    mapBuildParent = maintenanceWorldGroup;
+
+    var conc = new THREE.MeshStandardMaterial({
+      color: 0x6e6860,
+      roughness: 0.93,
+      metalness: 0.04,
+      emissive: 0x12100c,
+      emissiveIntensity: 0.025
+    });
+    var pipeMat = new THREE.MeshStandardMaterial({
+      color: 0xa8b2bc,
+      roughness: 0.55,
+      metalness: 0.55,
+      emissive: 0x0a1018,
+      emissiveIntensity: 0.04
+    });
+    var pitGravel = new THREE.MeshStandardMaterial({
+      color: 0x5a564e,
+      roughness: 0.92,
+      metalness: 0.06,
+      emissive: 0x080604,
+      emissiveIntensity: 0.02
+    });
+    var rustIron = new THREE.MeshStandardMaterial({
+      color: 0x7a6a58,
+      roughness: 0.82,
+      metalness: 0.38,
+      emissive: 0x181008,
+      emissiveIntensity: 0.04
+    });
+    var oxidCopper = new THREE.MeshStandardMaterial({
+      color: 0xff7b2e,
+      roughness: 0.62,
+      metalness: 0.18,
+      emissive: 0x401808,
+      emissiveIntensity: 0.08
+    });
+    var chevronYellow = new THREE.MeshStandardMaterial({
+      color: 0xf2d030,
+      roughness: 0.52,
+      metalness: 0.12,
+      emissive: 0x554010,
+      emissiveIntensity: 0.1
+    });
+    var wetConcrete = new THREE.MeshStandardMaterial({
+      color: 0x9d9a95,
+      roughness: 0.9,
+      metalness: 0.06,
+      emissive: 0x080604,
+      emissiveIntensity: 0.03
+    });
+    var crateRust = new THREE.MeshStandardMaterial({
+      color: 0xc9a06a,
+      roughness: 0.88,
+      metalness: 0.04,
+      emissive: 0x201408,
+      emissiveIntensity: 0.03
+    });
+    var grimeMetal = new THREE.MeshStandardMaterial({
+      color: 0x4a4538,
+      roughness: 0.9,
+      metalness: 0.22,
+      emissive: 0x060604,
+      emissiveIntensity: 0.03
+    });
+    var sumpGlow = new THREE.MeshStandardMaterial({
+      color: 0xe86d28,
+      roughness: 0.58,
+      metalness: 0.12,
+      emissive: 0x502008,
+      emissiveIntensity: 0.12
+    });
+    var hazardStripM = new THREE.MeshStandardMaterial({
+      color: 0xff6a18,
+      roughness: 0.5,
+      metalness: 0.15,
+      emissive: 0x552008,
+      emissiveIntensity: 0.16
+    });
+    var perimWallMat = new THREE.MeshStandardMaterial({
+      color: 0xc4ccd4,
+      roughness: 0.88,
+      metalness: 0.08,
+      emissive: 0x101418,
+      emissiveIntensity: 0.03
+    });
+    var craneYellow = new THREE.MeshStandardMaterial({
+      color: 0xf2d820,
+      roughness: 0.42,
+      metalness: 0.38,
+      emissive: 0x4a4010,
+      emissiveIntensity: 0.06
+    });
+
+    floorMaintenance = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), conc);
+    floorMaintenance.rotation.x = -Math.PI / 2;
+    floorMaintenance.receiveShadow = false;
+    mapBuildParent.add(floorMaintenance);
+    addCollider(-half, half, -half, half, 0, 0.05, true);
+
+    var mxPerimT = 0.58;
+    var mxWallH = 4.35;
+    addObstacleBox(arena * 2 + mxPerimT * 2, mxWallH, mxPerimT, 0, 0, -half - mxPerimT * 0.5, 0, perimWallMat, false, true);
+    addObstacleBox(arena * 2 + mxPerimT * 2, mxWallH, mxPerimT, 0, 0, half + mxPerimT * 0.5, 0, perimWallMat, false, true);
+    addObstacleBox(mxPerimT, mxWallH, arena * 2 + mxPerimT * 2, -half - mxPerimT * 0.5, 0, 0, 0, perimWallMat, false, true);
+    addObstacleBox(mxPerimT, mxWallH, arena * 2 + mxPerimT * 2, half + mxPerimT * 0.5, 0, 0, 0, perimWallMat, false, true);
+
+    var pit = new THREE.Mesh(new THREE.PlaneGeometry(30, 24), pitGravel);
+    pit.rotation.x = -Math.PI / 2;
+    pit.position.set(8, 0.04, -6);
+    mapBuildParent.add(pit);
+    var pitDeep = new THREE.Mesh(new THREE.PlaneGeometry(22, 16), new THREE.MeshStandardMaterial({
+      color: 0x3a3832,
+      roughness: 0.94,
+      metalness: 0.04,
+      emissive: 0x040302,
+      emissiveIntensity: 0.02
+    }));
+    pitDeep.rotation.x = -Math.PI / 2;
+    pitDeep.position.set(8, 0.038, -6);
+    mapBuildParent.add(pitDeep);
+
+    var scf = pipeMat;
+    var scLegH = 5.05;
+    addObstacleBox(0.42, scLegH, 0.42, 15.2, 0, -7.6, 0, scf, false);
+    addObstacleBox(0.42, scLegH, 0.42, 19.2, 0, -7.6, 0, scf, false);
+    addObstacleBox(0.42, scLegH, 0.42, 15.2, 0, -12.2, 0, scf, false);
+    addObstacleBox(0.42, scLegH, 0.42, 19.2, 0, -12.2, 0, scf, false);
+    addObstacleBox(0.52, 0.38, 0.52, 17.2, 0, -9.9, 0, chevronYellow, false);
+    addObstacleBox(3.8, 0.28, 1.2, -18, 0, 4, 0.35, wetConcrete, false);
+    addObstacleBox(3.8, 0.28, 1.2, -18, 0.28, 4, 0.35, chevronYellow, false);
+
+    var mSpX = (-4 * arena) / 34;
+    var mSpZ = (10 * arena) / 34;
+    function mClear(px, pz) {
+      return Math.hypot(px - mSpX, pz - mSpZ) >= 5.5;
+    }
+
+    var i;
+    for (i = -1; i <= 1; i++) {
+      addObstacleBox(1.75, 5.55, 1.75, i * 16, 0, -20, 0, wetConcrete, false);
+      addObstacleBox(1.75, 5.55, 1.75, i * 16, 0, 22, 0, wetConcrete, false);
+    }
+    for (i = 0; i < 10; i++) {
+      var px = -21 + i * 4.4;
+      var pz = -5 + (i % 3) * 5.5;
+      var ph = 0.34 + (i % 5) * 0.06;
+      addObstacleBox(5.4, ph, 0.48, px, 0, pz, (i * 0.08) % 0.5, pipeMat, false);
+    }
+    for (i = 0; i < 8; i++) {
+      var px2 = -16 + i * 4.2;
+      addObstacleBox(0.38, 1.6, 0.38, px2, 0, 8 + (i % 2) * 0.4, 0, rustIron, false);
+    }
+    addObstacleBox(10.5, 1.15, 4.2, -8, 0, 12, 0.18, wetConcrete, false);
+    addObstacleBox(8.5, 2.45, 3.1, 14, 0, -8, -0.28, rustIron, false);
+
+    var sx;
+    var sz;
+    for (sx = 2; sx <= 14; sx += 3.5) {
+      addObstacleBox(0.55, 0.88, 0.55, sx, 0, -8 + sx * 0.15, 0, oxidCopper, false);
+    }
+    for (sz = -18; sz <= 18; sz += 4) {
+      if (!mClear(6, sz)) continue;
+      addObstacleBox(1.1, 0.63, 0.55, 6, 0, sz, 0.1, chevronYellow, false);
+    }
+    addObstacleBox(3.2, 1.85, 3.2, -14, 0, -14, 0.2, crateRust, false);
+    addObstacleBox(2.4, 1.55, 2.4, -15.2, 1.55, -14, 0.15, crateRust, false);
+    addObstacleBox(2.8, 1.4, 2.8, 16, 0, 15, -0.3, crateRust, false);
+    addObstacleBox(1.8, 1.1, 1.8, 16.9, 1.1, 15, -0.25, crateRust, false);
+    addObstacleBox(0.45, 0.52, 8.5, 2, 0, -12, 0, pipeMat, false);
+    addObstacleBox(0.45, 0.52, 8.5, -3.5, 0, 10, 0.12, pipeMat, false);
+    addObstacleBox(6.5, 0.6, 0.45, 8, 0, -2, 0, chevronYellow, false);
+    addObstacleBox(0.55, 4.2, 4.5, -20, 0, 2, 0, rustIron, false);
+    addObstacleBox(0.55, 4.2, 4.5, 20, 0, -3, 0.1, rustIron, false);
+    addObstacleBox(4.2, 0.83, 4.2, 8, 0, -6, 0, oxidCopper, false);
+    addObstacleBox(2.2, 1.8, 0.35, -10, 0, 6, Math.PI * 0.25, wetConcrete, false);
+    addObstacleBox(2.2, 1.8, 0.35, -10, 0, 10, Math.PI * 0.25, wetConcrete, false);
+    var ri;
+    for (ri = 0; ri < 14; ri++) {
+      var ang = (ri / 14) * Math.PI * 2 + 0.2;
+      var rad = 12.5 + (ri % 2) * 0.4;
+      var rx = 8 + Math.cos(ang) * rad;
+      var rz = -6 + Math.sin(ang) * rad * 0.82;
+      if (!mClear(rx, rz)) continue;
+      addObstacleBox(0.65, 0.83, 0.65, rx, 0, rz, ang * 0.1, rustIron, false);
+    }
+    for (i = 0; i < 22; i++) {
+      var rx2 = -22 + (i % 11) * 4.2;
+      var rz2 = -20 + ((i / 11) | 0) * 6;
+      if (!mClear(rx2, rz2)) continue;
+      if (rx2 > 2 && rx2 < 14 && rz2 > -12 && rz2 < 0) continue;
+      addObstacleBox(0.48 + (i % 3) * 0.06, 0.54, 0.52, rx2, 0, rz2, i * 0.09, grimeMetal, false);
+    }
+
+    var crx = half + mxPerimT + 7.2;
+    var crz = -14;
+    addWallMesh(6.2, 0.42, 5.4, crx, crz, 0, grimeMetal, true, false, false);
+
+    (function buildTowerCrane() {
+      var mastCx = crx + 0.35;
+      var mastCz = crz + 1.1;
+      var towerTopY = 19.5;
+      var mastFootY = 0.22;
+      var chordD = 0.42;
+      var chordTh = 0.19;
+      var vcH = towerTopY - mastFootY;
+      var vcYc = mastFootY + vcH * 0.5;
+      var corner = [
+        [chordD, chordD],
+        [chordD, -chordD],
+        [-chordD, chordD],
+        [-chordD, -chordD]
+      ];
+      var ci;
+      for (ci = 0; ci < 4; ci++) {
+        var chord = new THREE.Mesh(new THREE.BoxGeometry(chordTh, vcH, chordTh), craneYellow);
+        chord.position.set(mastCx + corner[ci][0], vcYc, mastCz + corner[ci][1]);
+        chord.castShadow = true;
+        chord.receiveShadow = true;
+        mapBuildParent.add(chord);
+      }
+      var ringSpan = chordD * 2 + chordTh * 0.35;
+      var ringY;
+      for (ringY = mastFootY + 1.15; ringY < towerTopY - 0.55; ringY += 3.05) {
+        var ringA = new THREE.Mesh(new THREE.BoxGeometry(ringSpan, 0.12, 0.11), rustIron);
+        ringA.position.set(mastCx, ringY, mastCz);
+        ringA.castShadow = true;
+        ringA.receiveShadow = true;
+        mapBuildParent.add(ringA);
+        var ringB = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.12, ringSpan), rustIron);
+        ringB.position.set(mastCx, ringY, mastCz);
+        ringB.castShadow = true;
+        ringB.receiveShadow = true;
+        mapBuildParent.add(ringB);
+      }
+      var tipSiteX = 9;
+      var tipSiteZ = -6.5;
+      var dx = tipSiteX - mastCx;
+      var dz = tipSiteZ - mastCz;
+      var dLen = Math.hypot(dx, dz);
+      var ux = dx / dLen;
+      var uz = dz / dLen;
+      var boomYaw = Math.atan2(ux, uz);
+      var pivotY = towerTopY + 0.22;
+      var slewDeck = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.2, 2.05), craneYellow);
+      slewDeck.position.set(mastCx, towerTopY + 0.1, mastCz);
+      slewDeck.castShadow = true;
+      slewDeck.receiveShadow = true;
+      mapBuildParent.add(slewDeck);
+
+      var boomLen = 26.2;
+      var boomH = 0.56;
+      var boomW = 0.43;
+      var boomM = new THREE.Mesh(new THREE.BoxGeometry(boomW, boomH, boomLen), craneYellow);
+      boomM.position.set(mastCx + ux * boomLen * 0.5, pivotY - boomH * 0.08, mastCz + uz * boomLen * 0.5);
+      boomM.rotation.y = boomYaw;
+      boomM.rotation.x = -0.018;
+      boomM.castShadow = true;
+      boomM.receiveShadow = true;
+      mapBuildParent.add(boomM);
+
+      var cjLen = 9.8;
+      var cjM = new THREE.Mesh(new THREE.BoxGeometry(boomW * 0.9, boomH * 0.78, cjLen), rustIron);
+      cjM.position.set(mastCx - ux * cjLen * 0.5, pivotY - boomH * 0.14, mastCz - uz * cjLen * 0.5);
+      cjM.rotation.y = boomYaw + Math.PI;
+      cjM.rotation.x = 0.012;
+      cjM.castShadow = true;
+      cjM.receiveShadow = true;
+      mapBuildParent.add(cjM);
+
+      var cwDist = cjLen * 0.5 + 1.42;
+      var cwM = new THREE.Mesh(new THREE.BoxGeometry(2.75, 1.12, 1.12), rustIron);
+      cwM.position.set(mastCx - ux * cwDist, pivotY - 0.48, mastCz - uz * cwDist);
+      cwM.rotation.y = boomYaw + Math.PI * 0.18;
+      cwM.castShadow = true;
+      cwM.receiveShadow = true;
+      mapBuildParent.add(cwM);
+
+      var perpX = -uz;
+      var perpZ = ux;
+      var cabM = new THREE.Mesh(new THREE.BoxGeometry(1.05, 1.22, 2.28), pipeMat);
+      cabM.position.set(mastCx + perpX * 1.18, pivotY + 0.72, mastCz + perpZ * 1.18);
+      cabM.rotation.y = boomYaw + Math.PI * 0.06;
+      cabM.castShadow = true;
+      cabM.receiveShadow = true;
+      mapBuildParent.add(cabM);
+
+      function addSteelRod(ax, ay, az, bx, by, bz, rad, mat) {
+        var mx = (ax + bx) * 0.5;
+        var my = (ay + by) * 0.5;
+        var mz = (az + bz) * 0.5;
+        var rdx = bx - ax;
+        var rdy = by - ay;
+        var rdz = bz - az;
+        var rlen = Math.sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
+        if (rlen < 0.04) return;
+        var rod = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, rlen, 6), mat);
+        rod.position.set(mx, my, mz);
+        rod.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(rdx / rlen, rdy / rlen, rdz / rlen));
+        rod.castShadow = true;
+        rod.receiveShadow = true;
+        mapBuildParent.add(rod);
+      }
+      var tieY = towerTopY - 0.28;
+      var boomAttachY = pivotY - 0.04;
+      addSteelRod(mastCx, tieY, mastCz, mastCx + ux * 9.2, boomAttachY - 0.06, mastCz + uz * 9.2, 0.055, pipeMat);
+      addSteelRod(mastCx, tieY, mastCz, mastCx + ux * 16.5, boomAttachY - 0.12, mastCz + uz * 16.5, 0.05, pipeMat);
+      addSteelRod(mastCx, tieY, mastCz, mastCx - ux * 4.2, pivotY - boomH * 0.22, mastCz - uz * 4.2, 0.052, pipeMat);
+
+      var hookAlong = boomLen * 0.5 - 1.1;
+      var hookX = mastCx + ux * hookAlong;
+      var hookZ = mastCz + uz * hookAlong;
+      var hookDrop = 3.65;
+      addSteelRod(hookX, boomAttachY - boomH * 0.32, hookZ, hookX, boomAttachY - boomH * 0.32 - hookDrop, hookZ, 0.04, grimeMetal);
+      var hookBlk = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.38, 0.42), grimeMetal);
+      hookBlk.position.set(hookX, boomAttachY - boomH * 0.32 - hookDrop - 0.19, hookZ);
+      hookBlk.castShadow = true;
+      hookBlk.receiveShadow = true;
+      mapBuildParent.add(hookBlk);
+
+      var apex = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.38, 0.55), craneYellow);
+      apex.position.set(mastCx, tieY + 0.19, mastCz);
+      apex.castShadow = true;
+      apex.receiveShadow = true;
+      mapBuildParent.add(apex);
+    })();
+
+    var wi;
+    for (wi = 0; wi < 7; wi++) {
+      addObstacleBox(0.44, 4.27, 0.44, -2 + wi * 4.2, 0, -16 + (wi % 2) * 0.5, 0, pipeMat, false);
+    }
+    for (wi = 0; wi < 6; wi++) {
+      var hzx = -15 + wi * 5.5;
+      var hzz = 18 - (wi % 3) * 2.2;
+      if (!mClear(hzx, hzz)) continue;
+      addObstacleBox(2.4, 0.54, 1.05, hzx, 0, hzz, wi * 0.12, hazardStripM, false);
+    }
+    var sg;
+    for (sg = 0; sg < 20; sg++) {
+      var sag = (sg / 20) * Math.PI * 2 + 0.35;
+      var sgr = 10.8 + (sg % 2) * 0.35;
+      var sgx = 8 + Math.cos(sag) * sgr;
+      var sgz = -6 + Math.sin(sag) * sgr * 0.76;
+      if (!mClear(sgx, sgz)) continue;
+      addObstacleBox(0.32, 0.3, 0.32, sgx, 0, sgz, sag * 0.05, sumpGlow, false);
+    }
+    addObstacleBox(5.2, 0.63, 0.48, 8, 0, -6, 0, pitGravel, false);
+    addObstacleBox(0.55, 2.77, 5.5, -6, 0, -4, 0.08, oxidCopper, false);
+    addObstacleBox(0.55, 2.77, 5.5, 22, 0, 8, -0.12, oxidCopper, false);
+    addObstacleBox(3.6, 1.25, 0.42, 12, 0, 6, 0.2, crateRust, false);
+    addObstacleBox(3.6, 1.12, 0.42, 12, 1.25, 6, 0.15, crateRust, false);
+
+    MAINTENANCE_SPAWN_X = wu(-4);
+    MAINTENANCE_SPAWN_Z = wu(10);
+
+    addExplosiveBarrel(-18.5, 7.2, 0.35, 1.02, 5);
+    addExplosiveBarrel(16.2, 13.5, 0.36, 0.98, 5);
+    addExplosiveBarrel(-12.8, -17.2, 0.34, 1.0, 5);
+    addExplosiveBarrel(17.8, -10.5, 0.35, 0.96, 5);
+    addExplosiveBarrel(4.2, -15.8, 0.36, 1.04, 5);
+
+    var mxSpots = [
+      { x: 17, z: 16, r: -Math.PI * 0.35 },
+      { x: -17, z: 15, r: Math.PI * 0.35 },
+      { x: 14, z: -16, r: -Math.PI * 0.75 },
+      { x: -15, z: -14, r: Math.PI * 0.75 }
+    ];
+    addCrossLevelPortalsForLevel(maintenanceWorldGroup, 5, mxSpots);
+
+    addWalkableTopCapsForColliderList(maintenanceColliders, maintenanceShootBlockingRoots, maintenanceWorldGroup);
+
+    colliders = factoryColliders;
+    shootBlockingRoots = factoryShootBlockingRoots;
+    mapBuildParent = factoryWorldGroup;
+  }
+
   buildGraveyardMap();
+  buildSubwayMap();
+  buildMaintenanceMap();
 
   var player = { x: SPAWN_X, z: SPAWN_Z, jumpY: 0, vy: 0, kbVx: 0, kbVz: 0, grounded: true, radius: 0.35, _jumpPress: false };
   player.jumpY = getGroundHeight(player.x, player.z);
   yaw.position.set(player.x, eyeY + player.jumpY, player.z);
 
   var medkitWhiteMat = new THREE.MeshStandardMaterial({
-    color: 0xf2f5fa,
-    roughness: 0.42,
-    metalness: 0.06,
-    emissive: 0x0a0c10,
-    emissiveIntensity: 0.025
+    color: 0xffffff,
+    roughness: 0.38,
+    metalness: 0.05,
+    emissive: 0xc8e0ff,
+    emissiveIntensity: 0.14
   });
   var medkitRedMat = new THREE.MeshStandardMaterial({
-    color: 0xd01028,
-    roughness: 0.38,
-    metalness: 0.12,
-    emissive: 0x280408,
-    emissiveIntensity: 0.06
+    color: 0xff2038,
+    roughness: 0.32,
+    metalness: 0.1,
+    emissive: 0xff2048,
+    emissiveIntensity: 0.42
   });
   var medkitRedDarkMat = new THREE.MeshStandardMaterial({
-    color: 0x8a0c18,
-    roughness: 0.55,
-    metalness: 0.08
+    color: 0xa01028,
+    roughness: 0.5,
+    metalness: 0.08,
+    emissive: 0x401018,
+    emissiveIntensity: 0.12
   });
   var medkitMetalMat = new THREE.MeshStandardMaterial({
-    color: 0x9aa4b0,
-    roughness: 0.45,
-    metalness: 0.55
+    color: 0xb8c4d4,
+    roughness: 0.4,
+    metalness: 0.55,
+    emissive: 0x304050,
+    emissiveIntensity: 0.08
+  });
+  var medkitHaloMat = new THREE.MeshBasicMaterial({
+    color: 0xff6a7a,
+    transparent: true,
+    opacity: 0.38,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false
   });
   var medkitGroup = new THREE.Group();
   medkitGroup.name = "medkitPickup";
@@ -2687,15 +3988,20 @@
   medkitClasp.castShadow = true;
   medkitGroup.add(medkitClasp);
 
-  var crossLift = 0.166;
-  var medkitCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.006, 0.12), medkitRedMat);
+  var crossLift = 0.178;
+  var medkitCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.012, 0.14), medkitRedMat);
   medkitCrossV.position.set(0, crossLift, 0);
   medkitCrossV.castShadow = true;
   medkitGroup.add(medkitCrossV);
-  var medkitCrossH = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.006, 0.042), medkitRedMat);
+  var medkitCrossH = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.012, 0.055), medkitRedMat);
   medkitCrossH.position.set(0, crossLift, 0);
   medkitCrossH.castShadow = true;
   medkitGroup.add(medkitCrossH);
+
+  var medkitHalo = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.48, 32), medkitHaloMat);
+  medkitHalo.rotation.x = -Math.PI / 2;
+  medkitHalo.position.y = 0.018;
+  medkitGroup.add(medkitHalo);
 
   var medkitCornerTapeL = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.27), medkitRedDarkMat);
   medkitCornerTapeL.position.set(-0.19, 0.075, 0);
@@ -2704,7 +4010,11 @@
   medkitCornerTapeR.position.set(0.19, 0.075, 0);
   medkitGroup.add(medkitCornerTapeR);
 
-  scene.add(medkitGroup);
+  medkitGroup.scale.setScalar(1.42);
+
+  medkitGroup.traverse(function (o) {
+    if (o.geometry) o.geometry.userData.skipDispose = true;
+  });
 
   var weapon = new THREE.Group();
   weapon.name = "weapon";
@@ -2718,6 +4028,48 @@
   var gunAccent = new THREE.MeshStandardMaterial({ color: 0x3d4858, metalness: 0.45, roughness: 0.4 });
   var gunFde = new THREE.MeshStandardMaterial({ color: 0xbda088, roughness: 0.78, metalness: 0.06 });
   var gunRailMat = new THREE.MeshStandardMaterial({ color: 0x1e2228, metalness: 0.65, roughness: 0.32 });
+
+  var fpsHandSkinMat = new THREE.MeshStandardMaterial({
+    color: 0xd4b5a0,
+    roughness: 0.58,
+    metalness: 0.02
+  });
+  var fpsHandSleeveMat = new THREE.MeshStandardMaterial({
+    color: 0x2e3440,
+    roughness: 0.88,
+    metalness: 0.04
+  });
+
+  function buildFpsHandGroup(isLeft) {
+    var hg = new THREE.Group();
+    hg.name = isLeft ? "handL" : "handR";
+    var palm = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.038, 0.098), fpsHandSkinMat);
+    palm.castShadow = false;
+    palm.receiveShadow = false;
+    hg.add(palm);
+    var fingers = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.024, 0.048), fpsHandSkinMat);
+    fingers.position.set(0, -0.016, -0.065);
+    fingers.rotation.x = 0.38;
+    fingers.castShadow = false;
+    fingers.receiveShadow = false;
+    hg.add(fingers);
+    var thumbX = isLeft ? 0.048 : -0.048;
+    var thumb = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.022, 0.052), fpsHandSkinMat);
+    thumb.position.set(thumbX, -0.008, 0.025);
+    thumb.rotation.set(0.15, isLeft ? -0.55 : 0.55, 0.2);
+    thumb.castShadow = false;
+    hg.add(thumb);
+    var sleeve = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.044, 0.052, 0.055, 10, 1, true, 0, Math.PI * 1.05),
+      fpsHandSleeveMat
+    );
+    sleeve.rotation.z = Math.PI / 2;
+    sleeve.rotation.y = isLeft ? 0.22 : -0.22;
+    sleeve.position.set(0, 0.018, 0.076);
+    sleeve.castShadow = false;
+    hg.add(sleeve);
+    return hg;
+  }
 
   var scarLower = new THREE.Mesh(new THREE.BoxGeometry(0.066, 0.08, 0.23), gunFde);
   scarLower.position.set(0, 0.012, -0.038);
@@ -2798,6 +4150,16 @@
   weapon.userData.mag = magMesh;
   weapon.userData.magBaseY = magMesh.position.y;
   weapon.userData.magBaseZ = magMesh.position.z;
+
+  var wpnHandL = buildFpsHandGroup(true);
+  wpnHandL.position.set(0.068, -0.045, -0.198);
+  wpnHandL.rotation.set(0.32, 0.18, -0.42);
+  weapon.add(wpnHandL);
+  var wpnHandR = buildFpsHandGroup(false);
+  wpnHandR.position.set(-0.042, -0.118, 0.036);
+  wpnHandR.rotation.set(0.4, -0.06, 0.06);
+  weapon.add(wpnHandR);
+
   weapon.userData.baseTiltX = weapon.rotation.x;
   weapon.userData.baseRotY = weapon.rotation.y;
   weapon.userData.baseZ = weapon.position.z;
@@ -2895,6 +4257,15 @@
   pistolWeapon.userData.baseZ = pistolWeapon.position.z;
   pistolWeapon.userData.baseY = pistolWeapon.position.y;
 
+  var sgHandL = buildFpsHandGroup(true);
+  sgHandL.position.set(0.064, -0.032, 0.012);
+  sgHandL.rotation.set(0.26, 0.12, -0.38);
+  pistolWeapon.add(sgHandL);
+  var sgHandR = buildFpsHandGroup(false);
+  sgHandR.position.set(-0.04, -0.078, breechZ + 0.068);
+  sgHandR.rotation.set(0.4, -0.02, 0.12);
+  pistolWeapon.add(sgHandR);
+
   var heldGrenadeMat = new THREE.MeshStandardMaterial({
     color: 0x3d5240,
     roughness: 0.5,
@@ -2947,6 +4318,10 @@
   heldGrenadeMesh.position.set(0.44, -0.4, -0.58);
   heldGrenadeMesh.visible = false;
   camera.add(heldGrenadeMesh);
+  var grenHandL = buildFpsHandGroup(true);
+  grenHandL.position.set(-0.086, -0.042, 0.018);
+  grenHandL.rotation.set(0.42, 0.38, -0.48);
+  heldGrenadeMesh.add(grenHandL);
 
   function getWpnGroup() {
     if (weaponSlot === 2) return pistolWeapon;
@@ -3114,6 +4489,11 @@
   kButt.add(kButtDome);
   knifeWeapon.add(kButt);
 
+  var knifeHandR = buildFpsHandGroup(false);
+  knifeHandR.position.set(gripX - 0.004, -0.02, handleCenterZ + 0.004);
+  knifeHandR.rotation.set(0.2, 0.48, -0.32);
+  knifeWeapon.add(knifeHandR);
+
   knifeWeapon.userData.mag = kHandle;
   knifeWeapon.userData.magBaseY = kHandle.position.y;
   knifeWeapon.userData.magBaseZ = kHandle.position.z;
@@ -3197,6 +4577,7 @@
 
   function openPauseMenu() {
     if (graveyardVictoryOpen) return;
+    if (campaignCompleteOpen) return;
     if (!pointerLocked || gameOver || paused) return;
     ensureAudio();
     playPauseOpen();
@@ -3217,6 +4598,7 @@
   function closePauseMenuAndPlay() {
     if (!paused) return;
     if (graveyardVictoryOpen) return;
+    if (campaignCompleteOpen) return;
     ensureAudio();
     playPauseClose();
     paused = false;
@@ -3228,6 +4610,7 @@
 
   function togglePauseMenuFromInput() {
     if (graveyardVictoryOpen) return;
+    if (campaignCompleteOpen) return;
     if (!overlay.classList.contains("hidden") && !gameOver) return;
     if (gameOver) return;
     if (!paused) openPauseMenu();
@@ -3286,6 +4669,10 @@
         e.preventDefault();
         return;
       }
+      if (campaignCompleteOpen) {
+        e.preventDefault();
+        return;
+      }
       if (!overlay.classList.contains("hidden")) return;
       if (gameOver) return;
       if (paused) {
@@ -3331,24 +4718,31 @@
   var hp = 100;
   var hpRegenAcc = 0;
   var HP_REGEN_INTERVAL = 5;
-  var medkitActive = false;
-  var medkitX = 0;
-  var medkitZ = 0;
+  var medkitPickups = [];
   var medkitSpawnAcc = 0;
-  var medkitBob = 0;
   var MEDKIT_SPAWN_INTERVAL = 45;
-  var MEDKIT_PICKUP_R = 0.88;
+  var MEDKIT_PICKUP_R = 1.05;
+  var MEDKIT_MAX_ACTIVE = 6;
+  var MEDKIT_MIN_SEP_FROM_OTHER = 3.1;
+  var MEDKIT_HEAL_AMOUNT = 40;
+  var portalTravelCooldown = 0;
   var gameOver = false;
   var waveIntermission = 0;
   var pendingSpawnCount = 0;
   var MAX_WAVES_UI = 10;
   var MAX_WAVES_BACKROOMS_UI = 15;
   var MAX_WAVES_GRAVEYARD_UI = 10;
+  var MAX_WAVES_SUBWAY_UI = 12;
+  var MAX_WAVES_MAINTENANCE_UI = 15;
   var currentLevel = 1;
   var pendingMapSwitch = false;
   var pendingGraveyardSwitch = false;
+  var pendingSubwaySwitch = false;
+  var pendingMaintenanceSwitch = false;
   var graveyardVictoryOpen = false;
+  var campaignCompleteOpen = false;
   var graveyardEndless = false;
+  var maintenanceEndless = false;
   var paused = false;
 
   document.addEventListener("pointerlockchange", function () {
@@ -3359,6 +4753,8 @@
       weaponWheelAcc = 0;
       quickKnifeReturnOnFRelease = false;
       if (graveyardVictoryOpen) return;
+      if (campaignCompleteOpen) return;
+      if (missionIntroPanel && !missionIntroPanel.hidden) return;
       if (!paused || gameOver) {
         overlay.classList.remove("hidden");
         if (gameOver) showGameOverPanel();
@@ -3377,29 +4773,39 @@
     });
   }
 
-  function resetGameStateToFactoryLevel1Wave1ForNewRun() {
+  function resetGameStateToFactoryLevel1Wave1ForNewRun(opt) {
     clearStructureDebris();
     hp = 100;
     hpRegenAcc = 0;
     updateHpDisplay();
-    medkitActive = false;
+    clearMedkitPickups();
     medkitSpawnAcc = 0;
-    medkitGroup.visible = false;
     wave = 1;
     waveIntermission = 0;
     pendingSpawnCount = 0;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
+    pendingSubwaySwitch = false;
+    pendingMaintenanceSwitch = false;
+    portalTravelCooldown = 0;
     graveyardEndless = false;
+    maintenanceEndless = false;
     graveyardVictoryOpen = false;
+    campaignCompleteOpen = false;
     if (graveyardVictoryLayer) {
       graveyardVictoryLayer.classList.remove("visible");
       graveyardVictoryLayer.setAttribute("aria-hidden", "true");
+    }
+    if (campaignCompleteLayer) {
+      campaignCompleteLayer.classList.remove("visible");
+      campaignCompleteLayer.setAttribute("aria-hidden", "true");
     }
     currentLevel = 1;
     factoryWorldGroup.visible = true;
     backroomsWorldGroup.visible = false;
     graveyardWorldGroup.visible = false;
+    subwayWorldGroup.visible = false;
+    maintenanceWorldGroup.visible = false;
     colliders = factoryColliders;
     shootBlockingRoots = factoryShootBlockingRoots;
     activeFloorMesh = floor;
@@ -3448,7 +4854,8 @@
     subtitleEl.textContent = "Click to capture the mouse and enter first person.";
     spawnWaveNow(getEnemySpawnCountForWave(wave));
     updateWaveHudDisplay();
-    showStartMenuPanel();
+    if (opt && opt.missionIntro) showMissionIntroPanel();
+    else showStartMenuPanel();
   }
 
   function openGraveyardVictoryModal() {
@@ -3466,6 +4873,24 @@
     updateHeldGrenadeVisible();
     requestAnimationFrame(function () {
       if (graveyardVictoryRestartBtn) graveyardVictoryRestartBtn.focus();
+    });
+  }
+
+  function openCampaignCompleteModal() {
+    campaignCompleteOpen = true;
+    paused = true;
+    document.exitPointerLock();
+    if (campaignCompleteLayer) {
+      campaignCompleteLayer.classList.add("visible");
+      campaignCompleteLayer.setAttribute("aria-hidden", "false");
+    }
+    Object.keys(keys).forEach(function (k) {
+      keys[k] = false;
+    });
+    fireMouseHeld = false;
+    updateHeldGrenadeVisible();
+    requestAnimationFrame(function () {
+      if (campaignCompleteEndlessBtn) campaignCompleteEndlessBtn.focus();
     });
   }
 
@@ -3492,6 +4917,7 @@
       playUiConfirm();
       graveyardVictoryOpen = false;
       graveyardEndless = true;
+      maintenanceEndless = false;
       paused = false;
       if (graveyardVictoryLayer) {
         graveyardVictoryLayer.classList.remove("visible");
@@ -3502,13 +4928,80 @@
       pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
       pendingMapSwitch = false;
       pendingGraveyardSwitch = false;
+      pendingSubwaySwitch = false;
+      pendingMaintenanceSwitch = false;
       showWaveCountdownOverlay();
       elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
       renderer.domElement.requestPointerLock();
     });
   }
+  if (graveyardVictorySubwayBtn) {
+    graveyardVictorySubwayBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ensureAudio();
+      playUiConfirm();
+      graveyardVictoryOpen = false;
+      paused = false;
+      maintenanceEndless = false;
+      if (graveyardVictoryLayer) {
+        graveyardVictoryLayer.classList.remove("visible");
+        graveyardVictoryLayer.setAttribute("aria-hidden", "true");
+      }
+      switchToSubwayLevel();
+      renderer.domElement.requestPointerLock();
+    });
+  }
+  var campaignCompletePanel = document.getElementById("campaignCompletePanel");
+  if (campaignCompletePanel) {
+    campaignCompletePanel.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
+  if (campaignCompleteEndlessBtn) {
+    campaignCompleteEndlessBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ensureAudio();
+      playUiConfirm();
+      campaignCompleteOpen = false;
+      maintenanceEndless = true;
+      paused = false;
+      if (campaignCompleteLayer) {
+        campaignCompleteLayer.classList.remove("visible");
+        campaignCompleteLayer.setAttribute("aria-hidden", "true");
+      }
+      updateWaveHudDisplay();
+      waveIntermission = 3.4;
+      pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
+      pendingMapSwitch = false;
+      pendingGraveyardSwitch = false;
+      pendingSubwaySwitch = false;
+      pendingMaintenanceSwitch = false;
+      showWaveCountdownOverlay();
+      elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
+      renderer.domElement.requestPointerLock();
+    });
+  }
+  if (campaignCompleteBtn) {
+    campaignCompleteBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ensureAudio();
+      playUiConfirm();
+      campaignCompleteOpen = false;
+      if (campaignCompleteLayer) {
+        campaignCompleteLayer.classList.remove("visible");
+        campaignCompleteLayer.setAttribute("aria-hidden", "true");
+      }
+      resetGameStateToFactoryLevel1Wave1ForNewRun({ missionIntro: true });
+      overlay.classList.remove("hidden");
+    });
+  }
 
   overlay.addEventListener("click", function () {
+    if (missionIntroPanel && !missionIntroPanel.hidden) return;
+    if (campaignCompleteLayer && campaignCompleteLayer.classList.contains("visible")) return;
     ensureAudio();
     playUiConfirm();
     if (gameOver) {
@@ -3670,6 +5163,138 @@
     g2.connect(out);
     o2.start(t0 + 0.05);
     o2.stop(t0 + 0.4);
+  }
+
+  function playSubwayTrainHorn() {
+    if (!audioCtx) return;
+    var t0 = audioCtx.currentTime;
+    var out = sfxDest();
+    function airChiff(t, amp) {
+      var src = audioCtx.createBufferSource();
+      src.buffer = noiseBuffer(0.058, 0.48);
+      var bpf = audioCtx.createBiquadFilter();
+      bpf.type = "bandpass";
+      bpf.frequency.setValueAtTime(2400, t);
+      bpf.frequency.exponentialRampToValueAtTime(480, t + 0.045);
+      bpf.Q.setValueAtTime(1.15, t);
+      var g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(amp, t + 0.007);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.052);
+      src.connect(bpf);
+      bpf.connect(g);
+      g.connect(out);
+      src.start(t);
+      src.stop(t + 0.065);
+    }
+    function hornBell(f0, f1, tStart, dur, amp) {
+      var o = audioCtx.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(f0, tStart);
+      o.frequency.linearRampToValueAtTime(f1, tStart + dur * 0.4);
+      var lp = audioCtx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.setValueAtTime(620, tStart);
+      lp.frequency.exponentialRampToValueAtTime(165, tStart + dur * 0.78);
+      lp.Q.setValueAtTime(0.52, tStart);
+      var g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, tStart);
+      g.gain.linearRampToValueAtTime(amp, tStart + 0.038);
+      g.gain.setValueAtTime(amp * 0.9, tStart + dur * 0.38);
+      g.gain.exponentialRampToValueAtTime(0.001, tStart + dur);
+      o.connect(lp);
+      lp.connect(g);
+      g.connect(out);
+      o.start(tStart);
+      o.stop(tStart + dur + 0.025);
+    }
+    airChiff(t0, 0.12);
+    hornBell(185, 158, t0, 0.78, 0.078);
+    hornBell(233, 206, t0, 0.78, 0.062);
+    hornBell(294, 265, t0, 0.78, 0.048);
+    hornBell(392, 350, t0, 0.78, 0.028);
+    airChiff(t0 + 0.38, 0.095);
+    hornBell(185, 162, t0 + 0.38, 0.55, 0.065);
+    hornBell(233, 210, t0 + 0.38, 0.55, 0.052);
+    hornBell(294, 270, t0 + 0.38, 0.55, 0.04);
+    airChiff(t0 + 0.82, 0.08);
+    hornBell(196, 172, t0 + 0.82, 0.34, 0.055);
+    hornBell(247, 222, t0 + 0.82, 0.34, 0.044);
+    hornBell(311, 282, t0 + 0.82, 0.34, 0.034);
+  }
+
+  function stopSubwayTrainPassSfx() {
+    if (!subwayTrainPassSfx || !audioCtx) {
+      subwayTrainPassSfx = null;
+      return;
+    }
+    var S = subwayTrainPassSfx;
+    var t = audioCtx.currentTime;
+    var cur = S.master.gain.value;
+    if (cur < 0.0001) cur = 0.0001;
+    S.master.gain.cancelScheduledValues(t);
+    S.master.gain.setValueAtTime(cur, t);
+    S.master.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    var st = t + 0.36;
+    var si;
+    for (si = 0; si < S.sources.length; si++) {
+      try {
+        if (S.sources[si] && typeof S.sources[si].stop === "function") S.sources[si].stop(st);
+      } catch (e) {}
+    }
+    subwayTrainPassSfx = null;
+  }
+
+  function startSubwayTrainPassSfx() {
+    if (!audioCtx || subwayTrainPassSfx) return;
+    var t0 = audioCtx.currentTime;
+    var out = sfxDest();
+    var master = audioCtx.createGain();
+    master.gain.setValueAtTime(0, t0);
+    master.gain.linearRampToValueAtTime(0.15, t0 + 0.22);
+    master.connect(out);
+
+    var rum = audioCtx.createOscillator();
+    rum.type = "sawtooth";
+    rum.frequency.setValueAtTime(66, t0);
+    rum.frequency.linearRampToValueAtTime(86, t0 + 3.2);
+    var rumLp = audioCtx.createBiquadFilter();
+    rumLp.type = "lowpass";
+    rumLp.frequency.setValueAtTime(230, t0);
+    var rumG = audioCtx.createGain();
+    rumG.gain.setValueAtTime(0.034, t0);
+    rum.connect(rumLp);
+    rumLp.connect(rumG);
+    rumG.connect(master);
+
+    var rum2 = audioCtx.createOscillator();
+    rum2.type = "triangle";
+    rum2.frequency.setValueAtTime(118, t0);
+    var r2g = audioCtx.createGain();
+    r2g.gain.setValueAtTime(0.021, t0);
+    rum2.connect(r2g);
+    r2g.connect(master);
+
+    var clackBuf = noiseBuffer(0.92, 0.1);
+    var ns = audioCtx.createBufferSource();
+    ns.buffer = clackBuf;
+    ns.loop = true;
+    var bp = audioCtx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(360, t0);
+    bp.Q.setValueAtTime(0.68, t0);
+    var ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.1, t0);
+    ns.connect(bp);
+    bp.connect(ng);
+    ng.connect(master);
+
+    var sources = [];
+    ns.start(t0);
+    rum.start(t0);
+    rum2.start(t0);
+    sources.push(ns, rum, rum2);
+    subwayTrainPassSfx = { master: master, sources: sources };
   }
 
   function playDamage() {
@@ -4632,15 +6257,89 @@
     elLeft.textContent = String(enemies.length);
   }
 
-  function switchToBackroomsLevel() {
+  function refillPlayerCombatSuppliesForLevelEnter() {
+    hp = 100;
+    hpRegenAcc = 0;
+    updateHpDisplay();
+    magPrimary = MAG_PRIMARY;
+    magSecondary = MAG_PISTOL;
+    grenadeCooldown = 0;
+    if (activeGrenade) {
+      scene.remove(activeGrenade.mesh);
+      disposeGroup(activeGrenade.mesh);
+      activeGrenade = null;
+    }
+    fireCooldown = 0;
+    reloading = false;
+    reloadWeaponSlot = 0;
+    reloadTime = 0;
+    reloadMidPlayed = false;
+    if (elReloadHud) elReloadHud.style.display = "none";
+    if (elReloadProgressRing) elReloadProgressRing.style.strokeDashoffset = String(RELOAD_RING_CIRC);
+    updateAmmoHud();
+    updateGrenadeHud();
+    updateHeldGrenadeVisible();
+    updateHotbar();
+    updateHotbarAvailability();
+  }
+
+  function switchToFactoryLevel() {
     clearStructureDebris();
-    currentLevel = 2;
+    clearBloodSplatters();
+    clearMedkitPickups();
+    currentLevel = 1;
     graveyardEndless = false;
+    maintenanceEndless = false;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
+    pendingSubwaySwitch = false;
+    pendingMaintenanceSwitch = false;
+    waveIntermission = 0;
+    hideWaveCountdownOverlay();
+    factoryWorldGroup.visible = true;
+    backroomsWorldGroup.visible = false;
+    graveyardWorldGroup.visible = false;
+    subwayWorldGroup.visible = false;
+    maintenanceWorldGroup.visible = false;
+    colliders = factoryColliders;
+    shootBlockingRoots = factoryShootBlockingRoots;
+    activeFloorMesh = floor;
+    activeCeilingY = CEILING_Y;
+    applyFactorySceneStyle();
+    wave = 1;
+    updateMapLevelHudTitle();
+    updateWaveHudDisplay();
+    _bloodRayTargets = null;
+    player.x = SPAWN_X;
+    player.z = SPAWN_Z;
+    player.vy = 0;
+    player.kbVx = 0;
+    player.kbVz = 0;
+    player.grounded = true;
+    player._jumpPress = false;
+    player.jumpY = getGroundHeight(player.x, player.z);
+    yaw.position.set(player.x, eyeY + player.jumpY, player.z);
+    spawnWaveNow(getEnemySpawnCountForWave(wave));
+    refillPlayerCombatSuppliesForLevelEnter();
+    elLeft.textContent = String(enemies.length);
+  }
+
+  function switchToBackroomsLevel() {
+    clearStructureDebris();
+    clearBloodSplatters();
+    clearMedkitPickups();
+    currentLevel = 2;
+    graveyardEndless = false;
+    maintenanceEndless = false;
+    pendingMapSwitch = false;
+    pendingGraveyardSwitch = false;
+    pendingSubwaySwitch = false;
+    pendingMaintenanceSwitch = false;
     factoryWorldGroup.visible = false;
     backroomsWorldGroup.visible = true;
     graveyardWorldGroup.visible = false;
+    subwayWorldGroup.visible = false;
+    maintenanceWorldGroup.visible = false;
     colliders = backroomsColliders;
     shootBlockingRoots = backroomsShootBlockingRoots;
     activeFloorMesh = floorBackrooms;
@@ -4660,18 +6359,26 @@
     player.jumpY = getGroundHeight(player.x, player.z);
     yaw.position.set(player.x, eyeY + player.jumpY, player.z);
     spawnWaveNow(getEnemySpawnCountForWave(wave));
+    refillPlayerCombatSuppliesForLevelEnter();
     elLeft.textContent = String(enemies.length);
   }
 
   function switchToGraveyardLevel() {
     clearStructureDebris();
+    clearBloodSplatters();
+    clearMedkitPickups();
     currentLevel = 3;
     graveyardEndless = false;
+    maintenanceEndless = false;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
+    pendingSubwaySwitch = false;
+    pendingMaintenanceSwitch = false;
     factoryWorldGroup.visible = false;
     backroomsWorldGroup.visible = false;
     graveyardWorldGroup.visible = true;
+    subwayWorldGroup.visible = false;
+    maintenanceWorldGroup.visible = false;
     colliders = graveyardColliders;
     shootBlockingRoots = graveyardShootBlockingRoots;
     activeFloorMesh = floorGraveyard;
@@ -4691,6 +6398,94 @@
     player.jumpY = getGroundHeight(player.x, player.z);
     yaw.position.set(player.x, eyeY + player.jumpY, player.z);
     spawnWaveNow(getEnemySpawnCountForWave(wave));
+    refillPlayerCombatSuppliesForLevelEnter();
+    elLeft.textContent = String(enemies.length);
+  }
+
+  function switchToSubwayLevel() {
+    buildSubwayMap();
+    clearStructureDebris();
+    clearBloodSplatters();
+    clearMedkitPickups();
+    currentLevel = 4;
+    graveyardEndless = false;
+    maintenanceEndless = false;
+    pendingMapSwitch = false;
+    pendingGraveyardSwitch = false;
+    pendingSubwaySwitch = false;
+    pendingMaintenanceSwitch = false;
+    factoryWorldGroup.visible = false;
+    backroomsWorldGroup.visible = false;
+    graveyardWorldGroup.visible = false;
+    subwayWorldGroup.visible = true;
+    maintenanceWorldGroup.visible = false;
+    colliders = subwayColliders;
+    shootBlockingRoots = subwayShootBlockingRoots;
+    activeFloorMesh = floorSubway;
+    activeCeilingY = SUBWAY_PLAYER_CEILING;
+    applySubwaySceneStyle();
+    wave = 1;
+    updateMapLevelHudTitle();
+    updateWaveHudDisplay();
+    _bloodRayTargets = null;
+    player.x = SUBWAY_SPAWN_X;
+    player.z = SUBWAY_SPAWN_Z;
+    player.vy = 0;
+    player.kbVx = 0;
+    player.kbVz = 0;
+    player.grounded = true;
+    player._jumpPress = false;
+    player.jumpY = getGroundHeight(player.x, player.z);
+    yaw.position.set(player.x, eyeY + player.jumpY, player.z);
+    spawnWaveNow(getEnemySpawnCountForWave(wave));
+    refillPlayerCombatSuppliesForLevelEnter();
+    elLeft.textContent = String(enemies.length);
+    subwayTrainActive = false;
+    subwayTrainVelZ = 0;
+    subwayTrainZ = 0;
+    stopSubwayTrainPassSfx();
+    if (subwayTrainGroup) subwayTrainGroup.visible = false;
+    subwayTrainCooldown = 36 + Math.random() * 24;
+    subwayTrainHornPlayed = false;
+  }
+
+  function switchToMaintenanceLevel() {
+    buildMaintenanceMap();
+    clearStructureDebris();
+    clearBloodSplatters();
+    clearMedkitPickups();
+    currentLevel = 5;
+    graveyardEndless = false;
+    maintenanceEndless = false;
+    pendingMapSwitch = false;
+    pendingGraveyardSwitch = false;
+    pendingSubwaySwitch = false;
+    pendingMaintenanceSwitch = false;
+    factoryWorldGroup.visible = false;
+    backroomsWorldGroup.visible = false;
+    graveyardWorldGroup.visible = false;
+    subwayWorldGroup.visible = false;
+    maintenanceWorldGroup.visible = true;
+    colliders = maintenanceColliders;
+    shootBlockingRoots = maintenanceShootBlockingRoots;
+    activeFloorMesh = floorMaintenance;
+    activeCeilingY = MAINTENANCE_PLAYER_CEILING;
+    applyMaintenanceSceneStyle();
+    wave = 1;
+    updateMapLevelHudTitle();
+    updateWaveHudDisplay();
+    _bloodRayTargets = null;
+    player.x = MAINTENANCE_SPAWN_X;
+    player.z = MAINTENANCE_SPAWN_Z;
+    player.vy = 0;
+    player.kbVx = 0;
+    player.kbVz = 0;
+    player.grounded = true;
+    player._jumpPress = false;
+    player.jumpY = getGroundHeight(player.x, player.z);
+    yaw.position.set(player.x, eyeY + player.jumpY, player.z);
+    spawnWaveNow(getEnemySpawnCountForWave(wave));
+    refillPlayerCombatSuppliesForLevelEnter();
     elLeft.textContent = String(enemies.length);
   }
 
@@ -4760,6 +6555,8 @@
   var PLAYER_MOVE_SPEED = 6.6;
   /* Enemy run speed as a fraction of PLAYER_MOVE_SPEED; keep under 1 so you can outrun them. */
   var CHASE_MULT = 0.76;
+  /* Backrooms (level 2): slightly faster pursuers; later levels use base CHASE_MULT only. */
+  var BACKROOMS_CHASE_MULT_EXTRA = 1.14;
   var ENEMY_SEP_RADIUS = 1.02;
   var ENEMY_SEP_WEIGHT = 1.35;
   var MAG_PRIMARY = 25;
@@ -4787,7 +6584,7 @@
   var bulletVisGeo = new THREE.SphereGeometry(0.026, 6, 6);
   bulletVisGeo.userData.skipDispose = true;
   var shootRayScratch = [];
-  var CONTACT_DPS = 8.75;
+  var CONTACT_DPS = 10.75;
   var ENEMY_MELEE_RANGE = 0.68;
   var KNIFE_REACH = 2.45;
   var KNIFE_CLEAVE_RANGE = 2.8;
@@ -4945,7 +6742,7 @@
     var ei;
     for (ei = 0; ei < enemies.length; ei++) outArr.push(enemies[ei].mesh);
     for (var li = 0; li < explosiveBarrels.length; li++) {
-      if (explosiveBarrels[li].active && currentLevel === 1) outArr.push(explosiveBarrels[li].group);
+      if (explosiveBarrels[li].active && explosiveBarrels[li].mapLevel === currentLevel) outArr.push(explosiveBarrels[li].group);
     }
     for (var si = 0; si < shootBlockingRoots.length; si++) outArr.push(shootBlockingRoots[si]);
   }
@@ -5585,8 +7382,19 @@
     return dx * dx + dy * dy + dz * dz < r * r;
   }
 
+  function disposeLinkedExtrasOnCollider(c) {
+    if (!c || !c.linkedExtras || !c.linkedExtras.length) return;
+    var ei;
+    for (ei = 0; ei < c.linkedExtras.length; ei++) {
+      var ex = c.linkedExtras[ei];
+      if (ex && ex.parent) ex.parent.remove(ex);
+      removeShootBlockingRef(ex);
+      disposeGroup(ex);
+    }
+    c.linkedExtras = null;
+  }
+
   function tryPartialDestroyStructure(c, ox, oy, oz, blastR, pinChip, liteDebris) {
-    if (c.linkedExtras && c.linkedExtras.length) return false;
     var mesh = c.linkedMesh;
     if (!mesh || !mesh.geometry || mesh.geometry.type !== "BoxGeometry") return false;
 
@@ -5664,6 +7472,8 @@
       return true;
     }
 
+    disposeLinkedExtrasOnCollider(c);
+
     function cellBlast(ix2, iy2, iz2, bx0, bx1, by0, by1, bz0, bz1) {
       if (useForced && ix2 === fixIx && iy2 === fixIy && iz2 === fixIz) return true;
       return sphereIntersectsAabb(ox, oy, oz, blastR, bx0, bx1, by0, by1, bz0, bz1);
@@ -5740,7 +7550,6 @@
     for (ci = 0; ci < colliders.length; ci++) {
       var c = colliders[ci];
       if (!c.active || !c.destructible || c.perimeter) continue;
-      if (c.linkedExtras && c.linkedExtras.length) continue;
       if (c.linkedMesh === obj) return c;
       if (c.topCapMesh === obj) return c;
     }
@@ -5832,16 +7641,7 @@
     var mat = mesh.material;
     if (mat && mat.length) mat = mat[0];
 
-    if (c.linkedExtras) {
-      var ei;
-      for (ei = 0; ei < c.linkedExtras.length; ei++) {
-        var ex = c.linkedExtras[ei];
-        if (ex && ex.parent) ex.parent.remove(ex);
-        removeShootBlockingRef(ex);
-        disposeGroup(ex);
-      }
-      c.linkedExtras = null;
-    }
+    disposeLinkedExtrasOnCollider(c);
 
     if (c.topCapMesh) {
       var cap = c.topCapMesh;
@@ -5935,7 +7735,7 @@
     for (var bi = 0; bi < explosiveBarrels.length; bi++) {
       var B = explosiveBarrels[bi];
       if (!B.active) continue;
-      if (currentLevel !== 1) continue;
+      if (B.mapLevel !== currentLevel) continue;
       var bd = Math.hypot(B.wx - ox, B.wz - oz);
       if (bd < radius * 0.88) destroyBarrelEntry(B);
     }
@@ -5952,7 +7752,7 @@
 
   function damageBarrelFromBullet(idx) {
     var B = explosiveBarrels[idx];
-    if (!B || !B.active) return;
+    if (!B || !B.active || B.mapLevel !== currentLevel) return;
     var ox = B.wx;
     var oz = B.wz;
     var oy = B.ht * 0.5 + 0.02;
@@ -5967,17 +7767,30 @@
   function getEnemySpawnCountForWave(targetWave) {
     if (currentLevel === 1 && targetWave === 10) return 30;
     if (currentLevel === 2 && targetWave === 15) return 45;
+    if (currentLevel === 4 && targetWave === 12) return 48;
+    if (currentLevel === 5 && targetWave === 15) return 78;
+    if (currentLevel === 5 && targetWave > 15) {
+      return Math.min(118, Math.floor(64 + (targetWave - 15) * 3.5));
+    }
+    if (currentLevel === 5) {
+      var m5 = 7 + targetWave * 2.7;
+      if (targetWave >= 8) m5 += 8;
+      if (targetWave >= 12) m5 += 12;
+      return Math.floor(m5);
+    }
     return 4 + targetWave * 2;
   }
 
   function getMaxWavesForHud() {
     if (currentLevel === 1) return MAX_WAVES_UI;
     if (currentLevel === 2) return MAX_WAVES_BACKROOMS_UI;
-    return MAX_WAVES_GRAVEYARD_UI;
+    if (currentLevel === 3) return MAX_WAVES_GRAVEYARD_UI;
+    if (currentLevel === 4) return MAX_WAVES_SUBWAY_UI;
+    return MAX_WAVES_MAINTENANCE_UI;
   }
 
   function updateWaveHudDisplay() {
-    if (currentLevel === 3 && graveyardEndless) {
+    if ((currentLevel === 3 && graveyardEndless) || (currentLevel === 5 && maintenanceEndless)) {
       elWave.textContent = String(wave) + "/∞";
     } else {
       elWave.textContent = String(wave) + "/" + String(getMaxWavesForHud());
@@ -5988,34 +7801,72 @@
     if (elMapName) {
       if (currentLevel === 1) elMapName.textContent = MAP_DISPLAY_NAME;
       else if (currentLevel === 2) elMapName.textContent = MAP_DISPLAY_NAME_BACKROOMS;
-      else elMapName.textContent = MAP_DISPLAY_NAME_GRAVEYARD;
+      else if (currentLevel === 3) elMapName.textContent = MAP_DISPLAY_NAME_GRAVEYARD;
+      else if (currentLevel === 4) elMapName.textContent = MAP_DISPLAY_NAME_SUBWAY;
+      else elMapName.textContent = MAP_DISPLAY_NAME_MAINTENANCE;
     }
     if (elMapLevelSub) elMapLevelSub.textContent = "Level " + String(currentLevel);
   }
 
   function onWaveClearedAfterLastEnemy() {
+    if (currentLevel === 5 && wave === 15) {
+      if (!maintenanceEndless) {
+        pendingMapSwitch = false;
+        pendingGraveyardSwitch = false;
+        pendingSubwaySwitch = false;
+        pendingMaintenanceSwitch = false;
+        pendingSpawnCount = 0;
+        waveIntermission = 0;
+        hideWaveCountdownOverlay();
+        hp = Math.min(100, hp + 12);
+        openCampaignCompleteModal();
+        return;
+      }
+      waveIntermission = 3.4;
+      pendingMapSwitch = false;
+      pendingGraveyardSwitch = false;
+      pendingSubwaySwitch = false;
+      pendingMaintenanceSwitch = false;
+      pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
+      showWaveCountdownOverlay();
+      hp = Math.min(100, hp + 12);
+      return;
+    }
     if (currentLevel === 3 && wave === 10 && !graveyardEndless) {
       pendingMapSwitch = false;
       pendingGraveyardSwitch = false;
+      pendingSubwaySwitch = true;
+      pendingMaintenanceSwitch = false;
       pendingSpawnCount = 0;
-      waveIntermission = 0;
-      hideWaveCountdownOverlay();
+      waveIntermission = 3.4;
+      showWaveCountdownOverlay();
       hp = Math.min(100, hp + 12);
-      openGraveyardVictoryModal();
       return;
     }
     waveIntermission = 3.4;
-    if (currentLevel === 1 && wave === 10) {
+    if (currentLevel === 4 && wave === 12) {
+      pendingMaintenanceSwitch = true;
+      pendingMapSwitch = false;
+      pendingGraveyardSwitch = false;
+      pendingSubwaySwitch = false;
+      pendingSpawnCount = 0;
+    } else if (currentLevel === 1 && wave === 10) {
       pendingMapSwitch = true;
       pendingGraveyardSwitch = false;
+      pendingSubwaySwitch = false;
+      pendingMaintenanceSwitch = false;
       pendingSpawnCount = 0;
     } else if (currentLevel === 2 && wave === 15) {
       pendingMapSwitch = false;
       pendingGraveyardSwitch = true;
+      pendingSubwaySwitch = false;
+      pendingMaintenanceSwitch = false;
       pendingSpawnCount = 0;
     } else {
       pendingMapSwitch = false;
       pendingGraveyardSwitch = false;
+      pendingSubwaySwitch = false;
+      pendingMaintenanceSwitch = false;
       pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
     }
     showWaveCountdownOverlay();
@@ -6030,8 +7881,12 @@
   }
 
   function showWaveCountdownOverlay() {
-    if (pendingGraveyardSwitch) {
+    if (pendingMaintenanceSwitch) {
+      elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_MAINTENANCE;
+    } else if (pendingGraveyardSwitch) {
       elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_GRAVEYARD;
+    } else if (pendingSubwaySwitch) {
+      elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_SUBWAY;
     } else if (pendingMapSwitch) {
       elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_BACKROOMS;
     } else {
@@ -6303,6 +8158,19 @@
       tryKnifePrimaryFire();
       return;
     }
+    if (weaponSlot === 2) {
+      if (
+        !paused &&
+        waveIntermission <= 0 &&
+        !reloading &&
+        fireCooldown <= 0 &&
+        magSecondary > 0
+      ) {
+        shoot();
+        fireCooldown = SHOTGUN_FIRE_INTERVAL;
+      }
+      return;
+    }
     fireMouseHeld = true;
   });
 
@@ -6349,6 +8217,11 @@
       var sl = stepLen * mult;
       if (tryOne(px + wx * sl, pz + wz * sl)) return true;
     }
+    var ext;
+    for (ext = 0; ext < 4; ext++) {
+      var es = stepLen * (1.05 + ext * 0.58);
+      if (tryOne(px + wx * es, pz + wz * es)) return true;
+    }
     var ax = Math.abs(wx) > 0.08 ? Math.sign(wx) : 0;
     var az = Math.abs(wz) > 0.08 ? Math.sign(wz) : 0;
     var card = stepLen * 0.94;
@@ -6382,7 +8255,11 @@
     var ctx2 = minimapCtx;
     var mapR = half;
     ctx2.clearRect(0, 0, sz, sz);
-    ctx2.fillStyle = "rgba(14, 12, 10, 0.97)";
+    if (currentLevel === 2) {
+      ctx2.fillStyle = "rgba(34, 32, 42, 0.98)";
+    } else {
+      ctx2.fillStyle = "rgba(14, 12, 10, 0.97)";
+    }
     ctx2.fillRect(0, 0, sz, sz);
     function mx(x) {
       return (x / mapR * 0.5 + 0.5) * sz;
@@ -6391,14 +8268,17 @@
       return (z / mapR * 0.5 + 0.5) * sz;
     }
     function drawMinimapMedkitCase(cx, cy) {
-      var arm = 5.2;
-      var thick = 2;
+      var arm = 7.2;
+      var thick = 2.6;
       ctx2.beginPath();
       ctx2.rect(cx - thick * 0.5, cy - arm, thick, arm * 2);
       ctx2.rect(cx - arm, cy - thick * 0.5, arm * 2, thick);
-      ctx2.fillStyle = "#22c55e";
+      ctx2.fillStyle = "#4ade80";
       ctx2.fill();
-      ctx2.strokeStyle = "#14532d";
+      ctx2.strokeStyle = "#ecfdf5";
+      ctx2.lineWidth = 1.6;
+      ctx2.stroke();
+      ctx2.strokeStyle = "#166534";
       ctx2.lineWidth = 1;
       ctx2.stroke();
     }
@@ -6423,7 +8303,7 @@
       ctx2.fill();
       ctx2.restore();
     }
-    ctx2.strokeStyle = "#4a5568";
+    ctx2.strokeStyle = currentLevel === 2 ? "#8a9ab8" : "#4a5568";
     ctx2.lineWidth = 1;
     ctx2.strokeRect(0.5, 0.5, sz - 1, sz - 1);
     for (var ci = 0; ci < colliders.length; ci++) {
@@ -6432,15 +8312,33 @@
       var bw = b.maxX - b.minX;
       var bd = b.maxZ - b.minZ;
       if (bw < 0.1 && bd < 0.1) continue;
-      ctx2.fillStyle = b.top ? "rgba(95, 82, 58, 0.44)" : "rgba(42, 38, 36, 0.6)";
       var x0 = mx(b.minX);
       var y0 = mz(b.minZ);
-      ctx2.fillRect(x0, y0, Math.max(1, mx(b.maxX) - x0), Math.max(1, mz(b.maxZ) - y0));
+      var rw = Math.max(1, mx(b.maxX) - x0);
+      var rh = Math.max(1, mz(b.maxZ) - y0);
+      if (currentLevel === 2) {
+        if (b.top) {
+          ctx2.fillStyle = "rgba(196, 182, 148, 0.55)";
+          ctx2.fillRect(x0, y0, rw, rh);
+          ctx2.strokeStyle = "rgba(62, 54, 42, 0.5)";
+          ctx2.lineWidth = 0.9;
+          ctx2.strokeRect(x0 + 0.35, y0 + 0.35, Math.max(0.4, rw - 0.7), Math.max(0.4, rh - 0.7));
+        } else {
+          ctx2.fillStyle = "rgba(76, 72, 98, 0.95)";
+          ctx2.fillRect(x0, y0, rw, rh);
+          ctx2.strokeStyle = "rgba(228, 224, 252, 0.78)";
+          ctx2.lineWidth = 1.1;
+          ctx2.strokeRect(x0 + 0.35, y0 + 0.35, Math.max(0.4, rw - 0.7), Math.max(0.4, rh - 0.7));
+        }
+      } else {
+        ctx2.fillStyle = b.top ? "rgba(95, 82, 58, 0.44)" : "rgba(42, 38, 36, 0.6)";
+        ctx2.fillRect(x0, y0, rw, rh);
+      }
     }
     for (var bi = 0; bi < explosiveBarrels.length; bi++) {
       var bb = explosiveBarrels[bi];
       if (!bb.active) continue;
-      if (currentLevel !== 1) continue;
+      if (bb.mapLevel !== currentLevel) continue;
       drawMinimapExplosiveHazard(mx(bb.wx), mz(bb.wz));
     }
     for (var ei = 0; ei < enemies.length; ei++) {
@@ -6476,8 +8374,11 @@
     ctx2.fill();
     ctx2.stroke();
     ctx2.restore();
-    if (medkitActive) {
-      drawMinimapMedkitCase(mx(medkitX), mz(medkitZ));
+    if (medkitPickups.length) {
+      var mkdi;
+      for (mkdi = 0; mkdi < medkitPickups.length; mkdi++) {
+        drawMinimapMedkitCase(mx(medkitPickups[mkdi].x), mz(medkitPickups[mkdi].z));
+      }
     }
   }
 
@@ -6509,8 +8410,181 @@
       "inset 0 0 " + outer + "px " + inner + "px rgba(228, 32, 48, " + alpha + ")";
   }
 
+  function switchToLevelByPortal(targetLevel) {
+    if (targetLevel === currentLevel) return;
+    waveIntermission = 0;
+    hideWaveCountdownOverlay();
+    pendingSpawnCount = 0;
+    pendingMapSwitch = false;
+    pendingGraveyardSwitch = false;
+    pendingSubwaySwitch = false;
+    pendingMaintenanceSwitch = false;
+    if (targetLevel === 1) switchToFactoryLevel();
+    else if (targetLevel === 2) switchToBackroomsLevel();
+    else if (targetLevel === 3) switchToGraveyardLevel();
+    else if (targetLevel === 4) switchToSubwayLevel();
+    else if (targetLevel === 5) switchToMaintenanceLevel();
+  }
+
+  function tryUseSectorPortals(dt) {
+    portalTravelCooldown = Math.max(0, portalTravelCooldown - dt);
+    if (!pointerLocked || paused || gameOver) return;
+    if (graveyardVictoryOpen || campaignCompleteOpen) return;
+    if (waveIntermission > 0) return;
+    if (portalTravelCooldown > 0) return;
+    if (!keys["KeyE"]) return;
+    var bestT = -1;
+    var bestD = 1e9;
+    var pi;
+    for (pi = 0; pi < sectorPortals.length; pi++) {
+      var P = sectorPortals[pi];
+      if (!P.group.visible) continue;
+      if (P.target === currentLevel) continue;
+      var dx = player.x - P.x;
+      var dz = player.z - P.z;
+      var d = Math.hypot(dx, dz);
+      if (d <= PORTAL_USE_RADIUS && d < bestD) {
+        var pg = getGroundHeight(P.x, P.z);
+        if (Math.abs(player.jumpY - pg) < 1.45) {
+          bestD = d;
+          bestT = P.target;
+        }
+      }
+    }
+    if (bestT < 0) return;
+    portalTravelCooldown = 1.15;
+    ensureAudio();
+    playUiConfirm();
+    switchToLevelByPortal(bestT);
+  }
+
+  function playerFeetOnSubwayTrackBed() {
+    if (currentLevel !== 4) return false;
+    if (Math.abs(player.x) > SUBWAY_TRACK_HALF_X + 0.55) return false;
+    var gh = getGroundHeightFor(player.x, player.z, player.radius);
+    return gh <= -0.18;
+  }
+
+  function updateSubwayTrain(dt) {
+    if (currentLevel !== 4) {
+      if (subwayTrainGroup) subwayTrainGroup.visible = false;
+      subwayTrainActive = false;
+      subwayTrainHornPlayed = false;
+      stopSubwayTrainPassSfx();
+      return;
+    }
+    if (!subwayTrainGroup) return;
+    if (gameOver) {
+      if (subwayTrainGroup) subwayTrainGroup.visible = false;
+      subwayTrainActive = false;
+      stopSubwayTrainPassSfx();
+      return;
+    }
+    if (paused) {
+      if (subwayTrainGroup) subwayTrainGroup.visible = subwayTrainActive;
+      return;
+    }
+
+    if (subwayTrainActive) {
+      subwayTrainZ += subwayTrainVelZ * dt;
+      subwayTrainGroup.position.set(0, subwayTrainBodyY, subwayTrainZ);
+
+      var wmeshes = subwayTrainGroup.userData && subwayTrainGroup.userData.wheelMeshes;
+      if (wmeshes && wmeshes.length) {
+        var wsp = subwayTrainVelZ * 0.195;
+        var wi;
+        for (wi = 0; wi < wmeshes.length; wi++) {
+          wmeshes[wi].rotation.x += wsp * dt;
+        }
+      }
+
+      var z0 = subwayTrainZ - subwayTrainHalfLen;
+      var z1 = subwayTrainZ + subwayTrainHalfLen;
+      var x0 = -subwayTrainHalfW;
+      var x1 = subwayTrainHalfW;
+
+      for (var stei = enemies.length - 1; stei >= 0; stei--) {
+        var ep = enemies[stei].mesh.position;
+        if (Math.abs(ep.x) > SUBWAY_TRACK_HALF_X + 0.7) continue;
+        if (ep.z < z0 - 0.42 || ep.z > z1 + 0.42) continue;
+        if (ep.x < x0 - 0.45 || ep.x > x1 + 0.45) continue;
+        removeEnemyByRoot(enemies[stei].mesh);
+      }
+
+      if (!subwayTrainHitPlayer && playerFeetOnSubwayTrackBed()) {
+        var pxx = player.x;
+        var pzz = player.z;
+        if (pzz >= z0 - 0.5 && pzz <= z1 + 0.5 && pxx >= x0 - 0.5 && pxx <= x1 + 0.5) {
+          subwayTrainHitPlayer = true;
+          hp -= 30;
+          if (hp < 0) hp = 0;
+          updateHpDisplay();
+          flashDamage();
+          playDamage();
+          if (hp <= 0 && !gameOver) {
+            gameOver = true;
+            ensureAudio();
+            playGameOverSting();
+            showGameOverPanel();
+            overlay.classList.remove("hidden");
+            resetStartMenuControlsToggle();
+            document.exitPointerLock();
+          }
+        }
+      }
+
+      if (
+        (subwayTrainVelZ > 0 && subwayTrainZ > half + subwayTrainHalfLen + 2) ||
+        (subwayTrainVelZ < 0 && subwayTrainZ < -half - subwayTrainHalfLen - 2)
+      ) {
+        subwayTrainActive = false;
+        subwayTrainGroup.visible = false;
+        subwayTrainCooldown = SUBWAY_TRAIN_INTERVAL;
+        subwayTrainHornPlayed = false;
+        stopSubwayTrainPassSfx();
+      }
+    } else {
+      subwayTrainCooldown -= dt;
+      if (!subwayTrainHornPlayed && subwayTrainCooldown <= 3 && subwayTrainCooldown > 0) {
+        subwayTrainHornPlayed = true;
+        ensureAudio();
+        playSubwayTrainHorn();
+      }
+      if (subwayTrainCooldown <= 0) {
+        subwayTrainActive = true;
+        subwayTrainHitPlayer = false;
+        subwayTrainVelZ = Math.random() < 0.5 ? subwayTrainSpeed : -subwayTrainSpeed;
+        if (subwayTrainVelZ > 0) {
+          subwayTrainZ = -half - subwayTrainHalfLen - 2;
+          subwayTrainGroup.rotation.y = 0;
+        } else {
+          subwayTrainZ = half + subwayTrainHalfLen + 2;
+          subwayTrainGroup.rotation.y = Math.PI;
+        }
+        subwayTrainGroup.position.set(0, subwayTrainBodyY, subwayTrainZ);
+        subwayTrainGroup.visible = true;
+        ensureAudio();
+        startSubwayTrainPassSfx();
+      }
+    }
+  }
+
   function update(dt) {
     fireCooldown -= dt;
+    if (enemyNavCacheLevel !== currentLevel) {
+      enemyNavCacheLevel = currentLevel;
+      enemyNav.rebuildAcc = 999;
+      enemyNav.ready = false;
+    }
+    enemyNav.rebuildAcc += dt;
+    if (enemies.length === 0) {
+      enemyNav.ready = false;
+    } else if (!gameOver && !paused && enemyNav.rebuildAcc >= enemyNav.rebuildIv) {
+      enemyNav.rebuildAcc = 0;
+      rebuildEnemyNavigationGrid();
+    }
+    tryUseSectorPortals(dt);
+    updateSubwayTrain(dt);
 
     if (
       pointerLocked &&
@@ -6519,14 +8593,11 @@
       waveIntermission <= 0 &&
       fireMouseHeld &&
       !reloading &&
-      (weaponSlot === 1 || weaponSlot === 2)
+      weaponSlot === 1
     ) {
-      if (weaponSlot === 1 && fireCooldown <= 0 && magPrimary > 0) {
+      if (fireCooldown <= 0 && magPrimary > 0) {
         shoot();
         fireCooldown = RIFLE_AUTO_INTERVAL;
-      } else if (weaponSlot === 2 && fireCooldown <= 0 && magSecondary > 0) {
-        shoot();
-        fireCooldown = SHOTGUN_FIRE_INTERVAL;
       }
     }
 
@@ -6545,34 +8616,40 @@
     }
 
     if (!gameOver) {
-      if (medkitActive) {
-        medkitBob += dt;
-        var medGh = getGroundHeight(medkitX, medkitZ);
-        medkitGroup.position.set(
-          medkitX,
-          medGh + 0.055 + Math.sin(medkitBob * 2.2) * 0.045,
-          medkitZ
+      for (var mi = medkitPickups.length - 1; mi >= 0; mi--) {
+        var mk = medkitPickups[mi];
+        mk.bob += dt;
+        var medGh = getGroundHeight(mk.x, mk.z);
+        mk.mesh.position.set(
+          mk.x,
+          medGh + 0.11 + Math.sin(mk.bob * 2.5) * 0.08,
+          mk.z
         );
-        medkitGroup.rotation.y += dt * 0.55;
+        mk.mesh.rotation.y += dt * 0.72;
         if (
           pointerLocked &&
-          Math.hypot(player.x - medkitX, player.z - medkitZ) < MEDKIT_PICKUP_R &&
-          Math.abs(player.jumpY - medGh) < 0.62
+          hp < 100 &&
+          Math.hypot(player.x - mk.x, player.z - mk.z) < MEDKIT_PICKUP_R &&
+          Math.abs(player.jumpY - medGh) < 0.78
         ) {
-          hp = 100;
+          hp = Math.min(100, hp + MEDKIT_HEAL_AMOUNT);
           hpRegenAcc = 0;
           updateHpDisplay();
-          medkitActive = false;
-          medkitGroup.visible = false;
+          scene.remove(mk.mesh);
+          medkitPickups.splice(mi, 1);
           medkitSpawnAcc = 0;
           ensureAudio();
           playHeal();
+          break;
         }
-      } else if (pointerLocked) {
+      }
+      if (pointerLocked && hp < 100) {
         medkitSpawnAcc += dt;
         if (medkitSpawnAcc >= MEDKIT_SPAWN_INTERVAL) {
           medkitSpawnAcc = 0;
-          trySpawnMedkit();
+          if (medkitPickups.length < MEDKIT_MAX_ACTIVE) {
+            trySpawnOneMedkit();
+          }
         }
       }
     }
@@ -6607,6 +8684,16 @@
           pendingMapSwitch = false;
           hideWaveCountdownOverlay();
           switchToBackroomsLevel();
+          playWaveReady();
+        } else if (pendingSubwaySwitch) {
+          pendingSubwaySwitch = false;
+          hideWaveCountdownOverlay();
+          switchToSubwayLevel();
+          playWaveReady();
+        } else if (pendingMaintenanceSwitch) {
+          pendingMaintenanceSwitch = false;
+          hideWaveCountdownOverlay();
+          switchToMaintenanceLevel();
           playWaveReady();
         } else if (pendingSpawnCount > 0) {
           wave++;
@@ -7040,7 +9127,20 @@
         var vlen = Math.hypot(vx, vz) || 1;
         vx /= vlen;
         vz /= vlen;
-        var chaseSpeed = PLAYER_MOVE_SPEED * CHASE_MULT;
+        var navDir = sampleEnemyNavDir(m.position.x, m.position.z, player.x, player.z);
+        if (navDir) {
+          var navW =
+            distChase > 4.2 ? 0.82 : distChase > 2.4 ? 0.62 : distChase > 1.15 ? 0.38 : 0.18;
+          vx = vx * (1 - navW) + navDir.x * navW;
+          vz = vz * (1 - navW) + navDir.z * navW;
+          vlen = Math.hypot(vx, vz) || 1;
+          vx /= vlen;
+          vz /= vlen;
+        }
+        var chaseSpeed =
+          PLAYER_MOVE_SPEED *
+          CHASE_MULT *
+          (currentLevel === 2 ? BACKROOMS_CHASE_MULT_EXTRA : 1);
         var stepX = vx * chaseSpeed * dt;
         var stepZ = vz * chaseSpeed * dt;
         var stepLen = Math.hypot(stepX, stepZ);
@@ -7219,8 +9319,26 @@
     return false;
   }
 
-  function tryEnemyVaultTo(m, e, nx, nz, r, feetY) {
+  var enemyNavCacheLevel = -9999;
+  var enemyNav = {
+    step: 1.44,
+    pad: 0.52,
+    nx: 0,
+    nz: 0,
+    x0: 0,
+    z0: 0,
+    dist: null,
+    walk: null,
+    feetY: null,
+    ready: false,
+    rebuildAcc: 0,
+    rebuildIv: 0.3
+  };
+  var ENEMY_NAV_INF = 65500;
+
+  function getEnemyVaultLandFeet(nx, nz, rad, feetY) {
     var best = -1;
+    var r = rad == null ? 0.38 : rad;
     var vi;
     for (vi = 0; vi < colliders.length; vi++) {
       var box = colliders[vi];
@@ -7231,6 +9349,206 @@
       if (!enemyWalkFreeAt(nx, nz, r, box.y1)) continue;
       if (box.y1 > best) best = box.y1;
     }
+    return best;
+  }
+
+  function enemyNavEdgeTraversable(f0, x0, z0, f1, x1, z1) {
+    if (!enemyWalkFreeAt(x1, z1, 0.38, f1)) return false;
+    var df = f1 - f0;
+    if (df <= 0.06) return true;
+    if (df < VAULT_MIN_LIFT || df > VAULT_MAX_HEIGHT) return false;
+    var ly = getEnemyVaultLandFeet(x1, z1, 0.38, f0);
+    return ly >= f1 - 0.12;
+  }
+
+  function rebuildEnemyNavigationGrid() {
+    var step = enemyNav.step;
+    var pad = enemyNav.pad;
+    var xMin = -half + pad;
+    var zMin = -half + pad;
+    var xMax = half - pad;
+    var zMax = half - pad;
+    var nx = Math.max(5, Math.ceil((xMax - xMin) / step));
+    var nz = Math.max(5, Math.ceil((zMax - zMin) / step));
+    enemyNav.nx = nx;
+    enemyNav.nz = nz;
+    enemyNav.x0 = xMin;
+    enemyNav.z0 = zMin;
+    if (!enemyNav.dist || enemyNav.dist.length !== nx * nz) {
+      enemyNav.dist = new Uint16Array(nx * nz);
+      enemyNav.walk = new Uint8Array(nx * nz);
+      enemyNav.feetY = new Float32Array(nx * nz);
+    }
+    var walk = enemyNav.walk;
+    var dist = enemyNav.dist;
+    var feetNav = enemyNav.feetY;
+    var ii;
+    var jj;
+    var wx;
+    var wz;
+    for (jj = 0; jj < nz; jj++) {
+      for (ii = 0; ii < nx; ii++) {
+        wx = xMin + (ii + 0.5) * step;
+        wz = zMin + (jj + 0.5) * step;
+        var gh = getGroundHeightFor(wx, wz, 0.38, 0);
+        var ok = enemyWalkFreeAt(wx, wz, 0.38, gh);
+        if (ok && currentLevel === 2 && !isBackroomsReachableWorld(wx, wz)) ok = false;
+        var ij = ii + jj * nx;
+        feetNav[ij] = gh;
+        walk[ij] = ok ? 1 : 0;
+      }
+    }
+    var pi = ((player.x - xMin) / step) | 0;
+    var pj = ((player.z - zMin) / step) | 0;
+    pi = Math.max(0, Math.min(nx - 1, pi));
+    pj = Math.max(0, Math.min(nz - 1, pj));
+    if (!walk[pi + pj * nx]) {
+      var rad;
+      var si;
+      var sj;
+      var foundP = false;
+      for (rad = 1; rad <= 22 && !foundP; rad++) {
+        for (si = -rad; si <= rad && !foundP; si++) {
+          for (sj = -rad; sj <= rad && !foundP; sj++) {
+            if (Math.max(Math.abs(si), Math.abs(sj)) !== rad) continue;
+            var ti = pi + si;
+            var tj = pj + sj;
+            if (ti < 0 || ti >= nx || tj < 0 || tj >= nz) continue;
+            if (walk[ti + tj * nx]) {
+              pi = ti;
+              pj = tj;
+              foundP = true;
+            }
+          }
+        }
+      }
+      if (!foundP) {
+        enemyNav.ready = false;
+        return;
+      }
+    }
+    var ij;
+    for (ij = 0; ij < nx * nz; ij++) dist[ij] = ENEMY_NAV_INF;
+    var q = [];
+    var qh = 0;
+    dist[pi + pj * nx] = 0;
+    q.push(pi + pj * nx);
+    while (qh < q.length) {
+      var cur = q[qh++];
+      var ci = cur % nx;
+      var cj = (cur / nx) | 0;
+      var cd = dist[cur];
+      var nbs = [
+        [ci - 1, cj],
+        [ci + 1, cj],
+        [ci, cj - 1],
+        [ci, cj + 1]
+      ];
+      var nb;
+      for (nb = 0; nb < 4; nb++) {
+        var ni = nbs[nb][0];
+        var nj = nbs[nb][1];
+        if (ni < 0 || ni >= nx || nj < 0 || nj >= nz) continue;
+        var idx = ni + nj * nx;
+        if (!walk[idx]) continue;
+        var wx0 = xMin + (ci + 0.5) * step;
+        var wz0 = zMin + (cj + 0.5) * step;
+        var wx1 = xMin + (ni + 0.5) * step;
+        var wz1 = zMin + (nj + 0.5) * step;
+        if (!enemyNavEdgeTraversable(feetNav[cur], wx0, wz0, feetNav[idx], wx1, wz1)) continue;
+        if (dist[idx] <= cd + 1) continue;
+        dist[idx] = cd + 1;
+        q.push(idx);
+      }
+    }
+    enemyNav.ready = true;
+  }
+
+  function sampleEnemyNavDir(ex, ez, goalX, goalZ) {
+    if (!enemyNav.ready || !enemyNav.dist || !enemyNav.walk) return null;
+    var nx = enemyNav.nx;
+    var nz = enemyNav.nz;
+    var step = enemyNav.step;
+    var xMin = enemyNav.x0;
+    var zMin = enemyNav.z0;
+    var ei = ((ex - xMin) / step) | 0;
+    var ej = ((ez - zMin) / step) | 0;
+    ei = Math.max(0, Math.min(nx - 1, ei));
+    ej = Math.max(0, Math.min(nz - 1, ej));
+    var cur = ei + ej * nx;
+    if (!enemyNav.walk[cur]) {
+      var rad2;
+      var si2;
+      var sj2;
+      var bestIdx = -1;
+      var bestDd = ENEMY_NAV_INF;
+      for (rad2 = 0; rad2 <= 5; rad2++) {
+        for (si2 = -rad2; si2 <= rad2; si2++) {
+          for (sj2 = -rad2; sj2 <= rad2; sj2++) {
+            if (Math.max(Math.abs(si2), Math.abs(sj2)) !== rad2) continue;
+            var ti2 = ei + si2;
+            var tj2 = ej + sj2;
+            if (ti2 < 0 || ti2 >= nx || tj2 < 0 || tj2 >= nz) continue;
+            var ix2 = ti2 + tj2 * nx;
+            if (!enemyNav.walk[ix2]) continue;
+            var dCell = enemyNav.dist[ix2];
+            if (dCell < bestDd) {
+              bestDd = dCell;
+              bestIdx = ix2;
+            }
+          }
+        }
+        if (bestIdx >= 0) break;
+      }
+      if (bestIdx < 0) return null;
+      cur = bestIdx;
+      ei = cur % nx;
+      ej = (cur / nx) | 0;
+    }
+    var myd = enemyNav.dist[cur];
+    if (myd >= ENEMY_NAV_INF - 8) return null;
+    if (myd <= 1) {
+      var tdx = goalX - ex;
+      var tdz = goalZ - ez;
+      var tlen = Math.hypot(tdx, tdz);
+      if (tlen < 1e-5) return null;
+      return { x: tdx / tlen, z: tdz / tlen };
+    }
+    var bestD = myd;
+    var bestNi = ei;
+    var bestNj = ej;
+    var nbs2 = [
+      [ei - 1, ej],
+      [ei + 1, ej],
+      [ei, ej - 1],
+      [ei, ej + 1]
+    ];
+    var nb2;
+    for (nb2 = 0; nb2 < 4; nb2++) {
+      var ni3 = nbs2[nb2][0];
+      var nj3 = nbs2[nb2][1];
+      if (ni3 < 0 || ni3 >= nx || nj3 < 0 || nj3 >= nz) continue;
+      var idx3 = ni3 + nj3 * nx;
+      if (!enemyNav.walk[idx3]) continue;
+      var d3 = enemyNav.dist[idx3];
+      if (d3 < bestD) {
+        bestD = d3;
+        bestNi = ni3;
+        bestNj = nj3;
+      }
+    }
+    if (bestD >= myd) return null;
+    var tcx = xMin + (bestNi + 0.5) * step;
+    var tcz = zMin + (bestNj + 0.5) * step;
+    var dx = tcx - ex;
+    var dz = tcz - ez;
+    var len = Math.hypot(dx, dz);
+    if (len < 1e-5) return null;
+    return { x: dx / len, z: dz / len };
+  }
+
+  function tryEnemyVaultTo(m, e, nx, nz, r, feetY) {
+    var best = getEnemyVaultLandFeet(nx, nz, r, feetY);
     if (best < 0) return false;
     m.position.x = nx;
     m.position.z = nz;
@@ -7239,7 +9557,17 @@
     return true;
   }
 
-  function trySpawnMedkit() {
+  function clearMedkitPickups() {
+    var ci;
+    for (ci = medkitPickups.length - 1; ci >= 0; ci--) {
+      scene.remove(medkitPickups[ci].mesh);
+    }
+    medkitPickups.length = 0;
+  }
+
+  function trySpawnOneMedkit() {
+    if (hp >= 100) return false;
+    if (medkitPickups.length >= MEDKIT_MAX_ACTIVE) return false;
     for (var att = 0; att < 160; att++) {
       var sx = (Math.random() * 2 - 1) * (half - 2.6);
       var sz = (Math.random() * 2 - 1) * (half - 2.6);
@@ -7248,17 +9576,26 @@
       var gq = getGroundHeightFor(sx, sz, 0.42);
       if (gq > 0.12) continue;
       if (Math.hypot(sx - player.x, sz - player.z) < 4.5) continue;
-      medkitX = sx;
-      medkitZ = sz;
-      medkitActive = true;
-      medkitGroup.visible = true;
-      medkitBob = 0;
-      medkitGroup.position.set(sx, gq + 0.055, sz);
-      medkitGroup.rotation.y = Math.random() * Math.PI * 2;
+      var mj;
+      var sepOk = true;
+      for (mj = 0; mj < medkitPickups.length; mj++) {
+        if (Math.hypot(sx - medkitPickups[mj].x, sz - medkitPickups[mj].z) < MEDKIT_MIN_SEP_FROM_OTHER) {
+          sepOk = false;
+          break;
+        }
+      }
+      if (!sepOk) continue;
+      var mesh = medkitGroup.clone(true);
+      mesh.visible = true;
+      mesh.position.set(sx, gq + 0.11, sz);
+      mesh.rotation.y = Math.random() * Math.PI * 2;
+      scene.add(mesh);
+      medkitPickups.push({ mesh: mesh, x: sx, z: sz, bob: Math.random() * Math.PI * 2 });
       ensureAudio();
       playMedkitSpawn();
-      return;
+      return true;
     }
+    return false;
   }
 
   function colliderBlocksFeetXZ(feetY, box) {
@@ -7272,7 +9609,8 @@
   }
 
   function getGroundHeight(px, pz) {
-    return getGroundHeightFor(px, pz, player.radius);
+    var jy = player && typeof player.jumpY === "number" ? player.jumpY : 0;
+    return getGroundHeightFor(px, pz, player.radius, jy);
   }
 
   function playerFree(x, z, feetY) {
