@@ -744,6 +744,113 @@
     font-weight: 600;
     color: #e4e8f2;
   }
+  #graveyardVictoryLayer {
+    position: fixed;
+    inset: 0;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: min(24px, 5vw);
+    background: rgba(4, 6, 12, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #e8ecf5;
+    font-size: clamp(1rem, 2.4vw, 1.12rem);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.75);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.28s;
+  }
+  #graveyardVictoryLayer.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  #graveyardVictoryLayer .gy-victory-panel {
+    width: 100%;
+    max-width: 440px;
+    padding: clamp(26px, 4vw, 34px) clamp(22px, 4vw, 30px);
+    border-radius: 18px;
+    text-align: center;
+    background: linear-gradient(165deg, rgba(28, 32, 44, 0.97) 0%, rgba(14, 16, 24, 0.99) 100%);
+    border: 1px solid rgba(120, 200, 180, 0.22);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.45),
+      0 20px 56px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #graveyardVictoryLayer.visible .gy-victory-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  #graveyardVictoryLayer .gy-victory-badge {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #7dd8c4;
+    background: rgba(0, 40, 32, 0.45);
+    border: 1px solid rgba(100, 200, 170, 0.35);
+  }
+  #graveyardVictoryLayer .gy-victory-title {
+    margin: 0 0 14px;
+    font-size: clamp(1.35rem, 3.8vw, 1.75rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: #f4faf8;
+  }
+  #graveyardVictoryLayer .gy-victory-hint {
+    margin: 0 0 22px;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: #9aa3b2;
+  }
+  #graveyardVictoryLayer .gy-victory-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  #graveyardVictoryLayer .gy-victory-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: linear-gradient(180deg, rgba(52, 58, 72, 0.95), rgba(32, 36, 48, 0.98));
+    color: #e8ecf5;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.35);
+    transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+  }
+  #graveyardVictoryLayer .gy-victory-btn:hover {
+    border-color: rgba(140, 220, 200, 0.45);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.42);
+  }
+  #graveyardVictoryLayer .gy-victory-btn:focus-visible {
+    outline: 2px solid #6ee7c8;
+    outline-offset: 3px;
+  }
+  #graveyardVictoryLayer .gy-victory-btn:active {
+    transform: translateY(2px);
+  }
+  #graveyardVictoryLayer .gy-victory-btn--primary {
+    background: linear-gradient(180deg, rgba(56, 120, 100, 0.95), rgba(28, 72, 58, 0.98));
+    border-color: rgba(120, 210, 180, 0.4);
+  }
   #hpBarWrap {
     position: fixed;
     left: 18px;
@@ -949,6 +1056,27 @@
     <button type="button" class="pause-resume" id="pauseResumeBtn">Resume game</button>
   </div>
 </div>
+<div
+  id="graveyardVictoryLayer"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="gyVictoryTitle"
+  aria-hidden="true"
+>
+  <div class="gy-victory-panel" id="graveyardVictoryPanel">
+    <span class="gy-victory-badge">Victory</span>
+    <h2 id="gyVictoryTitle" class="gy-victory-title">Congratulations! You won! (for now)</h2>
+    <p class="gy-victory-hint">Choose how to continue.</p>
+    <div class="gy-victory-actions">
+      <button type="button" class="gy-victory-btn gy-victory-btn--primary" id="graveyardVictoryRestartBtn">
+        Restart at level 1
+      </button>
+      <button type="button" class="gy-victory-btn" id="graveyardVictoryContinueBtn">
+        Continue with waves on level 3
+      </button>
+    </div>
+  </div>
+</div>
 <div id="hotbar" aria-hidden="true">
   <div class="hotbar-slot active" data-slot="1" title="Rifle">
     <div class="hotbar-preview-wrap"></div>
@@ -1128,10 +1256,15 @@
   var elMagCapG = document.getElementById("magCapG");
   var pauseLayer = document.getElementById("pauseLayer");
   var pauseResumeBtn = document.getElementById("pauseResumeBtn");
+  var graveyardVictoryLayer = document.getElementById("graveyardVictoryLayer");
+  var graveyardVictoryPanel = document.getElementById("graveyardVictoryPanel");
+  var graveyardVictoryRestartBtn = document.getElementById("graveyardVictoryRestartBtn");
+  var graveyardVictoryContinueBtn = document.getElementById("graveyardVictoryContinueBtn");
   var elHotbarSlots = document.querySelectorAll("#hotbar .hotbar-slot");
 
   var MAP_DISPLAY_NAME = "Abandoned Factory";
   var MAP_DISPLAY_NAME_BACKROOMS = "The Backrooms";
+  var MAP_DISPLAY_NAME_GRAVEYARD = "Graveyard";
   var elMapName = document.getElementById("mapNameText");
   var elMapLevelSub = document.getElementById("mapLevelSub");
   if (elMapName) elMapName.textContent = MAP_DISPLAY_NAME;
@@ -1160,8 +1293,12 @@
   var backroomsWorldGroup = new THREE.Group();
   backroomsWorldGroup.name = "backroomsWorld";
   backroomsWorldGroup.visible = false;
+  var graveyardWorldGroup = new THREE.Group();
+  graveyardWorldGroup.name = "graveyardWorld";
+  graveyardWorldGroup.visible = false;
   scene.add(factoryWorldGroup);
   scene.add(backroomsWorldGroup);
+  scene.add(graveyardWorldGroup);
   var mapBuildParent = factoryWorldGroup;
 
   var camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.06, 280);
@@ -1214,10 +1351,13 @@
     ambient.intensity = 0.48;
     dir.color.setHex(0xfff0dc);
     dir.intensity = 0.82;
+    dir.position.set(26, 38, -10);
     fill.color.setHex(0xffcc66);
     fill.intensity = 0.26;
+    fill.position.set(-14, 5.5, 16);
     rim.color.setHex(0x5a5048);
     rim.intensity = 0.28;
+    rim.position.set(-20, 12, 22);
   }
 
   function applyBackroomsSceneStyle() {
@@ -1232,10 +1372,34 @@
     ambient.intensity = 0.26;
     dir.color.setHex(0xe8dcc8);
     dir.intensity = 0.32;
+    dir.position.set(26, 38, -10);
     fill.color.setHex(0xffd880);
     fill.intensity = 0.08;
+    fill.position.set(-14, 5.5, 16);
     rim.color.setHex(0x3a3224);
     rim.intensity = 0.04;
+    rim.position.set(-20, 12, 22);
+  }
+
+  function applyGraveyardSceneStyle() {
+    scene.background.setHex(0x161b26);
+    scene.fog.color.setHex(0x181e2a);
+    scene.fog.near = 1.1;
+    scene.fog.far = 22;
+    hemi.color.setHex(0x344868);
+    hemi.groundColor.setHex(0x0a0e18);
+    hemi.intensity = 0.58;
+    ambient.color.setHex(0x5a6898);
+    ambient.intensity = 0.44;
+    dir.color.setHex(0xe8f4ff);
+    dir.intensity = 0.58;
+    dir.position.set(-18, 52, 14);
+    fill.color.setHex(0x7a9cd8);
+    fill.intensity = 0.28;
+    fill.position.set(0, 6, -8);
+    rim.color.setHex(0x486088);
+    rim.intensity = 0.22;
+    rim.position.set(16, 18, -24);
   }
 
   var arena = 50;
@@ -1248,6 +1412,8 @@
   var factoryShootBlockingRoots = [];
   var backroomsColliders = [];
   var backroomsShootBlockingRoots = [];
+  var graveyardColliders = [];
+  var graveyardShootBlockingRoots = [];
   var colliders = factoryColliders;
   var shootBlockingRoots = factoryShootBlockingRoots;
 
@@ -1887,6 +2053,11 @@
   var BR_PLAYER_CEILING = 3.76;
   var BACKROOMS_SPAWN_X = 0;
   var BACKROOMS_SPAWN_Z = 0;
+  var graveyardBuilt = false;
+  var floorGraveyard = null;
+  var GY_PLAYER_CEILING = 12.2;
+  var GRAVEYARD_SPAWN_X = 0;
+  var GRAVEYARD_SPAWN_Z = 0;
 
   function makeBackroomsFloorTexture() {
     var c = document.createElement("canvas");
@@ -1998,8 +2169,8 @@
 
     var th = wu(0.26);
     var h = brWallH * 0.96;
-    var halfCorridor = wu(1.05);
-    var segOverlap = th * 0.45;
+    var halfCorridor = wu(1.12);
+    var segOverlap = 0;
 
     function brSegX(cx, cz, len) {
       addObstacleBox(len, h, th, cx, 0, cz, 0, wallPaperMat, false);
@@ -2008,22 +2179,35 @@
       addObstacleBox(th, h, len, cx, 0, cz, 0, wallPaperMat, false);
     }
 
-    /* Serpentine corridor: polyline never crosses itself, so offset walls stay one connected walkable tube. */
-    var brPath = [
-      [wu(-12), wu(13)],
-      [wu(12), wu(13)],
-      [wu(12), wu(8)],
-      [wu(-12), wu(8)],
-      [wu(-12), wu(3)],
-      [wu(12), wu(3)],
-      [wu(12), wu(-2)],
-      [wu(-12), wu(-2)],
-      [wu(-12), wu(-7)],
-      [wu(12), wu(-7)],
-      [wu(12), wu(-12)],
-      [wu(-12), wu(-12)],
-      [wu(-12), wu(13)]
-    ];
+    /* Irregular boustrophedon: uneven row depth, varying width, spine x shifts — still Manhattan, no closed return (avoids self-cross). */
+    var zR = [13.5, 8.4, 4.2, -0.6, -5.1, -9.3, -12.1];
+    var xWj = [-11.2, -9.8, -11.5, -10.2, -11, -9.5, -10.8];
+    var xEj = [9.3, 10.5, 8, 11.2, 9, 10.2, 10.8];
+    var sVj = [4.2, -5.5, 1.8, 6.4, -3.2, 3.7, 0.5];
+    var nR = zR.length;
+    var zRows = [];
+    var xW = [];
+    var xE = [];
+    var sV = [];
+    var bi;
+    for (bi = 0; bi < nR; bi++) {
+      zRows.push(wu(zR[bi]));
+      xW.push(wu(xWj[bi]));
+      xE.push(wu(xEj[bi]));
+      sV.push(wu(sVj[bi]));
+    }
+    var brPath = [[xW[0], zRows[0]], [xE[0], zRows[0]]];
+    var ri;
+    for (ri = 1; ri < nR; ri++) {
+      var zPrev = zRows[ri - 1];
+      var zr = zRows[ri];
+      var sx = sV[ri - 1];
+      if (ri % 2 === 1) {
+        brPath.push([sx, zPrev], [sx, zr], [xE[ri], zr], [xW[ri], zr]);
+      } else {
+        brPath.push([sx, zPrev], [sx, zr], [xW[ri], zr], [xE[ri], zr]);
+      }
+    }
 
     var pi;
     for (pi = 0; pi < brPath.length - 1; pi++) {
@@ -2064,6 +2248,344 @@
   }
 
   buildBackroomsMap();
+
+  function makeGraveyardGrassTexture() {
+    var c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 256;
+    var ctx = c.getContext("2d");
+    ctx.fillStyle = "#152018";
+    ctx.fillRect(0, 0, 256, 256);
+    var n;
+    for (n = 0; n < 11000; n++) {
+      ctx.fillStyle = "rgba(22, 38, 26, " + (0.05 + Math.random() * 0.16) + ")";
+      ctx.fillRect((Math.random() * 256) | 0, (Math.random() * 256) | 0, 2 + ((Math.random() * 4) | 0), 1);
+    }
+    var step = 14;
+    var x;
+    var y;
+    for (y = 0; y < 256; y += step) {
+      for (x = 0; x < 256; x += step) {
+        ctx.strokeStyle = "rgba(8, 16, 10, 0.28)";
+        ctx.strokeRect(x + 0.5, y + 0.5, step - 1, step - 1);
+      }
+    }
+    return c;
+  }
+
+  function makeGraveyardHorizonTexture() {
+    var c = document.createElement("canvas");
+    c.width = 512;
+    c.height = 512;
+    var g = c.getContext("2d");
+    var gr = g.createLinearGradient(0, 0, 0, 512);
+    gr.addColorStop(0, "#243450");
+    gr.addColorStop(0.22, "#344c70");
+    gr.addColorStop(0.42, "#4a6488");
+    gr.addColorStop(0.5, "#3d5468");
+    gr.addColorStop(0.58, "#2a3848");
+    gr.addColorStop(0.72, "#181e28");
+    gr.addColorStop(0.88, "#0c1018");
+    gr.addColorStop(1, "#050608");
+    g.fillStyle = gr;
+    g.fillRect(0, 0, 512, 512);
+    g.fillStyle = "rgba(200, 215, 245, 0.08)";
+    g.beginPath();
+    g.arc(256, 168, 72, 0, Math.PI * 2);
+    g.fill();
+    return c;
+  }
+
+  function buildGraveyardMap() {
+    if (graveyardBuilt) return;
+    graveyardBuilt = true;
+    colliders = graveyardColliders;
+    shootBlockingRoots = graveyardShootBlockingRoots;
+    mapBuildParent = graveyardWorldGroup;
+
+    var gyGrassCanvas = makeGraveyardGrassTexture();
+    var gyGrassTex = new THREE.CanvasTexture(gyGrassCanvas);
+    gyGrassTex.colorSpace = THREE.SRGBColorSpace;
+    gyGrassTex.wrapS = gyGrassTex.wrapT = THREE.RepeatWrapping;
+    gyGrassTex.repeat.set(26, 26);
+    gyGrassTex.anisotropy = 4;
+    var gyGrassMat = new THREE.MeshStandardMaterial({
+      map: gyGrassTex,
+      color: 0x6a8068,
+      roughness: 0.96,
+      metalness: 0,
+      emissive: 0x040806,
+      emissiveIntensity: 0.06
+    });
+    var churchStone = new THREE.MeshStandardMaterial({
+      color: 0x454842,
+      roughness: 0.9,
+      metalness: 0.08,
+      emissive: 0x080a0c,
+      emissiveIntensity: 0.05
+    });
+    var tombMat = new THREE.MeshStandardMaterial({
+      color: 0x3a3e3a,
+      roughness: 0.93,
+      metalness: 0.04,
+      emissive: 0x060806,
+      emissiveIntensity: 0.04
+    });
+    var treeTrunkMat = new THREE.MeshStandardMaterial({
+      color: 0x1e1810,
+      roughness: 0.94,
+      metalness: 0.02,
+      emissive: 0x040302,
+      emissiveIntensity: 0.03
+    });
+    var treeLeafMat = new THREE.MeshStandardMaterial({
+      color: 0x0c1810,
+      roughness: 0.98,
+      metalness: 0,
+      emissive: 0x020804,
+      emissiveIntensity: 0.04
+    });
+    var woodFenceMat = new THREE.MeshStandardMaterial({
+      color: 0x6b5340,
+      roughness: 0.9,
+      metalness: 0.02,
+      emissive: 0x0c0806,
+      emissiveIntensity: 0.04
+    });
+    var woodFenceDark = new THREE.MeshStandardMaterial({
+      color: 0x4a3828,
+      roughness: 0.92,
+      metalness: 0.02,
+      emissive: 0x080604,
+      emissiveIntensity: 0.03
+    });
+    var roofSlate = new THREE.MeshStandardMaterial({
+      color: 0x2c3034,
+      roughness: 0.88,
+      metalness: 0.05,
+      emissive: 0x050608,
+      emissiveIntensity: 0.03
+    });
+    var litWindowMat = new THREE.MeshStandardMaterial({
+      color: 0x4a4a38,
+      emissive: 0x8a7038,
+      emissiveIntensity: 0.35,
+      roughness: 0.75
+    });
+    var churchStoneDark = new THREE.MeshStandardMaterial({
+      color: 0x383a3c,
+      roughness: 0.91,
+      metalness: 0.06,
+      emissive: 0x050608,
+      emissiveIntensity: 0.045
+    });
+    var churchTrim = new THREE.MeshStandardMaterial({
+      color: 0x65615c,
+      roughness: 0.8,
+      metalness: 0.12,
+      emissive: 0x060504,
+      emissiveIntensity: 0.03
+    });
+    var doorWood = new THREE.MeshStandardMaterial({
+      color: 0x2a2218,
+      roughness: 0.94,
+      metalness: 0.02,
+      emissive: 0x040302,
+      emissiveIntensity: 0.02
+    });
+
+    floorGraveyard = new THREE.Mesh(new THREE.PlaneGeometry(arena * 2, arena * 2), gyGrassMat);
+    floorGraveyard.rotation.x = -Math.PI / 2;
+    floorGraveyard.receiveShadow = true;
+    mapBuildParent.add(floorGraveyard);
+    addCollider(-half, half, -half, half, 0, 0.05, true);
+
+    var horTex = new THREE.CanvasTexture(makeGraveyardHorizonTexture());
+    horTex.colorSpace = THREE.SRGBColorSpace;
+    horTex.anisotropy = 2;
+    var skyDomeMat = new THREE.MeshBasicMaterial({
+      map: horTex,
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false
+    });
+    var skyDome = new THREE.Mesh(new THREE.SphereGeometry(165, 40, 28), skyDomeMat);
+    skyDome.position.set(0, 32, 0);
+    mapBuildParent.add(skyDome);
+
+    var fH = 1.32;
+    var fT = 0.18;
+    var fSpan = arena * 2 + fT * 2;
+    var fEdge = half - fT * 0.5;
+    addObstacleBox(fSpan, fH, fT, 0, 0, -fEdge, 0, woodFenceMat, false);
+    addObstacleBox(fSpan, fH, fT, 0, 0, fEdge, 0, woodFenceMat, false);
+    addObstacleBox(fT, fH, fSpan, -fEdge, 0, 0, 0, woodFenceMat, false);
+    addObstacleBox(fT, fH, fSpan, fEdge, 0, 0, 0, woodFenceMat, false);
+
+    var postInset = half - wallT * 2.2;
+    var chZ = -38;
+    var chGrp = new THREE.Group();
+    chGrp.position.set(0, 0, chZ);
+    chGrp.scale.set(1.62, 1.62, 1.42);
+
+    function chMesh(geo, mat) {
+      var m = new THREE.Mesh(geo, mat);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      chGrp.add(m);
+      return m;
+    }
+
+    chMesh(new THREE.BoxGeometry(24, 0.5, 28), churchStoneDark).position.set(0, 0.25, -0.5);
+    chMesh(new THREE.BoxGeometry(12.5, 6.2, 18.5), churchStone).position.set(0, 3.35, -0.8);
+    chMesh(new THREE.BoxGeometry(2.4, 4.4, 16), churchStoneDark).position.set(-7.35, 2.35, -0.6);
+    chMesh(new THREE.BoxGeometry(2.4, 4.4, 16), churchStoneDark).position.set(7.35, 2.35, -0.6);
+    chMesh(new THREE.BoxGeometry(22, 5.6, 5.2), churchStone).position.set(0, 3.1, -6.2);
+    chMesh(new THREE.BoxGeometry(8.5, 6.8, 7), churchStoneDark).position.set(0, 3.55, -12.2);
+    chMesh(new THREE.CylinderGeometry(4.1, 4.5, 5.5, 10), churchStone).position.set(0, 3.45, -17.8);
+
+    var naveRoofL = chMesh(new THREE.BoxGeometry(13.5, 0.32, 19), roofSlate);
+    naveRoofL.position.set(-3.35, 6.55, -0.85);
+    naveRoofL.rotation.z = 0.48;
+    var naveRoofR = chMesh(new THREE.BoxGeometry(13.5, 0.32, 19), roofSlate);
+    naveRoofR.position.set(3.35, 6.55, -0.85);
+    naveRoofR.rotation.z = -0.48;
+
+    var trRoofL = chMesh(new THREE.BoxGeometry(22.5, 0.28, 5.8), roofSlate);
+    trRoofL.position.set(-4.2, 6.15, -6.15);
+    trRoofL.rotation.x = -0.38;
+    var trRoofR = chMesh(new THREE.BoxGeometry(22.5, 0.28, 5.8), roofSlate);
+    trRoofR.position.set(4.2, 6.15, -6.15);
+    trRoofR.rotation.x = 0.38;
+
+    var apRoof = chMesh(new THREE.ConeGeometry(5.2, 2.6, 10), roofSlate);
+    apRoof.position.set(0, 7.85, -17.8);
+
+    var butt;
+    for (butt = -1; butt <= 1; butt += 2) {
+      var bx = butt * 6.8;
+      var bz;
+      for (bz = 2.5; bz > -12; bz -= 4.2) {
+        chMesh(new THREE.BoxGeometry(0.55, 4.2, 0.9), churchTrim).position.set(bx, 2.35, bz);
+      }
+    }
+
+    var tower = chMesh(new THREE.BoxGeometry(3.4, 8.2, 3.4), churchStone);
+    tower.position.set(6.2, 4.35, 5.8);
+    chMesh(new THREE.BoxGeometry(2.2, 1.8, 0.12), churchStoneDark).position.set(6.2, 6.1, 7.52);
+    chMesh(new THREE.BoxGeometry(1.4, 1.1, 0.14), new THREE.MeshStandardMaterial({ color: 0x0a0c10, roughness: 0.98 })).position.set(6.2, 6.05, 7.54);
+    chMesh(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 6), churchTrim).position.set(6.2, 5.4, 7.55);
+    chMesh(new THREE.CylinderGeometry(1.55, 1.85, 4.2, 8), roofSlate).position.set(6.2, 9.4, 5.8);
+    chMesh(new THREE.CylinderGeometry(0.35, 0.12, 1.8, 6), roofSlate).position.set(6.2, 11.5, 5.8);
+    chMesh(new THREE.BoxGeometry(0.22, 1.25, 0.22), woodFenceDark).position.set(6.2, 12.35, 5.8);
+    chMesh(new THREE.BoxGeometry(0.75, 0.22, 0.22), woodFenceDark).position.set(6.2, 12.65, 5.8);
+
+    chMesh(new THREE.PlaneGeometry(7.2, 5.4), churchStone).position.set(0, 3.2, 8.52);
+    chMesh(new THREE.PlaneGeometry(2.8, 4.2), doorWood).position.set(0, 2.5, 8.54);
+    chMesh(new THREE.BoxGeometry(8.4, 0.35, 0.2), churchTrim).position.set(0, 4.85, 8.5);
+
+    var rose = chMesh(new THREE.RingGeometry(0.85, 1.15, 16), churchTrim);
+    rose.position.set(0, 4.35, 8.53);
+
+    var wi;
+    for (wi = 0; wi < 5; wi++) {
+      chMesh(new THREE.PlaneGeometry(0.48, 0.72), litWindowMat).position.set(-4.2 + wi * 2.1, 3.15, 8.53);
+    }
+    for (wi = 0; wi < 3; wi++) {
+      var chWin = chMesh(new THREE.PlaneGeometry(0.42, 0.58), litWindowMat);
+      chWin.position.set(-5.8 + wi * 1.9, 3.0, -11.52);
+      chWin.rotation.y = Math.PI;
+    }
+
+    mapBuildParent.add(chGrp);
+
+    var pickGeo = new THREE.BoxGeometry(0.14, 1.12, 0.14);
+    var fi;
+    for (fi = -1; fi <= 1; fi += 2) {
+      var fx = fi * postInset;
+      var fz;
+      for (fz = -half + 5; fz < half - 3; fz += 4.2) {
+        var pick = new THREE.Mesh(pickGeo, woodFenceDark);
+        pick.position.set(fx, 0.56, fz);
+        pick.castShadow = true;
+        mapBuildParent.add(pick);
+        shootBlockingRoots.push(pick);
+      }
+    }
+    for (fi = -1; fi <= 1; fi += 2) {
+      var fzz = fi * postInset;
+      var fxx;
+      for (fxx = -half + 5; fxx < half - 3; fxx += 4.2) {
+        var pick2 = new THREE.Mesh(pickGeo, woodFenceDark);
+        pick2.position.set(fxx, 0.56, fzz);
+        pick2.castShadow = true;
+        mapBuildParent.add(pick2);
+        shootBlockingRoots.push(pick2);
+      }
+    }
+
+    var si;
+    for (si = 0; si < 108; si++) {
+      var att = 0;
+      var sx = 0;
+      var sz = 0;
+      while (att < 95) {
+        att++;
+        var sang = Math.random() * Math.PI * 2;
+        var srad = 6.5 + Math.random() * 17.2;
+        sx = Math.cos(sang) * srad;
+        sz = Math.sin(sang) * srad;
+        if (Math.hypot(sx, sz + 1.4) < 4.2) continue;
+        if (Math.hypot(sx, sz + 38) < 10.2) continue;
+        break;
+      }
+      var rotY = Math.random() * Math.PI * 2;
+      var rw;
+      var rh;
+      var rd;
+      var kind = si % 5;
+      if (kind === 0) {
+        rw = 0.55 + Math.random() * 0.45;
+        rh = 0.22 + Math.random() * 0.12;
+        rd = 0.38 + Math.random() * 0.28;
+      } else if (kind === 1) {
+        rw = 0.22 + Math.random() * 0.12;
+        rh = 1.05 + Math.random() * 0.55;
+        rd = 0.22 + Math.random() * 0.14;
+      } else {
+        rw = 0.3 + Math.random() * 0.32;
+        rh = 0.75 + Math.random() * 0.85;
+        rd = 0.2 + Math.random() * 0.22;
+      }
+      addObstacleBox(rw, rh, rd, sx, 0, sz, rotY, tombMat, false);
+    }
+
+    var ti;
+    for (ti = 0; ti < 16; ti++) {
+      var tang = (ti / 16) * Math.PI * 2 + 0.31;
+      var trad = 19 + (ti % 3) * 0.9;
+      var tx = Math.cos(tang) * trad;
+      var tz = Math.sin(tang) * trad;
+      addObstacleBox(0.52, 3.1, 0.52, tx, 0, tz, tang, treeTrunkMat, false);
+      var cr = new THREE.Mesh(new THREE.ConeGeometry(1.85 + (ti % 4) * 0.12, 3.4, 7), treeLeafMat);
+      cr.position.set(tx, 3.35, tz);
+      cr.rotation.y = tang * 1.7;
+      cr.castShadow = true;
+      mapBuildParent.add(cr);
+    }
+
+    GRAVEYARD_SPAWN_X = wu(0);
+    GRAVEYARD_SPAWN_Z = wu(-16);
+
+    addWalkableTopCapsForColliderList(graveyardColliders, graveyardShootBlockingRoots, graveyardWorldGroup);
+
+    colliders = factoryColliders;
+    shootBlockingRoots = factoryShootBlockingRoots;
+    mapBuildParent = factoryWorldGroup;
+  }
+
+  buildGraveyardMap();
 
   var player = { x: SPAWN_X, z: SPAWN_Z, jumpY: 0, vy: 0, kbVx: 0, kbVz: 0, grounded: true, radius: 0.35, _jumpPress: false };
   player.jumpY = getGroundHeight(player.x, player.z);
@@ -2500,6 +3022,7 @@
   var moveBob = 0;
 
   function openPauseMenu() {
+    if (graveyardVictoryOpen) return;
     if (!pointerLocked || gameOver || paused) return;
     ensureAudio();
     playPauseOpen();
@@ -2519,6 +3042,7 @@
 
   function closePauseMenuAndPlay() {
     if (!paused) return;
+    if (graveyardVictoryOpen) return;
     ensureAudio();
     playPauseClose();
     paused = false;
@@ -2529,6 +3053,7 @@
   }
 
   function togglePauseMenuFromInput() {
+    if (graveyardVictoryOpen) return;
     if (!overlay.classList.contains("hidden") && !gameOver) return;
     if (gameOver) return;
     if (!paused) openPauseMenu();
@@ -2583,6 +3108,10 @@
       return;
     }
     if (e.code === "Escape") {
+      if (graveyardVictoryOpen) {
+        e.preventDefault();
+        return;
+      }
       if (!overlay.classList.contains("hidden")) return;
       if (gameOver) return;
       if (paused) {
@@ -2639,8 +3168,13 @@
   var waveIntermission = 0;
   var pendingSpawnCount = 0;
   var MAX_WAVES_UI = 10;
+  var MAX_WAVES_BACKROOMS_UI = 15;
+  var MAX_WAVES_GRAVEYARD_UI = 10;
   var currentLevel = 1;
   var pendingMapSwitch = false;
+  var pendingGraveyardSwitch = false;
+  var graveyardVictoryOpen = false;
+  var graveyardEndless = false;
   var paused = false;
 
   document.addEventListener("pointerlockchange", function () {
@@ -2650,6 +3184,7 @@
       fireMouseHeld = false;
       weaponWheelAcc = 0;
       quickKnifeReturnOnFRelease = false;
+      if (graveyardVictoryOpen) return;
       if (!paused || gameOver) {
         overlay.classList.remove("hidden");
         if (gameOver) showGameOverPanel();
@@ -2668,74 +3203,143 @@
     });
   }
 
+  function resetGameStateToFactoryLevel1Wave1ForNewRun() {
+    hp = 100;
+    hpRegenAcc = 0;
+    updateHpDisplay();
+    medkitActive = false;
+    medkitSpawnAcc = 0;
+    medkitGroup.visible = false;
+    wave = 1;
+    waveIntermission = 0;
+    pendingSpawnCount = 0;
+    pendingMapSwitch = false;
+    pendingGraveyardSwitch = false;
+    graveyardEndless = false;
+    graveyardVictoryOpen = false;
+    if (graveyardVictoryLayer) {
+      graveyardVictoryLayer.classList.remove("visible");
+      graveyardVictoryLayer.setAttribute("aria-hidden", "true");
+    }
+    currentLevel = 1;
+    factoryWorldGroup.visible = true;
+    backroomsWorldGroup.visible = false;
+    graveyardWorldGroup.visible = false;
+    colliders = factoryColliders;
+    shootBlockingRoots = factoryShootBlockingRoots;
+    activeFloorMesh = floor;
+    activeCeilingY = CEILING_Y;
+    applyFactorySceneStyle();
+    updateMapLevelHudTitle();
+    hideWaveCountdownOverlay();
+    player.x = SPAWN_X;
+    player.z = SPAWN_Z;
+    player.vy = 0;
+    player.kbVx = 0;
+    player.kbVz = 0;
+    player.grounded = true;
+    player._jumpPress = false;
+    magPrimary = MAG_PRIMARY;
+    magSecondary = MAG_PISTOL;
+    weaponSlot = 1;
+    quickKnifeReturnOnFRelease = false;
+    weapon.visible = true;
+    pistolWeapon.visible = false;
+    knifeWeapon.visible = false;
+    grenadeCooldown = 0;
+    if (activeGrenade) {
+      scene.remove(activeGrenade.mesh);
+      activeGrenade.mesh.geometry.dispose();
+      activeGrenade.mesh.material.dispose();
+      activeGrenade = null;
+    }
+    reloading = false;
+    reloadWeaponSlot = 0;
+    reloadTime = 0;
+    reloadMidPlayed = false;
+    if (elReloadHud) elReloadHud.style.display = "none";
+    resetExplosiveBarrels();
+    clearBloodSplatters();
+    paused = false;
+    pauseLayer.classList.remove("visible");
+    pauseLayer.setAttribute("aria-hidden", "true");
+    updateAmmoHud();
+    updateGrenadeHud();
+    updateHotbar();
+    updateHotbarAvailability();
+    player.jumpY = getGroundHeight(player.x, player.z);
+    yaw.position.set(player.x, eyeY + player.jumpY, player.z);
+    yaw.quaternion.identity();
+    titleEl.textContent = MAP_DISPLAY_NAME;
+    subtitleEl.textContent = "Click to capture the mouse and enter first person.";
+    spawnWaveNow(getEnemySpawnCountForWave(wave));
+    updateWaveHudDisplay();
+    showStartMenuPanel();
+  }
+
+  function openGraveyardVictoryModal() {
+    graveyardVictoryOpen = true;
+    paused = true;
+    document.exitPointerLock();
+    if (graveyardVictoryLayer) {
+      graveyardVictoryLayer.classList.add("visible");
+      graveyardVictoryLayer.setAttribute("aria-hidden", "false");
+    }
+    Object.keys(keys).forEach(function (k) {
+      keys[k] = false;
+    });
+    fireMouseHeld = false;
+    updateHeldGrenadeVisible();
+    requestAnimationFrame(function () {
+      if (graveyardVictoryRestartBtn) graveyardVictoryRestartBtn.focus();
+    });
+  }
+
+  if (graveyardVictoryPanel) {
+    graveyardVictoryPanel.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
+  if (graveyardVictoryRestartBtn) {
+    graveyardVictoryRestartBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ensureAudio();
+      playUiConfirm();
+      resetGameStateToFactoryLevel1Wave1ForNewRun();
+      overlay.classList.remove("hidden");
+    });
+  }
+  if (graveyardVictoryContinueBtn) {
+    graveyardVictoryContinueBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ensureAudio();
+      playUiConfirm();
+      graveyardVictoryOpen = false;
+      graveyardEndless = true;
+      paused = false;
+      if (graveyardVictoryLayer) {
+        graveyardVictoryLayer.classList.remove("visible");
+        graveyardVictoryLayer.setAttribute("aria-hidden", "true");
+      }
+      updateWaveHudDisplay();
+      waveIntermission = 3.4;
+      pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
+      pendingMapSwitch = false;
+      pendingGraveyardSwitch = false;
+      showWaveCountdownOverlay();
+      elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
+      renderer.domElement.requestPointerLock();
+    });
+  }
+
   overlay.addEventListener("click", function () {
     ensureAudio();
     playUiConfirm();
     if (gameOver) {
       gameOver = false;
-      hp = 100;
-      hpRegenAcc = 0;
-      updateHpDisplay();
-      medkitActive = false;
-      medkitSpawnAcc = 0;
-      medkitGroup.visible = false;
-      wave = 1;
-      waveIntermission = 0;
-      pendingSpawnCount = 0;
-      pendingMapSwitch = false;
-      currentLevel = 1;
-      factoryWorldGroup.visible = true;
-      backroomsWorldGroup.visible = false;
-      colliders = factoryColliders;
-      shootBlockingRoots = factoryShootBlockingRoots;
-      activeFloorMesh = floor;
-      activeCeilingY = CEILING_Y;
-      applyFactorySceneStyle();
-      updateMapLevelHudTitle();
-      hideWaveCountdownOverlay();
-      player.x = SPAWN_X;
-      player.z = SPAWN_Z;
-      player.vy = 0;
-      player.kbVx = 0;
-      player.kbVz = 0;
-      player.grounded = true;
-      player._jumpPress = false;
-      magPrimary = MAG_PRIMARY;
-      magSecondary = MAG_PISTOL;
-      weaponSlot = 1;
-      quickKnifeReturnOnFRelease = false;
-      weapon.visible = true;
-      pistolWeapon.visible = false;
-      knifeWeapon.visible = false;
-      grenadeCooldown = 0;
-      if (activeGrenade) {
-        scene.remove(activeGrenade.mesh);
-        activeGrenade.mesh.geometry.dispose();
-        activeGrenade.mesh.material.dispose();
-        activeGrenade = null;
-      }
-      reloading = false;
-      reloadWeaponSlot = 0;
-      reloadTime = 0;
-      reloadMidPlayed = false;
-      if (elReloadHud) elReloadHud.style.display = "none";
-      resetExplosiveBarrels();
-      clearBloodSplatters();
-      paused = false;
-      pauseLayer.classList.remove("visible");
-      pauseLayer.setAttribute("aria-hidden", "true");
-      updateAmmoHud();
-      updateGrenadeHud();
-      updateHotbar();
-      updateHotbarAvailability();
-      player.jumpY = getGroundHeight(player.x, player.z);
-      yaw.position.set(player.x, eyeY + player.jumpY, player.z);
-      yaw.quaternion.identity();
-      titleEl.textContent = MAP_DISPLAY_NAME;
-      subtitleEl.textContent = "Click to capture the mouse and enter first person.";
-      spawnWaveNow(getEnemySpawnCountForWave(wave));
-      updateWaveHudDisplay();
-      showStartMenuPanel();
+      resetGameStateToFactoryLevel1Wave1ForNewRun();
     }
     overlay.classList.add("hidden");
     renderer.domElement.requestPointerLock();
@@ -3843,9 +4447,12 @@
 
   function switchToBackroomsLevel() {
     currentLevel = 2;
+    graveyardEndless = false;
     pendingMapSwitch = false;
+    pendingGraveyardSwitch = false;
     factoryWorldGroup.visible = false;
     backroomsWorldGroup.visible = true;
+    graveyardWorldGroup.visible = false;
     colliders = backroomsColliders;
     shootBlockingRoots = backroomsShootBlockingRoots;
     activeFloorMesh = floorBackrooms;
@@ -3857,6 +4464,36 @@
     _bloodRayTargets = null;
     player.x = BACKROOMS_SPAWN_X;
     player.z = BACKROOMS_SPAWN_Z;
+    player.vy = 0;
+    player.kbVx = 0;
+    player.kbVz = 0;
+    player.grounded = true;
+    player._jumpPress = false;
+    player.jumpY = getGroundHeight(player.x, player.z);
+    yaw.position.set(player.x, eyeY + player.jumpY, player.z);
+    spawnWaveNow(getEnemySpawnCountForWave(wave));
+    elLeft.textContent = String(enemies.length);
+  }
+
+  function switchToGraveyardLevel() {
+    currentLevel = 3;
+    graveyardEndless = false;
+    pendingMapSwitch = false;
+    pendingGraveyardSwitch = false;
+    factoryWorldGroup.visible = false;
+    backroomsWorldGroup.visible = false;
+    graveyardWorldGroup.visible = true;
+    colliders = graveyardColliders;
+    shootBlockingRoots = graveyardShootBlockingRoots;
+    activeFloorMesh = floorGraveyard;
+    activeCeilingY = GY_PLAYER_CEILING;
+    applyGraveyardSceneStyle();
+    wave = 1;
+    updateMapLevelHudTitle();
+    updateWaveHudDisplay();
+    _bloodRayTargets = null;
+    player.x = GRAVEYARD_SPAWN_X;
+    player.z = GRAVEYARD_SPAWN_Z;
     player.vy = 0;
     player.kbVx = 0;
     player.kbVz = 0;
@@ -4830,25 +5467,56 @@
 
   function getEnemySpawnCountForWave(targetWave) {
     if (currentLevel === 1 && targetWave === 10) return 30;
+    if (currentLevel === 2 && targetWave === 15) return 25;
     return 4 + targetWave * 2;
   }
 
+  function getMaxWavesForHud() {
+    if (currentLevel === 1) return MAX_WAVES_UI;
+    if (currentLevel === 2) return MAX_WAVES_BACKROOMS_UI;
+    return MAX_WAVES_GRAVEYARD_UI;
+  }
+
   function updateWaveHudDisplay() {
-    elWave.textContent = String(wave) + "/" + String(MAX_WAVES_UI);
+    if (currentLevel === 3 && graveyardEndless) {
+      elWave.textContent = String(wave) + "/∞";
+    } else {
+      elWave.textContent = String(wave) + "/" + String(getMaxWavesForHud());
+    }
   }
 
   function updateMapLevelHudTitle() {
-    if (elMapName) elMapName.textContent = currentLevel === 1 ? MAP_DISPLAY_NAME : MAP_DISPLAY_NAME_BACKROOMS;
+    if (elMapName) {
+      if (currentLevel === 1) elMapName.textContent = MAP_DISPLAY_NAME;
+      else if (currentLevel === 2) elMapName.textContent = MAP_DISPLAY_NAME_BACKROOMS;
+      else elMapName.textContent = MAP_DISPLAY_NAME_GRAVEYARD;
+    }
     if (elMapLevelSub) elMapLevelSub.textContent = "Level " + String(currentLevel);
   }
 
   function onWaveClearedAfterLastEnemy() {
+    if (currentLevel === 3 && wave === 10 && !graveyardEndless) {
+      pendingMapSwitch = false;
+      pendingGraveyardSwitch = false;
+      pendingSpawnCount = 0;
+      waveIntermission = 0;
+      hideWaveCountdownOverlay();
+      hp = Math.min(100, hp + 12);
+      openGraveyardVictoryModal();
+      return;
+    }
     waveIntermission = 3.4;
     if (currentLevel === 1 && wave === 10) {
       pendingMapSwitch = true;
+      pendingGraveyardSwitch = false;
+      pendingSpawnCount = 0;
+    } else if (currentLevel === 2 && wave === 15) {
+      pendingMapSwitch = false;
+      pendingGraveyardSwitch = true;
       pendingSpawnCount = 0;
     } else {
       pendingMapSwitch = false;
+      pendingGraveyardSwitch = false;
       pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
     }
     showWaveCountdownOverlay();
@@ -4863,8 +5531,10 @@
   }
 
   function showWaveCountdownOverlay() {
-    if (pendingMapSwitch) {
-      elWaveUpcomingLabel.textContent = "The Backrooms";
+    if (pendingGraveyardSwitch) {
+      elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_GRAVEYARD;
+    } else if (pendingMapSwitch) {
+      elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_BACKROOMS;
     } else {
       elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
     }
@@ -5431,7 +6101,12 @@
         else playWaveCountTick(wcNew);
       }
       if (waveIntermission <= 0) {
-        if (pendingMapSwitch) {
+        if (pendingGraveyardSwitch) {
+          pendingGraveyardSwitch = false;
+          hideWaveCountdownOverlay();
+          switchToGraveyardLevel();
+          playWaveReady();
+        } else if (pendingMapSwitch) {
           pendingMapSwitch = false;
           hideWaveCountdownOverlay();
           switchToBackroomsLevel();
