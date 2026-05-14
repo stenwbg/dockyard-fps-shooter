@@ -1446,7 +1446,7 @@
   scene.add(yaw);
 
   var renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.45));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
@@ -1460,7 +1460,7 @@
   var dir = new THREE.DirectionalLight(0xfff0dc, 0.82);
   dir.position.set(26, 38, -10);
   dir.castShadow = true;
-  dir.shadow.mapSize.set(1024, 1024);
+  dir.shadow.mapSize.set(768, 768);
   dir.shadow.camera.near = 2;
   dir.shadow.camera.far = 120;
   dir.shadow.camera.left = -56;
@@ -1635,6 +1635,16 @@
     return dx * dx + dz * dz < r * r;
   }
 
+  /* Narrow walkable slabs (thin walls / beams) are thinner than the foot circle; pad overlap only for ground height so you don't sink through the mesh top. */
+  function thinWalkableGroundPad(b) {
+    if (!b || !b.top) return 0;
+    var wx = b.maxX - b.minX;
+    var wz = b.maxZ - b.minZ;
+    var mn = Math.min(wx, wz);
+    if (mn >= 0.72) return 0;
+    return Math.max(0, 0.72 - mn) * 0.48;
+  }
+
   function getGroundHeightFor(px, pz, agentR, refFeetY) {
     var best = 0;
     var ar = agentR == null ? 0.35 : agentR;
@@ -1647,7 +1657,7 @@
       var b = colliders[gi];
       if (b.active === false) continue;
       if (!b.top) continue;
-      if (!aabbOverlap(px, pz, ar * 0.95, b)) continue;
+      if (!aabbOverlap(px, pz, ar * 0.95 + thinWalkableGroundPad(b), b)) continue;
       if (useRef && b.y1 > highCut) continue;
       best = Math.max(best, b.y1);
     }
@@ -1733,6 +1743,7 @@
     for (cgz = 0; cgz < factoryCeilGrid.length; cgz++) {
       var cpx = factoryCeilGrid[cgx];
       var cpz = factoryCeilGrid[cgz];
+      if (cpx < -5 && cpz > 5) continue;
       var ceilPanel = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.5), factoryCeilLightMat);
       ceilPanel.rotation.x = Math.PI * 0.5;
       ceilPanel.position.set(cpx, ceilingSlabY - 0.14, cpz);
@@ -1790,7 +1801,6 @@
     mapBuildParent.add(mesh);
     var lowDarkFloor =
       mat === darkBeamMat && yBottom <= 0.02 && yBottom + h <= 0.62;
-    if (!lowDarkFloor) shootBlockingRoots.push(mesh);
     var cos = Math.cos(ry || 0);
     var sin = Math.sin(ry || 0);
     var hw = w * 0.5;
@@ -1825,6 +1835,7 @@
       boxCol.linkedMesh = mesh;
       boxCol.destructible = true;
     }
+    if (!lowDarkFloor || !boxCol.perimeter) shootBlockingRoots.push(mesh);
   }
 
   var wallT = 1.15;
@@ -1874,7 +1885,6 @@
   var pillarSpots = [
     [-12, -9, 0.78, 0.78],
     [-12, 0, 0.78, 0.78],
-    [-12, 9, 0.78, 0.78],
     [12, -9, 0.78, 0.78],
     [12, 0, 0.78, 0.78],
     [12, 9, 0.78, 0.78],
@@ -1887,7 +1897,6 @@
 
   addWallMesh(0.38, 3.85, wu(11), half - wu(2.05), wu(8.5), 0, rustMetalMat, false, true);
   addWallMesh(0.38, 3.85, wu(11), half - wu(2.05), wu(-6.2), 0, windowMat, false, false);
-  addWallMesh(wu(9.5), 2.95, 0.36, wu(-14.2), half - wu(2.15), wu(0.4), rustMetalMat, false, false);
 
   var palletMat = new THREE.MeshStandardMaterial({ color: 0x4a463c, roughness: 0.9, metalness: 0.06 });
   var hazardMat = new THREE.MeshStandardMaterial({
@@ -2043,11 +2052,15 @@
 
   function addElectricalCabinet(wx, wz, ry) {
     addObstacleBox(0.5, 2.08, 0.46, wx, 0, wz, ry || 0, rustMetalMat, false);
+    var mainCabCol = colliders[colliders.length - 1];
     var cos = Math.cos(ry || 0);
     var sin = Math.sin(ry || 0);
     var ox = sin * 0.19;
     var oz = cos * 0.19;
     addObstacleBox(0.38, 0.14, 0.05, wx + ox, 1.96, wz + oz, ry, darkBeamMat, false);
+    var trimCabCol = colliders[colliders.length - 1];
+    trimCabCol.destructible = false;
+    mainCabCol.linkedAuxColliders = [trimCabCol];
   }
 
   function addMachineryBlock(wx, wz, w, h, d, ry) {
@@ -2056,10 +2069,9 @@
 
   function buildAbandonedFactoryInterior() {
     addWallMesh(wu(24), 1.25, 0.44, wu(0), wu(-9.2), 0, sootWallMat, false, true);
-    addWallMesh(wu(24), 1.25, 0.44, wu(0), wu(9.2), 0, sootWallMat, false, true);
+    addWallMesh(wu(12) + 5, 1.25, 0.44, (wu(12) - 5) * 0.5, wu(9.2), 0, sootWallMat, false, true);
 
     addWallMesh(0.44, 2.85, wu(8.5), wu(-12), wu(-16.25), 0, sootWallMat, false, true);
-    addWallMesh(0.44, 2.85, wu(8.5), wu(-12), wu(16.25), 0, sootWallMat, false, true);
     addWallMesh(0.44, 2.85, wu(8.5), wu(12), wu(-16.25), 0, sootWallMat, false, true);
     addWallMesh(0.44, 2.85, wu(8.5), wu(12), wu(16.25), 0, sootWallMat, false, true);
 
@@ -2071,33 +2083,60 @@
     addWallMesh(wu(5.2), 0.52, wu(3.8), wu(-6.5), wu(0), 0, rustMetalMat, false, true);
     addWallMesh(wu(5.2), 0.52, wu(3.8), wu(6.5), wu(0), 0, rustMetalMat, false, true);
 
-    addIndustrialTank(wu(-8), wu(13.5), 1.32, 2.35);
     addIndustrialTank(wu(8), wu(13.5), 1.32, 2.35);
 
     addWallMesh(wu(6), 1.85, 0.4, wu(0), wu(14.2), 0.12, sootWallMat, false, true);
 
     addObstacleBox(wu(18), 0.42, wu(0.5), wu(0), 0, wu(-4.2), 0, darkBeamMat, false);
-    addObstacleBox(wu(1.1), 0.42, wu(6.5), wu(-10), 0, wu(4), 0, darkBeamMat, false);
     addObstacleBox(wu(1.1), 0.42, wu(6.5), wu(10), 0, wu(-4), 0, darkBeamMat, false);
 
-    addWallMesh(wu(5.8), 0.22, wu(2.1), wu(-7.5), wu(11.5), 0, sootWallMat, false, true);
-
-    addElectricalCabinet(wu(-15.8), wu(6), 0);
     addElectricalCabinet(wu(-15.8), wu(-2.4), 0);
     addElectricalCabinet(wu(15.5), wu(-6.5), Math.PI);
 
     addMachineryBlock(wu(12), wu(-11.5), wu(1.45), 1.28, wu(1.05), 0);
-    addMachineryBlock(wu(-4), wu(8), wu(2.6), 0.92, wu(1.35), 0);
     addMachineryBlock(wu(5), wu(-13), wu(1.6), 0.75, wu(0.95), Math.PI * 0.5);
 
     addWallMesh(wu(3.6), 1.12, 0.36, wu(8), wu(-7), 0, sootWallMat, false, true);
     addWallMesh(wu(3.6), 1.12, 0.36, wu(8), wu(7.4), 0, sootWallMat, false, true);
-    addWallMesh(0.36, 0.95, wu(2.2), wu(-10), wu(2.5), 0, rustMetalMat, false, true);
+    addWallMesh(0.36, 0.95, wu(2.2), wu(-10), wu(1.85), 0, rustMetalMat, false, true);
     addObstacleBox(wu(1.35), 0.48, wu(1.35), wu(-1), 0, wu(-14.2), 0, darkBeamMat, false);
     addObstacleBox(wu(2.4), 0.38, wu(0.5), wu(3.5), 0, wu(10.5), 0, darkBeamMat, false);
-    addObstacleBox(wu(0.55), 1.15, wu(0.55), wu(-12.5), 0, wu(4.2), 0, rustMetalMat, false);
-    addObstacleBox(wu(0.55), 0.36, wu(3.2), wu(-10), 0, wu(4), 0, darkBeamMat, false);
-    addObstacleBox(wu(0.55), 0.36, wu(3.2), wu(10), 0, wu(-4), 0, darkBeamMat, false);
+    addObstacleBox(wu(0.55), 0.36, wu(3.2), wu(10), 0, wu(4), 0, darkBeamMat, false);
+
+    // SW pocket (minimap corner: world x < -5, z > 5) — walkable tops, same factory materials
+    addObstacleBox(wu(1.52), 1.1, wu(1.02), wu(-11.55), 0, wu(6.38), 0.06, rustMetalMat, true);
+    addObstacleBox(wu(1.28), 0.62, wu(1.15), wu(-14.05), 0, wu(8.55), Math.PI * 0.32, rustMetalMat, true);
+    addObstacleBox(wu(0.82), 1.28, wu(0.82), wu(-8.35), 0, wu(9.05), -Math.PI * 0.18, darkBeamMat, true);
+    addCrate(wu(-9.85), wu(7.75), 1.38, 0.92, 1.12, -0.28);
+    addObstacleBox(wu(1.22), 0.76, wu(1.32), wu(-15.75), 0, wu(11.15), -0.22, rustMetalMat, true);
+    addObstacleBox(wu(0.68), 1.12, wu(0.68), wu(-7.85), 0, wu(9.75), Math.PI * 0.24, darkBeamMat, true);
+    addObstacleBox(wu(1.08), 0.52, wu(1.22), wu(-13.45), 0, wu(5.62), 0.38, rustMetalMat, true);
+    addObstacleBox(wu(1.38), 0.9, wu(0.98), wu(-16.45), 0, wu(8.05), -0.1, darkBeamMat, true);
+    addObstacleBox(wu(1.22), 0.66, wu(1.05), wu(-9.15), 0, wu(10.95), Math.PI * 0.26, rustMetalMat, true);
+    addObstacleBox(wu(0.92), 0.46, wu(1.38), wu(-6.28), 0, wu(6.42), Math.PI * 0.42, rustMetalMat, true);
+    addCrate(wu(-15.95), wu(6.52), 1.18, 0.82, 1.02, 0.36);
+
+    // North & south floor — walkable pieces in open lanes (not SW pocket: x < -5 && z > 5)
+    addObstacleBox(wu(1.12), 0.56, wu(1.18), wu(-2.35), 0, wu(10.42), 0.16, rustMetalMat, true);
+    addObstacleBox(wu(1.28), 0.7, wu(1.02), wu(3.75), 0, wu(11.48), -0.14, darkBeamMat, true);
+    addObstacleBox(wu(1.05), 0.54, wu(1.12), wu(10.95), 0, wu(12.1), Math.PI * 0.19, rustMetalMat, true);
+    addObstacleBox(wu(0.78), 0.98, wu(0.7), wu(13.85), 0, wu(10.22), Math.PI * 0.31, darkBeamMat, true);
+    addObstacleBox(wu(1.18), 0.6, wu(1.05), wu(-9.75), 0, wu(-8.55), -0.06, rustMetalMat, true);
+    addObstacleBox(wu(0.92), 0.46, wu(1.28), wu(-5.45), 0, wu(-10.9), 0.3, rustMetalMat, true);
+    addObstacleBox(wu(1.2), 0.65, wu(0.95), wu(4.15), 0, wu(-11.35), Math.PI * 0.11, darkBeamMat, true);
+    addObstacleBox(wu(1.02), 0.5, wu(1.12), wu(12.45), 0, wu(-9.4), -Math.PI * 0.26, rustMetalMat, true);
+
+    // Cover walls — SW & NW (walkable tops) + extra crates
+    addWallMesh(0.46, 2.74, wu(5.85), wu(-7.58), wu(8.72), 0, sootWallMat, false, true);
+    addWallMesh(0.46, 2.74, wu(3.4), wu(-10.92), wu(-5.45), 0, sootWallMat, false, true);
+    addCrate(wu(-12.38), wu(9.1), 1.34, 0.9, 1.06, 0.19);
+    addCrate(wu(-8.52), wu(-4.86), 1.22, 0.84, 0.98, -0.17);
+    addCrate(wu(-14.22), wu(-4.52), 1.06, 0.74, 0.9, 0.47);
+    addCrate(wu(-3.82), wu(9.62), 1.18, 0.82, 1.02, -0.31);
+    addCrate(wu(6.72), wu(-7.92), 1.14, 0.76, 0.96, 0.27);
+    addCrate(wu(1.12), wu(-10.42), 1.26, 0.88, 1.08, -0.11);
+    addCrate(wu(-5.88), wu(7.08), 1.05, 0.72, 0.88, 0.54);
+    addCrate(wu(-9.35), wu(-3.15), 0.98, 0.68, 0.82, 0.38);
   }
 
   buildAbandonedFactoryInterior();
@@ -2119,8 +2158,6 @@
     }
     floorStrip(wu(7.5), wu(-5), wu(-10), 0.04);
     floorStrip(wu(5.5), wu(11), wu(3), Math.PI * 0.28);
-    floorStrip(wu(4.2), wu(-12), wu(14), Math.PI * 0.5);
-    floorStrip(wu(3.8), wu(6), wu(-14), -0.12);
     var plateMat = new THREE.MeshStandardMaterial({
       color: 0xc4a82c,
       metalness: 0.35,
@@ -2145,6 +2182,7 @@
     for (var sp = 0; sp < 260; sp++) {
       var sx = (Math.random() * 2 - 1) * (half - 2.8);
       var sz = (Math.random() * 2 - 1) * (half - 2.8);
+      if (sx < -5 && sz > 5) continue;
       if (!enemyWalkFree(sx, sz, radius)) continue;
       if (getGroundHeightFor(sx, sz, radius) > 0.14) continue;
       if (md > 0 && Math.hypot(sx, sz) < md) continue;
@@ -2161,6 +2199,7 @@
       var bx = (Math.random() * 2 - 1) * (half - 3.5);
       var bz = (Math.random() * 2 - 1) * (half - 3.5);
       if (Math.hypot(bx - SPAWN_X, bz - SPAWN_Z) < 2.75) continue;
+      if (bx < -5 && bz > 5) continue;
       if (!enemyWalkFree(bx, bz, r * 1.58)) continue;
       if (getGroundHeightFor(bx, bz, 0.38) > 0.12) continue;
       addExplosiveBarrel(bx, bz, r, ht);
@@ -2181,6 +2220,7 @@
       var px = (Math.random() * 2 - 1) * (half - 3.2);
       var pz = (Math.random() * 2 - 1) * (half - 3.2);
       if (Math.hypot(px - SPAWN_X, pz - SPAWN_Z) < 2.75) continue;
+      if (px < -5 && pz > 5) continue;
       if (!enemyWalkFree(px, pz, 0.55)) continue;
       if (getGroundHeightFor(px, pz, 0.5) > 0.1) continue;
       addPalette(px, pz, rotY + (tp % 7) * 0.08);
@@ -2196,6 +2236,7 @@
       var cx = (Math.random() * 2 - 1) * (half - 3.8);
       var cz = (Math.random() * 2 - 1) * (half - 3.8);
       if (Math.hypot(cx - SPAWN_X, cz - SPAWN_Z) < 2.75) continue;
+      if (cx < -5 && cz > 5) continue;
       if (!enemyWalkFree(cx, cz, Math.max(w, d) * 0.55)) continue;
       if (getGroundHeightFor(cx, cz, 0.45) > 0.1) continue;
       addCrate(cx, cz, w, h, d, rotY + tc * 0.03);
@@ -2218,6 +2259,7 @@
       var qx = cr[ci][0];
       var qz = cr[ci][1];
       if (Math.hypot(qx - SPAWN_X, qz - SPAWN_Z) < 3) continue;
+      if (qx < -5 && qz > 5) continue;
       if (!enemyWalkFree(qx, qz, 0.5)) continue;
       if (getGroundHeightFor(qx, qz, 0.45) > 0.12) continue;
       addCrate(qx, qz, cr[ci][2], cr[ci][3], cr[ci][4], 0);
@@ -2227,6 +2269,7 @@
       qx = pal[ci][0];
       qz = pal[ci][1];
       if (Math.hypot(qx - SPAWN_X, qz - SPAWN_Z) < 3) continue;
+      if (qx < -5 && qz > 5) continue;
       if (!enemyWalkFree(qx, qz, 0.55)) continue;
       if (getGroundHeightFor(qx, qz, 0.5) > 0.1) continue;
       addPalette(qx, qz, 0);
@@ -2254,10 +2297,12 @@
     var co = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.5, 8), hazardMat);
     co.position.set(cox, 0.25, coz);
     if (Math.abs(cox - SPAWN_X) < 2 && Math.abs(coz - SPAWN_Z) < 2) continue;
+    if (cox < -5 && coz > 5) continue;
     if (!enemyWalkFree(cox, coz, 0.32)) continue;
     co.rotation.y = 0;
     co.castShadow = true;
     mapBuildParent.add(co);
+    addCollider(cox - 0.2, cox + 0.2, coz - 0.2, coz + 0.2, 0, 0.52, true);
   }
 
   var junkSpots = [
@@ -2268,6 +2313,7 @@
     var jx = junkSpots[sj][0];
     var jz = junkSpots[sj][1];
     if (Math.abs(jx) < 3 && Math.abs(jz) < 3) continue;
+    if (jx < -5 && jz > 5) continue;
     if (!enemyWalkFree(jx, jz, 0.28)) continue;
     var junk = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.14, 0.4), darkBeamMat);
     junk.position.set(jx, 0.07, jz);
@@ -2275,6 +2321,7 @@
     junk.receiveShadow = true;
     junk.castShadow = true;
     mapBuildParent.add(junk);
+    addCollider(jx - 0.26, jx + 0.26, jz - 0.22, jz + 0.22, 0, 0.135, true);
   }
 
   function addWalkableTopCapsForColliderList(collList, shootList, parentGroup) {
@@ -2345,6 +2392,9 @@
   var subwayTrainHitPlayer = false;
   var subwayTrainHornPlayed = false;
   var subwayTrainPassSfx = null;
+  var subwayTrainHitBox = new THREE.Box3();
+  var subwayTrainHitBoxScratch = new THREE.Vector3();
+  var SUBWAY_TRAIN_PLAYER_MAX_DMG = 60;
   var maintenanceBuilt = false;
   var floorMaintenance = null;
   var MAINTENANCE_PLAYER_CEILING = 9.4;
@@ -2533,6 +2583,28 @@
     BACKROOMS_SPAWN_Z = sz0 + (sdz / slen) * wu(0.65);
 
     addWalkableTopCapsForColliderList(backroomsColliders, backroomsShootBlockingRoots, backroomsWorldGroup);
+
+    var tmpBrMin = new THREE.Vector3();
+    var tmpBrMax = new THREE.Vector3();
+    var bai;
+    for (bai = 0; bai < backroomsShootBlockingRoots.length; bai++) {
+      var bm = backroomsShootBlockingRoots[bai];
+      var gp = bm.geometry && bm.geometry.parameters;
+      if (gp && gp.width != null) {
+        bm.userData.brBloodSpanXZ = Math.hypot(gp.width * 0.5, gp.depth * 0.5) + 0.06;
+      } else {
+        bm.updateWorldMatrix(true, false);
+        if (!bm.geometry.boundingBox) bm.geometry.computeBoundingBox();
+        var lb = bm.geometry.boundingBox;
+        tmpBrMin.set(lb.min.x, lb.min.y, lb.min.z).applyMatrix4(bm.matrixWorld);
+        tmpBrMax.set(lb.max.x, lb.max.y, lb.max.z).applyMatrix4(bm.matrixWorld);
+        var wx0 = Math.min(tmpBrMin.x, tmpBrMax.x);
+        var wx1 = Math.max(tmpBrMin.x, tmpBrMax.x);
+        var wz0 = Math.min(tmpBrMin.z, tmpBrMax.z);
+        var wz1 = Math.max(tmpBrMin.z, tmpBrMax.z);
+        bm.userData.brBloodSpanXZ = 0.5 * Math.hypot(wx1 - wx0, wz1 - wz0) + 0.08;
+      }
+    }
 
     buildBackroomsReachabilityGrid();
 
@@ -3303,16 +3375,22 @@
       subwayTrainGroup = new THREE.Group();
       subwayTrainGroup.name = "subwayTrain";
       subwayTrainGroup.userData.wheelMeshes = [];
-      var carLenZ = 4.15;
-      var carH = 2.95;
-      var carW = 3.75;
-      var wheelR = 0.102;
-      var wheelYLocal = swRailY + wheelR - (swRailY + carH * 0.48);
+      var trackDeckY = swTrackY + 0.035;
+      subwayTrainBodyY = trackDeckY;
+      var carLenZ = 3.95;
+      var carH = 2.68;
+      var carW = 3.52;
+      var wheelR = 0.265;
+      var axleLen = 0.11;
+      var wheelBottomY = 0.004;
+      var wheelCenterY = wheelBottomY + wheelR;
+      var carFloorY = wheelBottomY + wheelR * 2 + 0.045;
+      var carBodyCenterY = carFloorY + carH * 0.5;
       var trainWheelMat = new THREE.MeshStandardMaterial({
-        color: 0x343a42,
-        roughness: 0.48,
-        metalness: 0.62,
-        emissive: 0x040608,
+        color: 0x2a3038,
+        roughness: 0.46,
+        metalness: 0.68,
+        emissive: 0x030508,
         emissiveIntensity: 0.03
       });
       var trainWheelHubMat = new THREE.MeshStandardMaterial({
@@ -3322,28 +3400,39 @@
         emissive: 0x05070a,
         emissiveIntensity: 0.04
       });
-      var wheelGeo = new THREE.CylinderGeometry(wheelR, wheelR, 0.092, 16);
+      var rimMat = new THREE.MeshStandardMaterial({
+        color: 0x1c2228,
+        roughness: 0.55,
+        metalness: 0.35,
+        emissive: 0x020304,
+        emissiveIntensity: 0.02
+      });
+      var wheelGeo = new THREE.CylinderGeometry(wheelR, wheelR, axleLen, 18);
       wheelGeo.rotateZ(Math.PI * 0.5);
       var carZi;
       for (carZi = -2; carZi <= 2; carZi++) {
         var carZ = carZi * carLenZ * 1.02;
         var carBody = new THREE.Mesh(new THREE.BoxGeometry(carW, carH, carLenZ), trainBodyMat);
-        carBody.position.set(0, carH * 0.5 + 0.12, carZ);
+        carBody.position.set(0, carBodyCenterY, carZ);
         carBody.castShadow = true;
         carBody.receiveShadow = true;
         subwayTrainGroup.add(carBody);
-        var wz;
-        for (wz = -1; wz <= 1; wz += 2) {
-          var wzPos = carZ + wz * carLenZ * 0.36;
+        var bogieZList = [carZ - carLenZ * 0.38, carZ + carLenZ * 0.38];
+        var bzi;
+        for (bzi = 0; bzi < bogieZList.length; bzi++) {
+          var wzPos = bogieZList[bzi];
           var wx;
           for (wx = -1; wx <= 1; wx += 2) {
             var bogie = new THREE.Group();
-            bogie.position.set(wx * 0.785, wheelYLocal, wzPos);
+            bogie.position.set(wx * 0.76, wheelCenterY, wzPos);
             var wmesh = new THREE.Mesh(wheelGeo, trainWheelMat);
             wmesh.castShadow = true;
             wmesh.receiveShadow = true;
             bogie.add(wmesh);
-            var hub = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.042, 0.11, 10), trainWheelHubMat);
+            var rim = new THREE.Mesh(new THREE.TorusGeometry(wheelR * 0.92, 0.028, 8, 20), rimMat);
+            rim.rotation.y = Math.PI * 0.5;
+            bogie.add(rim);
+            var hub = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.055, axleLen + 0.04, 12), trainWheelHubMat);
             hub.rotateZ(Math.PI * 0.5);
             bogie.add(hub);
             subwayTrainGroup.add(bogie);
@@ -3351,20 +3440,23 @@
           }
         }
         var winF = new THREE.Mesh(new THREE.BoxGeometry(carW * 0.86, carH * 0.36, 0.07), trainWinMat);
-        winF.position.set(0, carH * 0.54 + 0.12, carZ + carLenZ * 0.43);
+        winF.position.set(0, carBodyCenterY + carH * 0.04, carZ + carLenZ * 0.43);
         subwayTrainGroup.add(winF);
         var winB = new THREE.Mesh(new THREE.BoxGeometry(carW * 0.86, carH * 0.36, 0.07), trainWinMat);
-        winB.position.set(0, carH * 0.54 + 0.12, carZ - carLenZ * 0.43);
+        winB.position.set(0, carBodyCenterY + carH * 0.04, carZ - carLenZ * 0.43);
         subwayTrainGroup.add(winB);
         if (carZi === 0) {
-          var stripe = new THREE.Mesh(new THREE.BoxGeometry(carW + 0.08, 0.22, carLenZ * 0.9), trainStripeMat);
-          stripe.position.set(0, carH * 0.74 + 0.12, carZ);
+          var stripe = new THREE.Mesh(new THREE.BoxGeometry(carW + 0.06, 0.2, carLenZ * 0.88), trainStripeMat);
+          stripe.position.set(0, carBodyCenterY + carH * 0.26, carZ);
           subwayTrainGroup.add(stripe);
         }
       }
-      subwayTrainHalfLen = carLenZ * 2.5 * 1.02 + carLenZ * 0.52;
-      subwayTrainHalfW = carW * 0.5 + 0.18;
-      subwayTrainBodyY = swRailY + carH * 0.48;
+      subwayTrainGroup.updateMatrixWorld(true);
+      var tb = new THREE.Box3().setFromObject(subwayTrainGroup);
+      var be = new THREE.Vector3();
+      tb.getSize(be);
+      subwayTrainHalfLen = be.z * 0.5 + 0.22;
+      subwayTrainHalfW = be.x * 0.5 + 0.18;
       subwayTrainGroup.visible = false;
       mapBuildParent.add(subwayTrainGroup);
     }
@@ -3755,6 +3847,26 @@
   buildGraveyardMap();
   buildSubwayMap();
   buildMaintenanceMap();
+
+  (function ensureWorldMeshFrustumCulling() {
+    function walk(root) {
+      if (!root) return;
+      root.traverse(function (o) {
+        if (o.isMesh) {
+          o.frustumCulled = true;
+          var g = o.geometry;
+          if (g && (!g.boundingSphere || !g.boundingSphere.radius || g.boundingSphere.radius <= 0)) {
+            g.computeBoundingSphere();
+          }
+        }
+      });
+    }
+    walk(factoryWorldGroup);
+    walk(backroomsWorldGroup);
+    walk(graveyardWorldGroup);
+    walk(subwayWorldGroup);
+    walk(maintenanceWorldGroup);
+  })();
 
   var player = { x: SPAWN_X, z: SPAWN_Z, jumpY: 0, vy: 0, kbVx: 0, kbVz: 0, grounded: true, radius: 0.35, _jumpPress: false };
   player.jumpY = getGroundHeight(player.x, player.z);
@@ -4565,7 +4677,7 @@
   var MAX_WAVES_UI = 10;
   var MAX_WAVES_BACKROOMS_UI = 15;
   var MAX_WAVES_GRAVEYARD_UI = 10;
-  var MAX_WAVES_SUBWAY_UI = 12;
+  var MAX_WAVES_SUBWAY_UI = 18;
   var MAX_WAVES_MAINTENANCE_UI = 15;
   var currentLevel = 1;
   var pendingMapSwitch = false;
@@ -4577,6 +4689,10 @@
   var graveyardEndless = false;
   var maintenanceEndless = false;
   var paused = false;
+
+  /* DEV_LEVEL_PORTALS: two chunks flagged below (toggle + install). Set ENABLE… false to disable; delete both chunks to remove. */
+  var ENABLE_DEV_LEVEL_PORTALS = true;
+  var updateDevLevelPortals = function (_dt) {};
 
   document.addEventListener("pointerlockchange", function () {
     pointerLocked = document.pointerLockElement === renderer.domElement;
@@ -4622,6 +4738,7 @@
     pendingMaintenanceSwitch = false;
     graveyardEndless = false;
     maintenanceEndless = false;
+    meleeBloodSplatterCooldown = 0;
     graveyardVictoryOpen = false;
     campaignCompleteOpen = false;
     if (graveyardVictoryLayer) {
@@ -5838,6 +5955,7 @@
   var tmpBloodToP = new THREE.Vector3();
   var tmpBloodRayO = new THREE.Vector3();
   var tmpBloodRayD = new THREE.Vector3();
+  var _bloodRayNearScratch = [];
   var SHOTGUN_PELLETS = 14;
   var PELLET_DISK_R = 0.072;
   /* Each pellet ray stops at the first barrel or first enemy surface (no rifle-style second foe). */
@@ -6321,6 +6439,187 @@
     elLeft.textContent = String(enemies.length);
   }
 
+  /* DEV_LEVEL_PORTALS — dev-only warps to every map from every map (walk into ring). Delete this block to strip the feature. */
+  (function installDevLevelPortals() {
+    if (!ENABLE_DEV_LEVEL_PORTALS) return;
+    var COOLDOWN = 1.25;
+    var cooldownT = 0;
+    var wp = new THREE.Vector3();
+    var roots = [];
+
+    function groundYFor(collList, px, pz) {
+      var prev = colliders;
+      colliders = collList;
+      var y = getGroundHeightFor(px, pz, 0.38, 0);
+      colliders = prev;
+      return y;
+    }
+
+    var DEV_PORTAL_HUBS = [
+      { x: wu(11.5), z: wu(9.5) },
+      { x: wu(7), z: wu(4) },
+      { x: wu(12), z: wu(-4) },
+      { x: wu(5), z: wu(2) },
+      { x: wu(-6), z: wu(-8) }
+    ];
+    var DEV_PORTAL_NAMES = [
+      MAP_DISPLAY_NAME,
+      MAP_DISPLAY_NAME_BACKROOMS,
+      MAP_DISPLAY_NAME_GRAVEYARD,
+      MAP_DISPLAY_NAME_SUBWAY,
+      MAP_DISPLAY_NAME_MAINTENANCE
+    ];
+
+    function portalSpotOpen(collList, px, pz) {
+      var gy = groundYFor(collList, px, pz);
+      if (gy > 7 || gy < -0.35) return false;
+      if (Math.abs(px) > half - 1.9 || Math.abs(pz) > half - 1.9) return false;
+      var prev = colliders;
+      colliders = collList;
+      var ok = enemyWalkFreeAt(px, pz, 0.52, gy);
+      colliders = prev;
+      return ok;
+    }
+
+    function pickPortalXZ(collList, hubX, hubZ, slotIndex, nSlots) {
+      var ang = -0.78 + (nSlots <= 1 ? 0 : (slotIndex / (nSlots - 1)) * 1.56);
+      var rList = [3.05, 2.68, 3.42, 2.92, 3.28, 2.5];
+      var ri;
+      for (ri = 0; ri < rList.length; ri++) {
+        var rad = rList[ri];
+        var lx = hubX + Math.cos(ang) * rad;
+        var lz = hubZ + Math.sin(ang) * rad;
+        if (portalSpotOpen(collList, lx, lz)) {
+          return { x: lx, z: lz, y: groundYFor(collList, lx, lz) };
+        }
+      }
+      var bi;
+      for (bi = 0; bi < 10; bi++) {
+        var t = bi * 0.62;
+        var lx2 = hubX + Math.cos(ang + t) * 2.35;
+        var lz2 = hubZ + Math.sin(ang + t) * 2.35;
+        if (portalSpotOpen(collList, lx2, lz2)) {
+          return { x: lx2, z: lz2, y: groundYFor(collList, lx2, lz2) };
+        }
+      }
+      var gy0 = groundYFor(collList, hubX, hubZ);
+      return { x: hubX, z: hubZ, y: gy0 };
+    }
+
+    function makePortalLabelSprite(displayName, hue01) {
+      var canvas = document.createElement("canvas");
+      canvas.width = 704;
+      canvas.height = 188;
+      var ctx = canvas.getContext("2d");
+      var hue = Math.round(hue01 * 360);
+      var pad = 12;
+      ctx.fillStyle = "rgba(6,8,12,0.9)";
+      ctx.fillRect(pad, pad, canvas.width - 2 * pad, canvas.height - 2 * pad);
+      ctx.strokeStyle = "hsl(" + hue + ",76%,56%)";
+      ctx.lineWidth = 5;
+      ctx.strokeRect(pad + 2, pad + 2, canvas.width - 2 * pad - 4, canvas.height - 2 * pad - 4);
+      var fs = displayName.length > 18 ? 38 : displayName.length > 14 ? 44 : 52;
+      ctx.font = "700 " + fs + "px system-ui,Segoe UI,sans-serif";
+      ctx.fillStyle = "#eef3ff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(displayName, canvas.width * 0.5, canvas.height * 0.5);
+      var tex = new THREE.CanvasTexture(canvas);
+      tex.needsUpdate = true;
+      if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+      var sm = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false,
+        depthTest: true
+      });
+      var spr = new THREE.Sprite(sm);
+      spr.scale.set(3.1, 0.82, 1);
+      spr.position.set(0, 1.28, 0);
+      spr.renderOrder = 2;
+      return spr;
+    }
+
+    function devGoToLevel(tgt) {
+      if (tgt === currentLevel) return;
+      cooldownT = COOLDOWN;
+      if (tgt === 1) switchToFactoryLevel();
+      else if (tgt === 2) switchToBackroomsLevel();
+      else if (tgt === 3) switchToGraveyardLevel();
+      else if (tgt === 4) switchToSubwayLevel();
+      else if (tgt === 5) switchToMaintenanceLevel();
+    }
+
+    function addRingForMap(mapLevel, parentGroup, collList, hubX, hubZ) {
+      var targets = [];
+      var L;
+      for (L = 1; L <= 5; L++) {
+        if (L !== mapLevel) targets.push(L);
+      }
+      var n = targets.length;
+      var ci;
+      for (ci = 0; ci < n; ci++) {
+        var tgt = targets[ci];
+        var spot = pickPortalXZ(collList, hubX, hubZ, ci, n);
+        var lx = spot.x;
+        var lz = spot.z;
+        var gy = spot.y;
+        if (gy > 6 || !(gy > -0.5)) {
+          gy = groundYFor(collList, lx, lz);
+        }
+        var hue = tgt === 1 ? 0.52 : tgt === 2 ? 0.88 : tgt === 3 ? 0.28 : tgt === 4 ? 0.14 : 0.08;
+        var col = new THREE.Color().setHSL(hue, 0.75, 0.52);
+        var mat = new THREE.MeshBasicMaterial({
+          color: col,
+          transparent: true,
+          opacity: 0.88,
+          depthWrite: false,
+          toneMapped: false
+        });
+        var ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.07, 10, 28), mat);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(0, 0, 0);
+        ring.userData.skipDispose = true;
+        ring.geometry.userData.skipDispose = true;
+        var grp = new THREE.Group();
+        grp.name = "devLevelPortal";
+        grp.position.set(lx, gy + 0.07, lz);
+        grp.add(ring);
+        grp.add(makePortalLabelSprite(DEV_PORTAL_NAMES[tgt - 1], hue));
+        grp.userData.devPortalTargetLevel = tgt;
+        grp.userData.devPortalRadius = 0.78;
+        parentGroup.add(grp);
+        roots.push(grp);
+      }
+    }
+
+    addRingForMap(1, factoryWorldGroup, factoryColliders, DEV_PORTAL_HUBS[0].x, DEV_PORTAL_HUBS[0].z);
+    addRingForMap(2, backroomsWorldGroup, backroomsColliders, DEV_PORTAL_HUBS[1].x, DEV_PORTAL_HUBS[1].z);
+    addRingForMap(3, graveyardWorldGroup, graveyardColliders, DEV_PORTAL_HUBS[2].x, DEV_PORTAL_HUBS[2].z);
+    addRingForMap(4, subwayWorldGroup, subwayColliders, DEV_PORTAL_HUBS[3].x, DEV_PORTAL_HUBS[3].z);
+    addRingForMap(5, maintenanceWorldGroup, maintenanceColliders, DEV_PORTAL_HUBS[4].x, DEV_PORTAL_HUBS[4].z);
+
+    updateDevLevelPortals = function (dt) {
+      if (cooldownT > 0) cooldownT -= dt;
+      if (!pointerLocked || paused || cooldownT > 0) return;
+      var pi;
+      for (pi = 0; pi < roots.length; pi++) {
+        var g = roots[pi];
+        if (!g.parent || !g.parent.visible) continue;
+        g.updateMatrixWorld(true);
+        wp.setFromMatrixPosition(g.matrixWorld);
+        var r = g.userData.devPortalRadius || 0.75;
+        var tgt = g.userData.devPortalTargetLevel;
+        if (tgt == null) continue;
+        if (Math.hypot(player.x - wp.x, player.z - wp.z) >= r) continue;
+        if (!player.grounded) continue;
+        devGoToLevel(tgt);
+        break;
+      }
+    };
+  })();
+
   function disposeGroup(root) {
     root.traverse(function (o) {
       if (o.geometry && !o.geometry.userData.skipDispose) o.geometry.dispose();
@@ -6407,6 +6706,19 @@
   var grenadeCooldown = 0;
   var activeGrenade = null;
   var tracerMat = new THREE.LineBasicMaterial({ color: 0xffdd88, transparent: true, opacity: 0.95 });
+  var tracerMatPool = [];
+  function borrowTracerLineMat(isPellet) {
+    var m = tracerMatPool.pop();
+    if (!m) {
+      m = new THREE.LineBasicMaterial({ color: 0xffdd88, transparent: true, opacity: 0.95 });
+    }
+    m.opacity = isPellet ? 0.52 : 0.95;
+    return m;
+  }
+  function recycleTracerLineMat(m) {
+    if (!m) return;
+    if (tracerMatPool.length < 48) tracerMatPool.push(m);
+  }
   var tracers = [];
   var bulletVis = [];
   var explosions = [];
@@ -6416,8 +6728,15 @@
   var bulletVisGeo = new THREE.SphereGeometry(0.026, 6, 6);
   bulletVisGeo.userData.skipDispose = true;
   var shootRayScratch = [];
+  var _factoryShootRayStaticsValid = false;
+  var _factoryShootRayStaticsScratch = [];
+  function invalidateFactoryShootRayStatics() {
+    _factoryShootRayStaticsValid = false;
+  }
+  var enemyNavQReuse = [];
   var CONTACT_DPS = 10.75;
   var ENEMY_MELEE_RANGE = 0.68;
+  var meleeBloodSplatterCooldown = 0;
   var KNIFE_REACH = 2.45;
   var KNIFE_CLEAVE_RANGE = 2.8;
 
@@ -6576,7 +6895,20 @@
     for (var li = 0; li < explosiveBarrels.length; li++) {
       if (explosiveBarrels[li].active && explosiveBarrels[li].mapLevel === currentLevel) outArr.push(explosiveBarrels[li].group);
     }
+    if (currentLevel === 1 && _factoryShootRayStaticsValid) {
+      if (_factoryShootRayStaticsScratch.length) {
+        outArr.push.apply(outArr, _factoryShootRayStaticsScratch);
+      }
+      return;
+    }
     for (var si = 0; si < shootBlockingRoots.length; si++) outArr.push(shootBlockingRoots[si]);
+    if (currentLevel === 1) {
+      _factoryShootRayStaticsScratch.length = 0;
+      for (var sj = 0; sj < shootBlockingRoots.length; sj++) {
+        _factoryShootRayStaticsScratch.push(shootBlockingRoots[sj]);
+      }
+      _factoryShootRayStaticsValid = true;
+    }
   }
 
   function playExplosionSound() {
@@ -6681,43 +7013,43 @@
     scene.add(root);
 
     var flash = new THREE.Mesh(
-      new THREE.SphereGeometry(0.045, 12, 10),
+      new THREE.SphereGeometry(0.045, 8, 6),
       new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1 })
     );
     root.add(flash);
 
     var core = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 22, 18),
+      new THREE.SphereGeometry(0.14, 14, 12),
       new THREE.MeshBasicMaterial({ color: 0xfff2cc, transparent: true, opacity: 0.98 })
     );
     root.add(core);
 
     var midShell = new THREE.Mesh(
-      new THREE.SphereGeometry(0.22, 18, 16),
+      new THREE.SphereGeometry(0.22, 12, 10),
       new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: 0.72 })
     );
     root.add(midShell);
 
     var outerShell = new THREE.Mesh(
-      new THREE.SphereGeometry(0.36, 16, 14),
+      new THREE.SphereGeometry(0.36, 12, 10),
       new THREE.MeshBasicMaterial({ color: 0xcc3a08, transparent: true, opacity: 0.52 })
     );
     root.add(outerShell);
 
     var corona = new THREE.Mesh(
-      new THREE.SphereGeometry(0.52, 14, 12),
+      new THREE.SphereGeometry(0.52, 10, 8),
       new THREE.MeshBasicMaterial({ color: 0x4a1510, transparent: true, opacity: 0.32 })
     );
     root.add(corona);
 
-    var pl = new THREE.PointLight(0xffcc99, 16, radius * 3.2, 2);
+    var pl = new THREE.PointLight(0xffcc99, 11, radius * 2.75, 2.1);
     pl.position.set(0, 0.18, 0);
     root.add(pl);
 
     var ringInner = Math.max(0.04, radius * 0.04);
     var ringOuter = ringInner * 1.75;
     var shock = new THREE.Mesh(
-      new THREE.RingGeometry(ringInner, ringOuter, 48),
+      new THREE.RingGeometry(ringInner, ringOuter, 32),
       new THREE.MeshBasicMaterial({
         color: 0xc4b8a8,
         transparent: true,
@@ -6732,7 +7064,7 @@
     var scInner = ringInner * 0.35;
     var scOuter = ringInner * 1.1;
     var scorch = new THREE.Mesh(
-      new THREE.RingGeometry(scInner, scOuter, 40),
+      new THREE.RingGeometry(scInner, scOuter, 24),
       new THREE.MeshBasicMaterial({
         color: 0x120a08,
         transparent: true,
@@ -6749,13 +7081,13 @@
     root.add(scorch);
 
     var smokes = [];
-    var smokeN = 15;
+    var smokeN = 9;
     for (var si = 0; si < smokeN; si++) {
       var sg = 0.18 + Math.random() * 0.52;
       var smokeColors = [0x1a1614, 0x242018, 0x2c2620, 0x181410];
       var grey = smokeColors[Math.floor(Math.random() * smokeColors.length)];
       var sm = new THREE.Mesh(
-        new THREE.SphereGeometry(sg, 9, 8),
+        new THREE.SphereGeometry(sg, 6, 5),
         new THREE.MeshBasicMaterial({ color: grey, transparent: true, opacity: 0.52 })
       );
       var sa = Math.random() * Math.PI * 2;
@@ -6773,7 +7105,7 @@
     }
 
     var embers = [];
-    for (var ei = 0; ei < 36; ei++) {
+    for (var ei = 0; ei < 20; ei++) {
       var eg = 0.018 + Math.random() * 0.04;
       var em = new THREE.Mesh(
         new THREE.TetrahedronGeometry(eg, 0),
@@ -6796,7 +7128,7 @@
     }
 
     var parts = [];
-    var partN = 38;
+    var partN = 24;
     for (var pi = 0; pi < partN; pi++) {
       var sz = 0.038 + Math.random() * 0.1;
       var geo =
@@ -6856,14 +7188,37 @@
     _bloodRayTargets = null;
   }
 
-  function getBloodRaycastTargets() {
-    if (!_bloodRayTargets) {
-      _bloodRayTargets = [activeFloorMesh];
-      for (var ri = 0; ri < shootBlockingRoots.length; ri++) {
-        _bloodRayTargets.push(shootBlockingRoots[ri]);
+  function getBloodRaycastTargets(ox, oz, includeNearbyWalls) {
+    if (currentLevel !== 2) {
+      if (!_bloodRayTargets) {
+        _bloodRayTargets = [activeFloorMesh];
+        for (var ri = 0; ri < shootBlockingRoots.length; ri++) {
+          _bloodRayTargets.push(shootBlockingRoots[ri]);
+        }
       }
+      return _bloodRayTargets;
     }
-    return _bloodRayTargets;
+    var out = _bloodRayNearScratch;
+    out.length = 0;
+    out.push(activeFloorMesh);
+    if (!includeNearbyWalls) return out;
+    var rax = ox;
+    var raz = oz;
+    var ri2;
+    for (ri2 = 0; ri2 < shootBlockingRoots.length; ri2++) {
+      var mesh = shootBlockingRoots[ri2];
+      var span = mesh.userData.brBloodSpanXZ;
+      if (span == null) {
+        out.push(mesh);
+        continue;
+      }
+      var dx = mesh.position.x - rax;
+      var dz = mesh.position.z - raz;
+      var reach = span + 8.25;
+      if (dx * dx + dz * dz > reach * reach) continue;
+      out.push(mesh);
+    }
+    return out;
   }
 
   function bloodMeshVisibleAlongAncestors(obj) {
@@ -6881,7 +7236,7 @@
     raycaster.set(tmpBloodRayO, tmpBloodRayD);
     raycaster.far = 8;
     raycaster.near = 0.02;
-    var hits = raycaster.intersectObjects(getBloodRaycastTargets(), true);
+    var hits = raycaster.intersectObjects(getBloodRaycastTargets(ox, oz, false), true);
     for (var hi = 0; hi < hits.length; hi++) {
       var h = hits[hi];
       if (!bloodMeshVisibleAlongAncestors(h.object)) continue;
@@ -6910,7 +7265,7 @@
     raycaster.set(tmpBloodRayO, tmpBloodRayD);
     raycaster.far = 1.12;
     raycaster.near = 0.02;
-    var hits = raycaster.intersectObjects(getBloodRaycastTargets(), true);
+    var hits = raycaster.intersectObjects(getBloodRaycastTargets(ox, oz, true), true);
     for (var wi = 0; wi < hits.length; wi++) {
       var hw = hits[wi];
       if (!bloodMeshVisibleAlongAncestors(hw.object)) continue;
@@ -6994,7 +7349,7 @@
     raycaster.set(tmpBloodRayO, tmpBloodRayD);
     raycaster.far = 1.2;
     raycaster.near = 0;
-    var hits = raycaster.intersectObjects(getBloodRaycastTargets(), true);
+    var hits = raycaster.intersectObjects(getBloodRaycastTargets(px, pz, true), true);
     for (var wi = 0; wi < hits.length; wi++) {
       var hw = hits[wi];
       if (!bloodMeshVisibleAlongAncestors(hw.object)) continue;
@@ -7052,7 +7407,7 @@
   function spawnPlayerDamageBloodSplatter(fromX, fromZ, intensity) {
     if (gameOver) return;
     var inten = intensity == null ? 0.42 : Math.max(0.12, Math.min(1, intensity));
-    var n = Math.floor(2 + inten * 7);
+    var n = Math.floor(2 + inten * 5);
     var gx = player.x;
     var gz = player.z;
     var rdx = 0;
@@ -7103,7 +7458,7 @@
           polygonOffsetFactor: -3,
           polygonOffsetUnits: -3
         });
-        var geoW = new THREE.CircleGeometry(rad, 12);
+        var geoW = new THREE.CircleGeometry(rad, 8);
         var meshW = new THREE.Mesh(geoW, matW);
         meshW.renderOrder = 2;
         tmpBloodN.set(wf.nx, wf.ny, wf.nz);
@@ -7124,7 +7479,7 @@
         });
         var matT = matW.clone();
         matT.opacity = op * 0.94;
-        var geoT = new THREE.CircleGeometry(rad * 0.58, 10);
+        var geoT = new THREE.CircleGeometry(rad * 0.58, 8);
         var meshT = new THREE.Mesh(geoT, matT);
         meshT.renderOrder = 2;
         meshT.rotation.x = -Math.PI * 0.5;
@@ -7144,7 +7499,7 @@
         continue;
       }
 
-      var geo = new THREE.CircleGeometry(rad, 12);
+      var geo = new THREE.CircleGeometry(rad, 8);
       var mat = new THREE.MeshBasicMaterial({
         color: bloodColor,
         transparent: true,
@@ -7214,7 +7569,34 @@
     return dx * dx + dy * dy + dz * dz < r * r;
   }
 
+  function disposeLinkedAuxCollidersOnCollider(c) {
+    if (!c || !c.linkedAuxColliders || !c.linkedAuxColliders.length) return;
+    var ai;
+    for (ai = 0; ai < c.linkedAuxColliders.length; ai++) {
+      var ac = c.linkedAuxColliders[ai];
+      if (!ac) continue;
+      ac.active = false;
+      ac.destructible = false;
+      if (ac.topCapMesh) {
+        var capa = ac.topCapMesh;
+        ac.topCapMesh = null;
+        if (capa.parent) capa.parent.remove(capa);
+        removeShootBlockingRef(capa);
+        disposeGroup(capa);
+      }
+      if (ac.linkedMesh) {
+        var am = ac.linkedMesh;
+        ac.linkedMesh = null;
+        if (am.parent) am.parent.remove(am);
+        removeShootBlockingRef(am);
+        disposeGroup(am);
+      }
+    }
+    c.linkedAuxColliders = null;
+  }
+
   function disposeLinkedExtrasOnCollider(c) {
+    disposeLinkedAuxCollidersOnCollider(c);
     if (!c || !c.linkedExtras || !c.linkedExtras.length) return;
     var ei;
     for (ei = 0; ei < c.linkedExtras.length; ei++) {
@@ -7244,10 +7626,10 @@
     var wzd = maxZ - minZ;
     if (wxw < 0.06 || wzh < 0.06 || wzd < 0.06) return false;
 
-    var nx = Math.max(2, Math.min(5, Math.ceil(wxw / 1.12)));
-    var ny = Math.max(1, Math.min(4, Math.ceil(wzh / 0.92)));
-    var nz = Math.max(2, Math.min(5, Math.ceil(wzd / 1.12)));
-    while (nx * ny * nz > 36) {
+    var nx = Math.max(2, Math.min(5, Math.ceil(wxw / 1.36)));
+    var ny = Math.max(1, Math.min(4, Math.ceil(wzh / 0.98)));
+    var nz = Math.max(2, Math.min(5, Math.ceil(wzd / 1.36)));
+    while (nx * ny * nz > 26) {
       if (nx >= nz && nx > 2) nx--;
       else if (nz > 2) nz--;
       else if (ny > 1) ny--;
@@ -7350,7 +7732,7 @@
               mcy,
               mcz,
               mat0,
-              liteDebris ? 1 + ((Math.random() * 2) | 0) : 3 + ((Math.random() * 4) | 0)
+              liteDebris ? 1 : 1 + ((Math.random() * 2) | 0)
             );
             continue;
           }
@@ -7359,10 +7741,11 @@
           var fd = Math.max(bz1 - bz0, 0.03);
           var frag = new THREE.Mesh(new THREE.BoxGeometry(fw, fh, fd), mat0);
           frag.position.set((bx0 + bx1) * 0.5, (by0 + by1) * 0.5, (bz0 + bz1) * 0.5);
-          frag.castShadow = true;
-          frag.receiveShadow = true;
+          frag.castShadow = false;
+          frag.receiveShadow = false;
           parentGroup.add(frag);
           shootBlockingRoots.push(frag);
+          if (currentLevel === 2) frag.userData.brBloodSpanXZ = Math.hypot(fw * 0.5, fd * 0.5) + 0.06;
           var isTopFrag = !!c.top && by1 >= y1 - 0.07;
           addCollider(bx0, bx1, bz0, bz1, by0, by1, isTopFrag, !!c.noShootTopCap);
           var nc = colliders[colliders.length - 1];
@@ -7373,17 +7756,21 @@
     }
 
     _bloodRayTargets = null;
+    invalidateFactoryShootRayStatics();
     return true;
   }
 
   function getDestructibleColliderForShotgunHit(obj) {
-    if (!obj) return null;
-    var ci;
-    for (ci = 0; ci < colliders.length; ci++) {
-      var c = colliders[ci];
-      if (!c.active || !c.destructible || c.perimeter) continue;
-      if (c.linkedMesh === obj) return c;
-      if (c.topCapMesh === obj) return c;
+    var o = obj;
+    while (o) {
+      var ci;
+      for (ci = 0; ci < colliders.length; ci++) {
+        var c = colliders[ci];
+        if (!c.active || !c.destructible || c.perimeter) continue;
+        if (c.linkedMesh === o) return c;
+        if (c.topCapMesh === o) return c;
+      }
+      o = o.parent;
     }
     return null;
   }
@@ -7419,22 +7806,54 @@
     for (si = shootBlockingRoots.length - 1; si >= 0; si--) {
       if (shootBlockingRoots[si] === root) {
         shootBlockingRoots.splice(si, 1);
+        if (currentLevel === 1) invalidateFactoryShootRayStatics();
         return;
       }
     }
   }
 
+  var STRUCTURE_DEBRIS_MAX_ACTIVE = 44;
+  var STRUCTURE_DEBRIS_LIFETIME_SEC = 7;
+  var STRUCTURE_DEBRIS_GROUND_RESAMPLE_SEC = 0.22;
+  var STRUCTURE_DEBRIS_GROUND_RESAMPLE_MOVE = 0.48;
+  var STRUCTURE_DEBRIS_BOX_GEOS = null;
+
+  function getStructureDebrisSharedGeometries() {
+    if (STRUCTURE_DEBRIS_BOX_GEOS) return STRUCTURE_DEBRIS_BOX_GEOS;
+    STRUCTURE_DEBRIS_BOX_GEOS = [];
+    var dims = [
+      [0.078, 0.056, 0.07],
+      [0.1, 0.072, 0.088],
+      [0.118, 0.068, 0.096]
+    ];
+    var gdi;
+    for (gdi = 0; gdi < dims.length; gdi++) {
+      var g = new THREE.BoxGeometry(dims[gdi][0], dims[gdi][1], dims[gdi][2]);
+      g.userData.skipDispose = true;
+      STRUCTURE_DEBRIS_BOX_GEOS.push(g);
+    }
+    return STRUCTURE_DEBRIS_BOX_GEOS;
+  }
+
   function spawnStructureDebrisAt(wx, wy, wz, baseMat, count) {
     var fallbackMat = rustMetalMat;
     var useMat = baseMat && baseMat.isMaterial ? baseMat : fallbackMat;
+    var geos = getStructureDebrisSharedGeometries();
+    while (structureDebris.length + count > STRUCTURE_DEBRIS_MAX_ACTIVE && structureDebris.length > 0) {
+      var drop = structureDebris.shift();
+      scene.remove(drop.mesh);
+      disposeGroup(drop.mesh);
+    }
     var i;
     for (i = 0; i < count; i++) {
-      var sx = 0.05 + Math.random() * 0.12;
-      var sy = 0.038 + Math.random() * 0.095;
-      var sz = 0.048 + Math.random() * 0.11;
-      var chunk = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), useMat);
-      chunk.castShadow = true;
-      chunk.receiveShadow = true;
+      var chunk = new THREE.Mesh(geos[i % geos.length], useMat);
+      chunk.scale.set(
+        0.72 + Math.random() * 0.58,
+        0.68 + Math.random() * 0.55,
+        0.72 + Math.random() * 0.58
+      );
+      chunk.castShadow = false;
+      chunk.receiveShadow = false;
       chunk.position.set(
         wx + (Math.random() - 0.5) * 0.42,
         wy + (Math.random() - 0.5) * 0.32,
@@ -7443,11 +7862,13 @@
       scene.add(chunk);
       var ang = Math.random() * Math.PI * 2;
       var spd = 4.2 + Math.random() * 12;
+      var gx0 = chunk.position.x;
+      var gz0 = chunk.position.z;
       structureDebris.push({
         mesh: chunk,
-        px: chunk.position.x,
+        px: gx0,
         py: chunk.position.y,
-        pz: chunk.position.z,
+        pz: gz0,
         vx: Math.cos(ang) * spd * (0.32 + Math.random() * 0.68),
         vy: 2.6 + Math.random() * 9.5,
         vz: Math.sin(ang) * spd * (0.32 + Math.random() * 0.68),
@@ -7455,7 +7876,11 @@
         ry: (Math.random() - 0.5) * 9,
         rz: (Math.random() - 0.5) * 9,
         t: 0,
-        groundedT: 0
+        groundedT: 0,
+        cachedG: getGroundHeight(gx0, gz0),
+        lastGTime: 0,
+        gSampleX: gx0,
+        gSampleZ: gz0
       });
     }
   }
@@ -7488,7 +7913,8 @@
     disposeGroup(mesh);
 
     _bloodRayTargets = null;
-    spawnStructureDebrisAt(wp.x, wp.y, wp.z, mat, 11 + ((Math.random() * 11) | 0));
+    invalidateFactoryShootRayStatics();
+    spawnStructureDebrisAt(wp.x, wp.y, wp.z, mat, 4 + ((Math.random() * 5) | 0));
   }
 
   function applyExplosionDamage(ox, oy, oz, radius, playerMaxDmg, playerFfMult) {
@@ -7599,7 +8025,7 @@
   function getEnemySpawnCountForWave(targetWave) {
     if (currentLevel === 1 && targetWave === 10) return 30;
     if (currentLevel === 2 && targetWave === 15) return 45;
-    if (currentLevel === 4 && targetWave === 12) return 48;
+    if (currentLevel === 4 && targetWave === MAX_WAVES_SUBWAY_UI) return 54;
     if (currentLevel === 5 && targetWave === 15) return 78;
     if (currentLevel === 5 && targetWave > 15) {
       return Math.min(118, Math.floor(64 + (targetWave - 15) * 3.5));
@@ -7676,7 +8102,7 @@
       return;
     }
     waveIntermission = 3.4;
-    if (currentLevel === 4 && wave === 12) {
+    if (currentLevel === 4 && wave === MAX_WAVES_SUBWAY_UI) {
       pendingMaintenanceSwitch = true;
       pendingMapSwitch = false;
       pendingGraveyardSwitch = false;
@@ -7954,13 +8380,11 @@
         }
         farPellet = Math.max(farPellet, pdist);
 
-        var lnMat = tracerMat.clone();
-        lnMat.opacity = 0.52;
         var pEnd = aimOrigin.clone().addScaledVector(tmpPelDir, pdist);
         var geoP = new THREE.BufferGeometry().setFromPoints([aimOrigin.clone(), pEnd]);
-        var ln = new THREE.Line(geoP, lnMat);
+        var ln = new THREE.Line(geoP, borrowTracerLineMat(true));
         scene.add(ln);
-        tracers.push({ line: ln, t: 0 });
+        tracers.push({ line: ln, t: 0, tracerPooled: true });
         spawnBulletVisual(aimOrigin, tmpPelDir, pdist);
       }
       tracerEndDist = farPellet > 0.05 ? farPellet : 14;
@@ -7969,9 +8393,9 @@
     if (weaponSlot === 1) {
       var end = aimOrigin.clone().add(aimDir.clone().multiplyScalar(tracerEndDist));
       var geo = new THREE.BufferGeometry().setFromPoints([aimOrigin.clone(), end]);
-      var line = new THREE.Line(geo, tracerMat.clone());
+      var line = new THREE.Line(geo, borrowTracerLineMat(false));
       scene.add(line);
-      tracers.push({ line: line, t: 0 });
+      tracers.push({ line: line, t: 0, tracerPooled: true });
       spawnBulletVisual(aimOrigin, aimDir, tracerEndDist);
     }
 
@@ -8242,11 +8666,57 @@
       "inset 0 0 " + outer + "px " + inner + "px rgba(228, 32, 48, " + alpha + ")";
   }
 
-  function playerFeetOnSubwayTrackBed() {
-    if (currentLevel !== 4) return false;
-    if (Math.abs(player.x) > SUBWAY_TRACK_HALF_X + 0.55) return false;
-    var gh = getGroundHeightFor(player.x, player.z, player.radius);
-    return gh <= -0.18;
+  function playerIntersectsSubwayTrainHitbox(box) {
+    var pr = player.radius;
+    var minX = box.min.x;
+    var maxX = box.max.x;
+    var minZ = box.min.z;
+    var maxZ = box.max.z;
+    var cx = Math.max(minX, Math.min(player.x, maxX));
+    var cz = Math.max(minZ, Math.min(player.z, maxZ));
+    var dx = player.x - cx;
+    var dz = player.z - cz;
+    if (dx * dx + dz * dz > pr * pr) return false;
+    var py0 = player.jumpY;
+    var py1 = player.jumpY + PLAYER_BODY_H;
+    if (py1 < box.min.y - 0.02 || py0 > box.max.y + 0.12) return false;
+    return true;
+  }
+
+  function applySubwayTrainPlayerRepel(tcx, tcy, tcz) {
+    var kbEff = 1;
+    var fall = 1;
+    var rdx = player.x - tcx;
+    var rdz = player.z - tcz;
+    var pyApprox = player.jumpY + eyeY * 0.38;
+    var rdy = pyApprox - tcy;
+    /* Train runs along ±Z; shove player sideways (±X) off the rails, not down the tunnel. */
+    var sideX = rdx;
+    if (Math.abs(sideX) < 0.14) sideX = Math.random() < 0.5 ? -1 : 1;
+    else sideX = sideX > 0 ? 1 : -1;
+    var kBase = (16 + 12 * fall) * fall * kbEff;
+    player.kbVx += sideX * kBase * 1.16;
+    if (Math.abs(subwayTrainVelZ) > 2) {
+      player.kbVz += (subwayTrainVelZ > 0 ? 1 : -1) * (2.4 + Math.abs(subwayTrainVelZ) * 0.055);
+    } else {
+      player.kbVz += rdz * 0.32;
+    }
+    player.kbVz += (Math.random() - 0.5) * 2.2;
+    player.vy +=
+      (Math.abs(rdy) > 0.06 ? Math.sign(rdy) * Math.min(1.15, Math.abs(rdy)) : 0.52) *
+        JUMP_V *
+        0.4 *
+        kbEff +
+      JUMP_V * 0.34 * kbEff;
+    player.grounded = false;
+    var kbMax = 34;
+    var kbL = Math.hypot(player.kbVx, player.kbVz);
+    if (kbL > kbMax) {
+      var sc = kbMax / kbL;
+      player.kbVx *= sc;
+      player.kbVz *= sc;
+    }
+    if (player.vy > JUMP_V * 1.62) player.vy = JUMP_V * 1.62;
   }
 
   function updateSubwayTrain(dt) {
@@ -8282,38 +8752,40 @@
         }
       }
 
-      var z0 = subwayTrainZ - subwayTrainHalfLen;
-      var z1 = subwayTrainZ + subwayTrainHalfLen;
-      var x0 = -subwayTrainHalfW;
-      var x1 = subwayTrainHalfW;
+      subwayTrainGroup.updateMatrixWorld(true);
+      subwayTrainHitBox.setFromObject(subwayTrainGroup);
+      subwayTrainHitBox.expandByScalar(0.2);
 
       for (var stei = enemies.length - 1; stei >= 0; stei--) {
         var ep = enemies[stei].mesh.position;
-        if (Math.abs(ep.x) > SUBWAY_TRACK_HALF_X + 0.7) continue;
-        if (ep.z < z0 - 0.42 || ep.z > z1 + 0.42) continue;
-        if (ep.x < x0 - 0.45 || ep.x > x1 + 0.45) continue;
-        removeEnemyByRoot(enemies[stei].mesh);
+        subwayTrainHitBoxScratch.set(ep.x, ep.y + 0.72, ep.z);
+        if (subwayTrainHitBox.containsPoint(subwayTrainHitBoxScratch)) {
+          removeEnemyByRoot(enemies[stei].mesh);
+        }
       }
 
-      if (!subwayTrainHitPlayer && playerFeetOnSubwayTrackBed()) {
-        var pxx = player.x;
-        var pzz = player.z;
-        if (pzz >= z0 - 0.5 && pzz <= z1 + 0.5 && pxx >= x0 - 0.5 && pxx <= x1 + 0.5) {
-          subwayTrainHitPlayer = true;
-          hp -= 30;
-          if (hp < 0) hp = 0;
-          updateHpDisplay();
-          flashDamage();
-          playDamage();
-          if (hp <= 0 && !gameOver) {
-            gameOver = true;
-            ensureAudio();
-            playGameOverSting();
-            showGameOverPanel();
-            overlay.classList.remove("hidden");
-            resetStartMenuControlsToggle();
-            document.exitPointerLock();
-          }
+      if (!subwayTrainHitPlayer && playerIntersectsSubwayTrainHitbox(subwayTrainHitBox)) {
+        subwayTrainHitPlayer = true;
+        var dmg = SUBWAY_TRAIN_PLAYER_MAX_DMG;
+        hp -= dmg;
+        if (hp < 0) hp = 0;
+        updateHpDisplay();
+        flashDamage();
+        playDamage();
+        subwayTrainHitBox.getCenter(subwayTrainHitBoxScratch);
+        var tcx = subwayTrainHitBoxScratch.x;
+        var tcyHit = (subwayTrainHitBox.min.y + subwayTrainHitBox.max.y) * 0.5;
+        var tcz = subwayTrainHitBoxScratch.z;
+        spawnPlayerDamageBloodSplatter(tcx, tcz, Math.min(1, dmg / 50));
+        applySubwayTrainPlayerRepel(tcx, tcyHit, tcz);
+        if (hp <= 0 && !gameOver) {
+          gameOver = true;
+          ensureAudio();
+          playGameOverSting();
+          showGameOverPanel();
+          overlay.classList.remove("hidden");
+          resetStartMenuControlsToggle();
+          document.exitPointerLock();
         }
       }
 
@@ -8359,15 +8831,17 @@
       enemyNavCacheLevel = currentLevel;
       enemyNav.rebuildAcc = 999;
       enemyNav.ready = false;
+      invalidateFactoryShootRayStatics();
     }
     enemyNav.rebuildAcc += dt;
     if (enemies.length === 0) {
       enemyNav.ready = false;
-    } else if (!gameOver && !paused && enemyNav.rebuildAcc >= enemyNav.rebuildIv) {
+    } else if (!gameOver && !paused && enemyNav.rebuildAcc >= (currentLevel === 1 ? 0.64 : enemyNav.rebuildIv)) {
       enemyNav.rebuildAcc = 0;
       rebuildEnemyNavigationGrid();
     }
     updateSubwayTrain(dt);
+    updateDevLevelPortals(dt); /* DEV_LEVEL_PORTALS */
 
     if (
       pointerLocked &&
@@ -8666,18 +9140,31 @@
       sd.mesh.rotation.y += sd.ry * dt;
       sd.mesh.rotation.z += sd.rz * dt;
       sd.t += dt;
-      var sdG = getGroundHeight(sd.px, sd.pz);
+      var needG =
+        sd.t - sd.lastGTime >= STRUCTURE_DEBRIS_GROUND_RESAMPLE_SEC ||
+        Math.hypot(sd.px - sd.gSampleX, sd.pz - sd.gSampleZ) >= STRUCTURE_DEBRIS_GROUND_RESAMPLE_MOVE;
+      if (needG) {
+        sd.cachedG = getGroundHeight(sd.px, sd.pz);
+        sd.gSampleX = sd.px;
+        sd.gSampleZ = sd.pz;
+        sd.lastGTime = sd.t;
+      }
+      var sdG = sd.cachedG;
       if (sd.py <= sdG + 0.06 && sd.vy < 0) {
         sd.py = sdG + 0.062;
         sd.vy = -sd.vy * 0.2;
         sd.vx *= 0.58;
         sd.vz *= 0.58;
         if (Math.abs(sd.vy) < 0.75) sd.vy = 0;
+        sd.cachedG = getGroundHeight(sd.px, sd.pz);
+        sd.lastGTime = sd.t;
+        sd.gSampleX = sd.px;
+        sd.gSampleZ = sd.pz;
       }
       var onFloor = sd.py <= sdG + 0.1 && Math.abs(sd.vy) < 0.12;
       if (onFloor) sd.groundedT = (sd.groundedT || 0) + dt;
       else sd.groundedT = 0;
-      if (sd.t > 42 || (sd.groundedT > 15 && sd.t > 4)) {
+      if (sd.t >= STRUCTURE_DEBRIS_LIFETIME_SEC) {
         scene.remove(sd.mesh);
         disposeGroup(sd.mesh);
         structureDebris.splice(sdi, 1);
@@ -8752,7 +9239,7 @@
       if (ex.light) {
         var liEarly = Math.exp(-ex.t * 4.2);
         var liTail = (1 - eu) * (1 - eu);
-        ex.light.intensity = Math.max(0, 16 * (0.35 + 0.65 * liEarly) * (0.2 + 0.8 * liTail));
+        ex.light.intensity = Math.max(0, 11 * (0.35 + 0.65 * liEarly) * (0.2 + 0.8 * liTail));
       }
 
       var smokes = ex.smokes || [];
@@ -8838,7 +9325,7 @@
                   ? bs.mesh.geometry.parameters.radius * bs.mesh.scale.x
                   : 0.08;
               var matTopR = bs.mesh.material.clone();
-              var geoTopR = new THREE.CircleGeometry(pr2 * 0.56, 10);
+              var geoTopR = new THREE.CircleGeometry(pr2 * 0.56, 8);
               var meshTopR = new THREE.Mesh(geoTopR, matTopR);
               meshTopR.renderOrder = 2;
               meshTopR.rotation.x = -Math.PI * 0.5;
@@ -8878,6 +9365,8 @@
     yaw.position.x = player.x;
     yaw.position.y = eyeY + player.jumpY;
     yaw.position.z = player.z;
+
+    if (meleeBloodSplatterCooldown > 0) meleeBloodSplatterCooldown -= dt;
 
     for (var i = enemies.length - 1; i >= 0; i--) {
       var e = enemies[i];
@@ -8939,11 +9428,13 @@
         if (pd < ENEMY_MELEE_RANGE) {
           hp -= CONTACT_DPS * dt;
           if (hp < 0) hp = 0;
-          updateHpDisplay();
           if (Math.random() < 0.1) {
             flashDamage();
             playDamage();
-            spawnPlayerDamageBloodSplatter(m.position.x, m.position.z, 0.38);
+            if (meleeBloodSplatterCooldown <= 0) {
+              meleeBloodSplatterCooldown = 0.32;
+              spawnPlayerDamageBloodSplatter(m.position.x, m.position.z, 0.38);
+            }
           }
           if (hp <= 0 && !gameOver) {
             gameOver = true;
@@ -8968,7 +9459,8 @@
       if (tr.t > 0.18) {
         scene.remove(tr.line);
         tr.line.geometry.dispose();
-        tr.line.material.dispose();
+        if (tr.tracerPooled) recycleTracerLineMat(tr.line.material);
+        else tr.line.material.dispose();
         tracers.splice(t, 1);
       }
     }
@@ -9105,6 +9597,7 @@
   var enemyNavCacheLevel = -9999;
   var enemyNav = {
     step: 1.44,
+    stepActive: 1.44,
     pad: 0.52,
     nx: 0,
     nz: 0,
@@ -9115,7 +9608,7 @@
     feetY: null,
     ready: false,
     rebuildAcc: 0,
-    rebuildIv: 0.3
+    rebuildIv: 0.42
   };
   var ENEMY_NAV_INF = 65500;
 
@@ -9145,7 +9638,8 @@
   }
 
   function rebuildEnemyNavigationGrid() {
-    var step = enemyNav.step;
+    var step = currentLevel === 1 ? 1.78 : enemyNav.step;
+    enemyNav.stepActive = step;
     var pad = enemyNav.pad;
     var xMin = -half + pad;
     var zMin = -half + pad;
@@ -9210,9 +9704,9 @@
         return;
       }
     }
-    var ij;
-    for (ij = 0; ij < nx * nz; ij++) dist[ij] = ENEMY_NAV_INF;
-    var q = [];
+    dist.fill(ENEMY_NAV_INF);
+    var q = enemyNavQReuse;
+    q.length = 0;
     var qh = 0;
     dist[pi + pj * nx] = 0;
     q.push(pi + pj * nx);
@@ -9251,7 +9745,7 @@
     if (!enemyNav.ready || !enemyNav.dist || !enemyNav.walk) return null;
     var nx = enemyNav.nx;
     var nz = enemyNav.nz;
-    var step = enemyNav.step;
+    var step = enemyNav.stepActive;
     var xMin = enemyNav.x0;
     var zMin = enemyNav.z0;
     var ei = ((ex - xMin) / step) | 0;
@@ -9354,6 +9848,7 @@
     for (var att = 0; att < 160; att++) {
       var sx = (Math.random() * 2 - 1) * (half - 2.6);
       var sz = (Math.random() * 2 - 1) * (half - 2.6);
+      if (currentLevel === 1 && sx < -5 && sz > 5) continue;
       if (!enemyWalkFree(sx, sz, 0.42)) continue;
       if (currentLevel === 2 && !isBackroomsReachableWorld(sx, sz)) continue;
       var gq = getGroundHeightFor(sx, sz, 0.42);
@@ -9414,7 +9909,7 @@
     for (vi = 0; vi < colliders.length; vi++) {
       var box = colliders[vi];
       if (box.active === false || !box.top) continue;
-      if (!aabbOverlap(nx, nz, player.radius, box)) continue;
+      if (!aabbOverlap(nx, nz, player.radius + thinWalkableGroundPad(box), box)) continue;
       var dh = box.y1 - feetY;
       if (dh < VAULT_MIN_LIFT || dh > VAULT_MAX_HEIGHT) continue;
       if (!playerFree(nx, nz, box.y1)) continue;
@@ -9454,6 +9949,72 @@
   var fpsHudTextAt = 0;
   var minimapFramePhase = 0;
 
+  var _cosmeticCullFrustum = new THREE.Frustum();
+  var _cosmeticCullClip = new THREE.Matrix4();
+  var _cosmeticCullSphere = new THREE.Sphere();
+  var COSMETIC_VIEW_FRUSTUM_PAD = 1.13;
+
+  function updateCosmeticMeshViewCulling() {
+    yaw.updateMatrixWorld(true);
+    camera.updateMatrixWorld(true);
+    _cosmeticCullClip.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    _cosmeticCullFrustum.setFromProjectionMatrix(_cosmeticCullClip);
+
+    function cosmeticInView(cx, cy, cz, rad) {
+      _cosmeticCullSphere.center.set(cx, cy, cz);
+      _cosmeticCullSphere.radius = rad * COSMETIC_VIEW_FRUSTUM_PAD;
+      return _cosmeticCullFrustum.intersectsSphere(_cosmeticCullSphere);
+    }
+
+    var idx;
+    for (idx = 0; idx < structureDebris.length; idx++) {
+      var sdv = structureDebris[idx];
+      var rDebris = 0.11 * Math.max(sdv.mesh.scale.x, sdv.mesh.scale.y, sdv.mesh.scale.z);
+      sdv.mesh.visible = cosmeticInView(sdv.px, sdv.py, sdv.pz, Math.max(0.09, rDebris));
+    }
+
+    for (idx = 0; idx < explosions.length; idx++) {
+      var exv = explosions[idx];
+      var rEx = exv.rad != null ? exv.rad : 5.5;
+      exv.root.visible = cosmeticInView(
+        exv.root.position.x,
+        exv.root.position.y + rEx * 0.22,
+        exv.root.position.z,
+        rEx * 1.25
+      );
+    }
+
+    for (idx = 0; idx < bloodSplatters.length; idx++) {
+      var bpv = bloodSplatters[idx].mesh.position;
+      bloodSplatters[idx].mesh.visible = cosmeticInView(bpv.x, bpv.y, bpv.z, 0.44);
+    }
+
+    for (idx = 0; idx < bulletVis.length; idx++) {
+      var bvv = bulletVis[idx].mesh.position;
+      bulletVis[idx].mesh.visible = cosmeticInView(bvv.x, bvv.y, bvv.z, 0.12);
+    }
+
+    for (idx = 0; idx < medkitPickups.length; idx++) {
+      var mkv = medkitPickups[idx];
+      mkv.mesh.visible = cosmeticInView(mkv.x, mkv.mesh.position.y, mkv.z, 0.85);
+    }
+
+    if (activeGrenade && activeGrenade.mesh) {
+      activeGrenade.mesh.visible = cosmeticInView(activeGrenade.px, activeGrenade.py, activeGrenade.pz, 0.38);
+    }
+
+    if (subwayTrainGroup && currentLevel === 4 && subwayTrainActive) {
+      subwayTrainGroup.getWorldPosition(subwayTrainHitBoxScratch);
+      var tr = Math.max(subwayTrainHalfLen, subwayTrainHalfW, 3.1);
+      subwayTrainGroup.visible = cosmeticInView(
+        subwayTrainHitBoxScratch.x,
+        subwayTrainHitBoxScratch.y + 1.05,
+        subwayTrainHitBoxScratch.z,
+        tr
+      );
+    }
+  }
+
   function tick() {
     var tNow = performance.now();
     var dtFrame = (tNow - fpsHudTPrev) * 0.001;
@@ -9463,6 +10024,7 @@
     else updateHpVignette();
     minimapFramePhase++;
     if ((minimapFramePhase & 1) !== 0) drawMinimap();
+    updateCosmeticMeshViewCulling();
     renderer.render(scene, camera);
     if (elFpsVal && tNow - fpsHudTextAt > 220) {
       fpsHudTextAt = tNow;
@@ -9476,7 +10038,7 @@
   window.addEventListener("resize", function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.45));
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
