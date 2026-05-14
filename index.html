@@ -1309,12 +1309,12 @@
   camera.position.set(0, 0, 0);
   scene.add(yaw);
 
-  var renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  var renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   document.body.appendChild(renderer.domElement);
 
   var hemi = new THREE.HemisphereLight(0x9a9db0, 0x2a2418, 0.6);
@@ -1324,7 +1324,7 @@
   var dir = new THREE.DirectionalLight(0xfff0dc, 0.82);
   dir.position.set(26, 38, -10);
   dir.castShadow = true;
-  dir.shadow.mapSize.set(2048, 2048);
+  dir.shadow.mapSize.set(1024, 1024);
   dir.shadow.camera.near = 2;
   dir.shadow.camera.far = 120;
   dir.shadow.camera.left = -56;
@@ -2053,6 +2053,12 @@
   var BR_PLAYER_CEILING = 3.76;
   var BACKROOMS_SPAWN_X = 0;
   var BACKROOMS_SPAWN_Z = 0;
+  var brReachStep = 0.82;
+  var brReachX0 = 0;
+  var brReachZ0 = 0;
+  var brReachGridW = 0;
+  var brReachGridH = 0;
+  var brReachGrid = null;
   var graveyardBuilt = false;
   var floorGraveyard = null;
   var GY_PLAYER_CEILING = 12.2;
@@ -2242,6 +2248,8 @@
 
     addWalkableTopCapsForColliderList(backroomsColliders, backroomsShootBlockingRoots, backroomsWorldGroup);
 
+    buildBackroomsReachabilityGrid();
+
     colliders = factoryColliders;
     shootBlockingRoots = factoryShootBlockingRoots;
     mapBuildParent = factoryWorldGroup;
@@ -2410,7 +2418,7 @@
       fog: false,
       toneMapped: false
     });
-    var skyDome = new THREE.Mesh(new THREE.SphereGeometry(165, 40, 28), skyDomeMat);
+    var skyDome = new THREE.Mesh(new THREE.SphereGeometry(165, 32, 22), skyDomeMat);
     skyDome.position.set(0, 32, 0);
     mapBuildParent.add(skyDome);
 
@@ -2591,21 +2599,73 @@
   player.jumpY = getGroundHeight(player.x, player.z);
   yaw.position.set(player.x, eyeY + player.jumpY, player.z);
 
-  var medkitBodyMat = new THREE.MeshStandardMaterial({ color: 0x7ec49a, roughness: 0.52, metalness: 0.06 });
-  var medkitCrossMat = new THREE.MeshStandardMaterial({ color: 0xd42836, roughness: 0.42 });
+  var medkitWhiteMat = new THREE.MeshStandardMaterial({
+    color: 0xf2f5fa,
+    roughness: 0.42,
+    metalness: 0.06,
+    emissive: 0x0a0c10,
+    emissiveIntensity: 0.025
+  });
+  var medkitRedMat = new THREE.MeshStandardMaterial({
+    color: 0xd01028,
+    roughness: 0.38,
+    metalness: 0.12,
+    emissive: 0x280408,
+    emissiveIntensity: 0.06
+  });
+  var medkitRedDarkMat = new THREE.MeshStandardMaterial({
+    color: 0x8a0c18,
+    roughness: 0.55,
+    metalness: 0.08
+  });
+  var medkitMetalMat = new THREE.MeshStandardMaterial({
+    color: 0x9aa4b0,
+    roughness: 0.45,
+    metalness: 0.55
+  });
   var medkitGroup = new THREE.Group();
   medkitGroup.name = "medkitPickup";
   medkitGroup.visible = false;
-  var medkitCase = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.12, 0.32), medkitBodyMat);
-  medkitCase.position.y = 0.06;
+
+  var medkitCase = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.15, 0.27), medkitWhiteMat);
+  medkitCase.position.y = 0.075;
   medkitCase.castShadow = true;
+  medkitCase.receiveShadow = true;
   medkitGroup.add(medkitCase);
-  var medkitCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.2, 0.035), medkitCrossMat);
-  medkitCrossV.position.set(0, 0.14, 0.16);
+
+  var medkitLid = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.028, 0.25), medkitWhiteMat);
+  medkitLid.position.set(0, 0.149, 0);
+  medkitLid.castShadow = true;
+  medkitLid.receiveShadow = true;
+  medkitGroup.add(medkitLid);
+
+  var medkitFrontBand = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.038, 0.022), medkitRedDarkMat);
+  medkitFrontBand.position.set(0, 0.055, 0.136);
+  medkitFrontBand.castShadow = true;
+  medkitGroup.add(medkitFrontBand);
+
+  var medkitClasp = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.055, 0.018), medkitMetalMat);
+  medkitClasp.position.set(0, 0.078, 0.142);
+  medkitClasp.castShadow = true;
+  medkitGroup.add(medkitClasp);
+
+  var crossLift = 0.166;
+  var medkitCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.006, 0.12), medkitRedMat);
+  medkitCrossV.position.set(0, crossLift, 0);
+  medkitCrossV.castShadow = true;
   medkitGroup.add(medkitCrossV);
-  var medkitCrossH = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.075, 0.035), medkitCrossMat);
-  medkitCrossH.position.set(0, 0.14, 0.16);
+  var medkitCrossH = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.006, 0.042), medkitRedMat);
+  medkitCrossH.position.set(0, crossLift, 0);
+  medkitCrossH.castShadow = true;
   medkitGroup.add(medkitCrossH);
+
+  var medkitCornerTapeL = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.27), medkitRedDarkMat);
+  medkitCornerTapeL.position.set(-0.19, 0.075, 0);
+  medkitGroup.add(medkitCornerTapeL);
+  var medkitCornerTapeR = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.27), medkitRedDarkMat);
+  medkitCornerTapeR.position.set(0.19, 0.075, 0);
+  medkitGroup.add(medkitCornerTapeR);
+
   scene.add(medkitGroup);
 
   var weapon = new THREE.Group();
@@ -2977,7 +3037,7 @@
       var cv = document.createElement("canvas");
       cv.className = "hotbar-weapon-canvas";
       wrap.appendChild(cv);
-      var hrend = new THREE.WebGLRenderer({ canvas: cv, alpha: false, antialias: true, powerPreference: "low-power" });
+      var hrend = new THREE.WebGLRenderer({ canvas: cv, alpha: false, antialias: false, powerPreference: "low-power" });
       hrend.setPixelRatio(1);
       hrend.setSize(PW, PH, false);
       hrend.outputColorSpace = THREE.SRGBColorSpace;
@@ -3007,12 +3067,9 @@
 
       hotbarWeaponPreviews.push({ renderer: hrend, scene: subScene, camera: cam });
     }
-  }
-
-  function renderHotbarWeaponPreviews() {
-    for (var ri = 0; ri < hotbarWeaponPreviews.length; ri++) {
-      var P = hotbarWeaponPreviews[ri];
-      P.renderer.render(P.scene, P.camera);
+    for (var hri = 0; hri < hotbarWeaponPreviews.length; hri++) {
+      var HP = hotbarWeaponPreviews[hri];
+      HP.renderer.render(HP.scene, HP.camera);
     }
   }
 
@@ -3156,7 +3213,7 @@
   var wave = 1;
   var hp = 100;
   var hpRegenAcc = 0;
-  var HP_REGEN_INTERVAL = 1.5;
+  var HP_REGEN_INTERVAL = 5;
   var medkitActive = false;
   var medkitX = 0;
   var medkitZ = 0;
@@ -4393,6 +4450,7 @@
         sz = Math.sin(ang) * dist;
         if (!enemyWalkFree(sx, sz, rad)) continue;
         if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
+        if (currentLevel === 2 && !isBackroomsReachableWorld(sx, sz)) continue;
         if (Math.hypot(sx - player.x, sz - player.z) < minFromPlayer) continue;
         var buddyOk = true;
         for (var p = 0; p < placed.length; p++) {
@@ -4414,6 +4472,7 @@
             sz = Math.sin(ang2) * ring;
             if (!enemyWalkFree(sx, sz, rad)) continue;
             if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
+            if (currentLevel === 2 && !isBackroomsReachableWorld(sx, sz)) continue;
             if (Math.hypot(sx - player.x, sz - player.z) < minFromPlayer) continue;
             buddyOk = true;
             for (var p2 = 0; p2 < placed.length; p2++) {
@@ -4433,6 +4492,17 @@
         if (!enemyWalkFree(sx, sz, rad)) {
           sx = Math.max(-half + 2, Math.min(half - 2, sx));
           sz = Math.max(-half + 2, Math.min(half - 2, sz));
+        }
+        if (currentLevel === 2 && !isBackroomsReachableWorld(sx, sz)) {
+          var rj;
+          for (rj = 0; rj < 36; rj++) {
+            sx = BACKROOMS_SPAWN_X + (Math.random() * 2 - 1) * 12;
+            sz = BACKROOMS_SPAWN_Z + (Math.random() * 2 - 1) * 12;
+            if (!enemyWalkFree(sx, sz, rad)) continue;
+            if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
+            if (!isBackroomsReachableWorld(sx, sz)) continue;
+            break;
+          }
         }
       }
       var feetY0 = getGroundHeightFor(sx, sz, rad);
@@ -4595,6 +4665,9 @@
   var bloodSplatters = [];
   var _bloodRayTargets = null;
   var bulletTrailMat = new THREE.MeshBasicMaterial({ color: 0xffeeaa, toneMapped: false });
+  var bulletVisGeo = new THREE.SphereGeometry(0.026, 6, 6);
+  bulletVisGeo.userData.skipDispose = true;
+  var shootRayScratch = [];
   var CONTACT_DPS = 8.75;
   var ENEMY_MELEE_RANGE = 0.68;
   var KNIFE_REACH = 2.45;
@@ -4748,12 +4821,14 @@
     return -1;
   }
 
-  function liveBarrelRoots() {
-    var arr = [];
+  function buildShootRayTargetList(outArr) {
+    outArr.length = 0;
+    var ei;
+    for (ei = 0; ei < enemies.length; ei++) outArr.push(enemies[ei].mesh);
     for (var li = 0; li < explosiveBarrels.length; li++) {
-      if (explosiveBarrels[li].active && currentLevel === 1) arr.push(explosiveBarrels[li].group);
+      if (explosiveBarrels[li].active && currentLevel === 1) outArr.push(explosiveBarrels[li].group);
     }
-    return arr;
+    for (var si = 0; si < shootBlockingRoots.length; si++) outArr.push(shootBlockingRoots[si]);
   }
 
   function playExplosionSound() {
@@ -5467,7 +5542,7 @@
 
   function getEnemySpawnCountForWave(targetWave) {
     if (currentLevel === 1 && targetWave === 10) return 30;
-    if (currentLevel === 2 && targetWave === 15) return 25;
+    if (currentLevel === 2 && targetWave === 15) return 45;
     return 4 + targetWave * 2;
   }
 
@@ -5524,7 +5599,7 @@
   }
 
   function spawnBulletVisual(aimOrigin, aimDirUnit, maxDist) {
-    var mesh = new THREE.Mesh(new THREE.SphereGeometry(0.026, 8, 8), bulletTrailMat.clone());
+    var mesh = new THREE.Mesh(bulletVisGeo, bulletTrailMat);
     mesh.position.copy(aimOrigin);
     scene.add(mesh);
     bulletVis.push({ mesh: mesh, dist: 0, maxDist: maxDist, dir: aimDirUnit.clone() });
@@ -5693,10 +5768,10 @@
     if (weaponSlot === 1) {
       weapon.userData.muzzle.getWorldPosition(aimOrigin);
       raycaster.ray.origin.copy(aimOrigin);
-      var enemyRoots = enemies.map(function (e) { return e.mesh; });
-      var combined = enemyRoots.concat(liveBarrelRoots()).concat(shootBlockingRoots);
-      var hits = raycaster.intersectObjects(combined, true);
+      buildShootRayTargetList(shootRayScratch);
+      var hits = raycaster.intersectObjects(shootRayScratch, true);
       var killed = [];
+      var primaryMaxEnemyPen = Math.random() < 0.5 ? 1 : 2;
       for (var hi = 0; hi < hits.length; hi++) {
         var h = hits[hi];
         var bidx = getBarrelIndexFromHit(h.object);
@@ -5711,7 +5786,7 @@
           removeEnemyByRoot(root);
           killed.push(root);
           tracerEndDist = h.distance;
-          if (killed.length >= 2) break;
+          if (killed.length >= primaryMaxEnemyPen) break;
           continue;
         }
         tracerEndDist = h.distance;
@@ -5742,9 +5817,8 @@
         raycaster.ray.origin.copy(aimOrigin);
         raycaster.ray.direction.copy(tmpPelDir);
 
-        var rootsNow = enemies.map(function (e) { return e.mesh; });
-        var combinedNow = rootsNow.concat(liveBarrelRoots()).concat(shootBlockingRoots);
-        var ph = raycaster.intersectObjects(combinedNow, true);
+        buildShootRayTargetList(shootRayScratch);
+        var ph = raycaster.intersectObjects(shootRayScratch, true);
         var pdist = missLen;
         var sgPelletKilled = [];
         for (var pj = 0; pj < ph.length; pj++) {
@@ -5891,19 +5965,22 @@
       return (z / mapR * 0.5 + 0.5) * sz;
     }
     function drawMinimapMedkitCase(cx, cy) {
-      var bw = 11;
-      var bh = 8;
+      var bw = 12;
+      var bh = 9;
       var x0 = cx - bw * 0.5;
       var y0 = cy - bh * 0.5;
-      ctx2.fillStyle = "#f0faf4";
-      ctx2.strokeStyle = "#1a2e26";
-      ctx2.lineWidth = 1.15;
+      ctx2.fillStyle = "#f2f5fa";
+      ctx2.strokeStyle = "#3a4558";
+      ctx2.lineWidth = 1.1;
       ctx2.fillRect(x0, y0, bw, bh);
       ctx2.strokeRect(x0 + 0.5, y0 + 0.5, bw - 1, bh - 1);
-      ctx2.fillStyle = "#d8182e";
-      var t = 2.4;
-      ctx2.fillRect(cx - t * 0.5, cy - bh * 0.42, t, bh * 0.84);
-      ctx2.fillRect(cx - bw * 0.42, cy - t * 0.5, bw * 0.84, t);
+      ctx2.fillStyle = "#c91828";
+      ctx2.fillRect(x0 + 1, y0 + bh - 3.2, bw - 2, 2.2);
+      ctx2.fillStyle = "#d01028";
+      var tw = 2.2;
+      var th = 5.2;
+      ctx2.fillRect(cx - tw * 0.5, cy - th * 0.5, tw, th);
+      ctx2.fillRect(cx - th * 0.5, cy - tw * 0.5, th, tw);
     }
     function drawMinimapExplosiveHazard(cx, cy) {
       var R = 6.5;
@@ -6296,8 +6373,6 @@
       bv.mesh.position.addScaledVector(bv.dir, step);
       if (bv.dist >= bv.maxDist) {
         scene.remove(bv.mesh);
-        bv.mesh.geometry.dispose();
-        bv.mesh.material.dispose();
         bulletVis.splice(bvi, 1);
       }
     }
@@ -6594,6 +6669,108 @@
     return enemyWalkFreeAt(px, pz, rad, 0);
   }
 
+  function buildBackroomsReachabilityGrid() {
+    var step = brReachStep;
+    var pad = 1.12;
+    var xMin = -half + pad;
+    var xMax = half - pad;
+    var zMin = -half + pad;
+    var zMax = half - pad;
+    var nx = Math.max(1, Math.ceil((xMax - xMin) / step));
+    var nz = Math.max(1, Math.ceil((zMax - zMin) / step));
+    brReachGridW = nx;
+    brReachGridH = nz;
+    brReachX0 = xMin;
+    brReachZ0 = zMin;
+    brReachGrid = new Uint8Array(nx * nz);
+
+    function worldX(ix) {
+      return xMin + (ix + 0.5) * step;
+    }
+    function worldZ(iz) {
+      return zMin + (iz + 0.5) * step;
+    }
+
+    function cellWalkable(ix, iz) {
+      if (ix < 0 || iz < 0 || ix >= nx || iz >= nz) return false;
+      var wx = worldX(ix);
+      var wz = worldZ(iz);
+      if (!enemyWalkFree(wx, wz, 0.42)) return false;
+      if (getGroundHeightFor(wx, wz, 0.42) > 0.22) return false;
+      return true;
+    }
+
+    var six = ((BACKROOMS_SPAWN_X - xMin) / step) | 0;
+    var siz = ((BACKROOMS_SPAWN_Z - zMin) / step) | 0;
+    six = Math.max(0, Math.min(nx - 1, six));
+    siz = Math.max(0, Math.min(nz - 1, siz));
+
+    if (!cellWalkable(six, siz)) {
+      var dist, si, sj, found = false;
+      for (dist = 0; dist < 14 && !found; dist++) {
+        for (si = -dist; si <= dist && !found; si++) {
+          for (sj = -dist; sj <= dist && !found; sj++) {
+            if (Math.max(Math.abs(si), Math.abs(sj)) !== dist) continue;
+            var ti = six + si;
+            var tj = siz + sj;
+            if (cellWalkable(ti, tj)) {
+              six = ti;
+              siz = tj;
+              found = true;
+            }
+          }
+        }
+      }
+      if (!found) {
+        brReachGrid = null;
+        brReachGridW = 0;
+        brReachGridH = 0;
+        return;
+      }
+    }
+
+    var q = [];
+    var qh = 0;
+    q.push(six, siz);
+    brReachGrid[six + siz * nx] = 1;
+    while (qh < q.length) {
+      var cx = q[qh++];
+      var cz = q[qh++];
+      var dirs = [[cx - 1, cz], [cx + 1, cz], [cx, cz - 1], [cx, cz + 1]];
+      var ni;
+      for (ni = 0; ni < 4; ni++) {
+        var nx2 = dirs[ni][0];
+        var nz2 = dirs[ni][1];
+        if (nx2 < 0 || nz2 < 0 || nx2 >= nx || nz2 >= nz) continue;
+        var idx = nx2 + nz2 * nx;
+        if (brReachGrid[idx]) continue;
+        if (!cellWalkable(nx2, nz2)) continue;
+        brReachGrid[idx] = 1;
+        q.push(nx2, nz2);
+      }
+    }
+  }
+
+  function isBackroomsReachableWorld(wx, wz) {
+    if (!brReachGrid || currentLevel !== 2) return true;
+    var nx = brReachGridW;
+    var nz = brReachGridH;
+    if (!nx || !nz) return true;
+    var step = brReachStep;
+    var ix = ((wx - brReachX0) / step) | 0;
+    var iz = ((wz - brReachZ0) / step) | 0;
+    var di, dj;
+    for (di = -1; di <= 1; di++) {
+      for (dj = -1; dj <= 1; dj++) {
+        var ti = ix + di;
+        var tj = iz + dj;
+        if (ti < 0 || tj < 0 || ti >= nx || tj >= nz) continue;
+        if (brReachGrid[ti + tj * nx]) return true;
+      }
+    }
+    return false;
+  }
+
   function tryEnemyVaultTo(m, e, nx, nz, r, feetY) {
     var best = -1;
     var vi;
@@ -6619,6 +6796,7 @@
       var sx = (Math.random() * 2 - 1) * (half - 2.6);
       var sz = (Math.random() * 2 - 1) * (half - 2.6);
       if (!enemyWalkFree(sx, sz, 0.42)) continue;
+      if (currentLevel === 2 && !isBackroomsReachableWorld(sx, sz)) continue;
       var gq = getGroundHeightFor(sx, sz, 0.42);
       if (gq > 0.12) continue;
       if (Math.hypot(sx - player.x, sz - player.z) < 4.5) continue;
@@ -6705,6 +6883,7 @@
   var fpsHudTPrev = performance.now();
   var fpsEma = 60;
   var fpsHudTextAt = 0;
+  var minimapFramePhase = 0;
 
   function tick() {
     var tNow = performance.now();
@@ -6713,9 +6892,9 @@
     var dt = Math.min(clock.getDelta(), 0.05);
     if (!paused) update(dt);
     else updateHpVignette();
-    drawMinimap();
+    minimapFramePhase++;
+    if ((minimapFramePhase & 1) !== 0) drawMinimap();
     renderer.render(scene, camera);
-    renderHotbarWeaponPreviews();
     if (elFpsVal && tNow - fpsHudTextAt > 220) {
       fpsHudTextAt = tNow;
       var instFps = 1 / Math.max(0.0008, Math.min(dtFrame, 0.25));
@@ -6728,6 +6907,7 @@
   window.addEventListener("resize", function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
