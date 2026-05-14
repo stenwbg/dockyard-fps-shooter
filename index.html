@@ -1332,6 +1332,7 @@
   dir.shadow.camera.top = 56;
   dir.shadow.camera.bottom = -56;
   scene.add(dir);
+  scene.add(dir.target);
   var fill = new THREE.PointLight(0xffcc66, 0.26, 52);
   fill.position.set(-14, 5.5, 16);
   scene.add(fill);
@@ -1340,6 +1341,8 @@
   scene.add(rim);
 
   function applyFactorySceneStyle() {
+    renderer.shadowMap.enabled = true;
+    dir.castShadow = true;
     scene.background.setHex(0x14110e);
     scene.fog.color.setHex(0x221c18);
     scene.fog.near = 22;
@@ -1352,6 +1355,7 @@
     dir.color.setHex(0xfff0dc);
     dir.intensity = 0.82;
     dir.position.set(26, 38, -10);
+    dir.target.position.set(0, 0, 0);
     fill.color.setHex(0xffcc66);
     fill.intensity = 0.26;
     fill.position.set(-14, 5.5, 16);
@@ -1361,27 +1365,32 @@
   }
 
   function applyBackroomsSceneStyle() {
+    renderer.shadowMap.enabled = false;
+    dir.castShadow = false;
     scene.background.setHex(0x1c1810);
     scene.fog.color.setHex(0x2a2418);
     scene.fog.near = 3.5;
     scene.fog.far = 32;
     hemi.color.setHex(0xd8c8a0);
     hemi.groundColor.setHex(0x18140a);
-    hemi.intensity = 0.36;
+    hemi.intensity = 0.42;
     ambient.color.setHex(0x8a7e62);
-    ambient.intensity = 0.26;
-    dir.color.setHex(0xe8dcc8);
-    dir.intensity = 0.32;
-    dir.position.set(26, 38, -10);
+    ambient.intensity = 0.38;
+    dir.color.setHex(0xfff4e8);
+    dir.intensity = 0.95;
+    dir.position.set(0, 76, 0);
+    dir.target.position.set(0, 0, 0);
     fill.color.setHex(0xffd880);
-    fill.intensity = 0.08;
+    fill.intensity = 0.02;
     fill.position.set(-14, 5.5, 16);
     rim.color.setHex(0x3a3224);
-    rim.intensity = 0.04;
+    rim.intensity = 0.02;
     rim.position.set(-20, 12, 22);
   }
 
   function applyGraveyardSceneStyle() {
+    renderer.shadowMap.enabled = true;
+    dir.castShadow = true;
     scene.background.setHex(0x161b26);
     scene.fog.color.setHex(0x181e2a);
     scene.fog.near = 1.1;
@@ -1394,6 +1403,7 @@
     dir.color.setHex(0xe8f4ff);
     dir.intensity = 0.58;
     dir.position.set(-18, 52, 14);
+    dir.target.position.set(0, 0, 0);
     fill.color.setHex(0x7a9cd8);
     fill.intensity = 0.28;
     fill.position.set(0, 6, -8);
@@ -1516,7 +1526,7 @@
   ceil.receiveShadow = false;
   mapBuildParent.add(ceil);
 
-  function addWallMesh(w, h, d, x, z, ry, mat, skipCollider, walkableTop) {
+  function addWallMesh(w, h, d, x, z, ry, mat, skipCollider, walkableTop, isPerimeter) {
     var g = new THREE.BoxGeometry(w, h, d);
     var m = new THREE.Mesh(g, mat || rustMetalMat);
     m.position.set(x, h / 2, z);
@@ -1542,11 +1552,17 @@
       }
       var useTop = walkableTop === undefined ? true : !!walkableTop;
       addCollider(minX, maxX, minZ, maxZ, 0, h, useTop);
+      var wallCol = colliders[colliders.length - 1];
+      if (isPerimeter) wallCol.perimeter = true;
+      else {
+        wallCol.linkedMesh = m;
+        wallCol.destructible = true;
+      }
       shootBlockingRoots.push(m);
     }
   }
 
-  function addObstacleBox(w, h, d, cx, yBottom, cz, ry, mat, walkableTop) {
+  function addObstacleBox(w, h, d, cx, yBottom, cz, ry, mat, walkableTop, isPerimeter) {
     var yCenter = yBottom + h * 0.5;
     var g = new THREE.BoxGeometry(w, h, d);
     var mesh = new THREE.Mesh(g, mat || rustMetalMat);
@@ -1579,13 +1595,19 @@
       wt = true;
     }
     addCollider(minX, maxX, minZ, maxZ, yBottom, yBottom + h, wt, lowDarkFloor);
+    var boxCol = colliders[colliders.length - 1];
+    if (isPerimeter) boxCol.perimeter = true;
+    else {
+      boxCol.linkedMesh = mesh;
+      boxCol.destructible = true;
+    }
   }
 
   var wallT = 1.15;
-  addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, -half - wallT / 2, 0, rustMetalMat, false, false);
-  addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, half + wallT / 2, 0, rustMetalMat, false, false);
-  addWallMesh(wallT, wallH, arena * 2 + wallT * 2, -half - wallT / 2, 0, 0, rustMetalMat, false, false);
-  addWallMesh(wallT, wallH, arena * 2 + wallT * 2, half + wallT / 2, 0, 0, rustMetalMat, false, false);
+  addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, -half - wallT / 2, 0, rustMetalMat, false, false, true);
+  addWallMesh(arena * 2 + wallT * 2, wallH, wallT, 0, half + wallT / 2, 0, rustMetalMat, false, false, true);
+  addWallMesh(wallT, wallH, arena * 2 + wallT * 2, -half - wallT / 2, 0, 0, rustMetalMat, false, false, true);
+  addWallMesh(wallT, wallH, arena * 2 + wallT * 2, half + wallT / 2, 0, 0, rustMetalMat, false, false, true);
 
   function addCrate(wx, wz, w, h, d, rotY) {
     var mat = Math.random() < 0.5 ? crateMat : crateMat2;
@@ -1607,6 +1629,9 @@
       minZ = Math.min(minZ, gz); maxZ = Math.max(maxZ, gz);
     }
     addCollider(minX, maxX, minZ, maxZ, 0, h, true);
+    var crateCol = colliders[colliders.length - 1];
+    crateCol.linkedMesh = mesh;
+    crateCol.destructible = true;
   }
 
   function addSquareColumn(px, pz, w, d) {
@@ -1617,6 +1642,9 @@
     var hw = w * 0.5 + 0.04;
     var hd = d * 0.5 + 0.04;
     addCollider(px - hw, px + hw, pz - hd, pz + hd, 0, wallH, true);
+    var pillarCol = colliders[colliders.length - 1];
+    pillarCol.linkedMesh = mesh;
+    pillarCol.destructible = true;
   }
 
   var pillarSpots = [
@@ -1699,6 +1727,7 @@
   });
 
   var explosiveBarrels = [];
+  var structureDebris = [];
   /* Seconds before a destroyed explosive barrel respawns (higher = lower spawn rate). */
   var EXPLOSIVE_BARREL_RESPAWN = 70;
 
@@ -1770,6 +1799,9 @@
       minZ = Math.min(minZ, gz); maxZ = Math.max(maxZ, gz);
     }
     addCollider(minX, maxX, minZ, maxZ, 0, 0.12, true);
+    var palCol = colliders[colliders.length - 1];
+    palCol.linkedMesh = mesh;
+    palCol.destructible = true;
   }
 
   function addIndustrialTank(wx, wz, r, h) {
@@ -1778,6 +1810,9 @@
     addStaticMesh(mesh, true);
     var rr = r * 1.06;
     addCollider(wx - rr, wx + rr, wz - rr, wz + rr, 0, h, true);
+    var tankCol = colliders[colliders.length - 1];
+    tankCol.linkedMesh = mesh;
+    tankCol.destructible = true;
   }
 
   function addElectricalCabinet(wx, wz, ry) {
@@ -2042,6 +2077,7 @@
       cap.userData.topHitbox = true;
       parentGroup.add(cap);
       shootList.push(cap);
+      b.topCapMesh = cap;
     }
   }
 
@@ -2168,10 +2204,10 @@
     mapBuildParent.add(ceilBr);
 
     var brWallH = BR_CEILING_VIS;
-    addObstacleBox(arena * 2 + wallT * 2, brWallH, wallT, 0, 0, -half - wallT * 0.5, 0, wallPaperMat, false);
-    addObstacleBox(arena * 2 + wallT * 2, brWallH, wallT, 0, 0, half + wallT * 0.5, 0, wallPaperMat, false);
-    addObstacleBox(wallT, brWallH, arena * 2 + wallT * 2, -half - wallT * 0.5, 0, 0, 0, wallPaperMat, false);
-    addObstacleBox(wallT, brWallH, arena * 2 + wallT * 2, half + wallT * 0.5, 0, 0, 0, wallPaperMat, false);
+    addObstacleBox(arena * 2 + wallT * 2, brWallH, wallT, 0, 0, -half - wallT * 0.5, 0, wallPaperMat, false, true);
+    addObstacleBox(arena * 2 + wallT * 2, brWallH, wallT, 0, 0, half + wallT * 0.5, 0, wallPaperMat, false, true);
+    addObstacleBox(wallT, brWallH, arena * 2 + wallT * 2, -half - wallT * 0.5, 0, 0, 0, wallPaperMat, false, true);
+    addObstacleBox(wallT, brWallH, arena * 2 + wallT * 2, half + wallT * 0.5, 0, 0, 0, wallPaperMat, false, true);
 
     var th = wu(0.26);
     var h = brWallH * 0.96;
@@ -2426,10 +2462,10 @@
     var fT = 0.18;
     var fSpan = arena * 2 + fT * 2;
     var fEdge = half - fT * 0.5;
-    addObstacleBox(fSpan, fH, fT, 0, 0, -fEdge, 0, woodFenceMat, false);
-    addObstacleBox(fSpan, fH, fT, 0, 0, fEdge, 0, woodFenceMat, false);
-    addObstacleBox(fT, fH, fSpan, -fEdge, 0, 0, 0, woodFenceMat, false);
-    addObstacleBox(fT, fH, fSpan, fEdge, 0, 0, 0, woodFenceMat, false);
+    addObstacleBox(fSpan, fH, fT, 0, 0, -fEdge, 0, woodFenceMat, false, true);
+    addObstacleBox(fSpan, fH, fT, 0, 0, fEdge, 0, woodFenceMat, false, true);
+    addObstacleBox(fT, fH, fSpan, -fEdge, 0, 0, 0, woodFenceMat, false, true);
+    addObstacleBox(fT, fH, fSpan, fEdge, 0, 0, 0, woodFenceMat, false, true);
 
     var postInset = half - wallT * 2.2;
     var chZ = -38;
@@ -2576,11 +2612,13 @@
       var tx = Math.cos(tang) * trad;
       var tz = Math.sin(tang) * trad;
       addObstacleBox(0.52, 3.1, 0.52, tx, 0, tz, tang, treeTrunkMat, false);
+      var trunkCol = colliders[colliders.length - 1];
       var cr = new THREE.Mesh(new THREE.ConeGeometry(1.85 + (ti % 4) * 0.12, 3.4, 7), treeLeafMat);
       cr.position.set(tx, 3.35, tz);
       cr.rotation.y = tang * 1.7;
       cr.castShadow = true;
       mapBuildParent.add(cr);
+      trunkCol.linkedExtras = [cr];
     }
 
     GRAVEYARD_SPAWN_X = wu(0);
@@ -2678,64 +2716,84 @@
   var gunDark = new THREE.MeshStandardMaterial({ color: 0x14181c, metalness: 0.55, roughness: 0.42 });
   var gunPoly = new THREE.MeshStandardMaterial({ color: 0x242830, roughness: 0.82, metalness: 0.12 });
   var gunAccent = new THREE.MeshStandardMaterial({ color: 0x3d4858, metalness: 0.45, roughness: 0.4 });
+  var gunFde = new THREE.MeshStandardMaterial({ color: 0xbda088, roughness: 0.78, metalness: 0.06 });
+  var gunRailMat = new THREE.MeshStandardMaterial({ color: 0x1e2228, metalness: 0.65, roughness: 0.32 });
 
-  var rLower = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.1, 0.34), gunMetal);
-  rLower.position.set(0, 0.02, -0.06);
-  rLower.castShadow = true;
-  weapon.add(rLower);
+  var scarLower = new THREE.Mesh(new THREE.BoxGeometry(0.066, 0.08, 0.23), gunFde);
+  scarLower.position.set(0, 0.012, -0.038);
+  scarLower.castShadow = true;
+  weapon.add(scarLower);
 
-  var rUpper = new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.028, 0.28), gunAccent);
-  rUpper.position.set(0, 0.072, -0.06);
-  rUpper.castShadow = true;
-  weapon.add(rUpper);
+  var scarUpper = new THREE.Mesh(new THREE.BoxGeometry(0.056, 0.032, 0.52), gunRailMat);
+  scarUpper.position.set(0.002, 0.056, -0.29);
+  scarUpper.castShadow = true;
+  weapon.add(scarUpper);
 
-  var rCh = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.022, 0.04), gunDark);
-  rCh.position.set(-0.055, 0.04, 0.02);
+  var rib;
+  for (rib = 0; rib < 9; rib++) {
+    var railSlot = new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.006, 0.012), gunDark);
+    railSlot.position.set(0.002, 0.076, -0.12 - rib * 0.048);
+    weapon.add(railSlot);
+  }
+
+  var rCh = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.011, 0.045), gunMetal);
+  rCh.position.set(-0.05, 0.052, -0.15);
+  rCh.castShadow = true;
   weapon.add(rCh);
 
-  var barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.024, 0.44, 10), gunDark);
+  var barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.0105, 0.0128, 0.48, 10), gunDark);
   barrel.rotation.x = Math.PI / 2;
-  barrel.position.set(0.01, 0.042, -0.4);
+  barrel.position.set(0.008, 0.04, -0.41);
   barrel.castShadow = true;
   weapon.add(barrel);
 
-  var muzzleBrake = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.045, 8), gunMetal);
+  var gasBlock = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.026, 0.034), gunMetal);
+  gasBlock.position.set(0.008, 0.04, -0.24);
+  weapon.add(gasBlock);
+
+  var muzzleBrake = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.011, 0.05, 8), gunMetal);
   muzzleBrake.rotation.x = Math.PI / 2;
-  muzzleBrake.position.set(0.01, 0.042, -0.62);
+  muzzleBrake.position.set(0.008, 0.04, -0.63);
   weapon.add(muzzleBrake);
 
-  var handguard = new THREE.Mesh(new THREE.BoxGeometry(0.076, 0.1, 0.28), gunPoly);
-  handguard.position.set(0.008, -0.018, -0.2);
+  var handguard = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.084, 0.24), gunFde);
+  handguard.position.set(0.006, 0.002, -0.21);
   handguard.castShadow = true;
   weapon.add(handguard);
 
-  var hgVent = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.012, 0.18), gunDark);
-  hgVent.position.set(0.01, -0.07, -0.2);
+  var hgVent = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.009, 0.14), gunRailMat);
+  hgVent.position.set(0.008, -0.044, -0.21);
   weapon.add(hgVent);
 
-  var grip = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.15, 0.056), gunPoly);
-  grip.position.set(-0.008, -0.12, 0.05);
-  grip.rotation.x = 0.28;
+  var grip = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.118, 0.046), gunFde);
+  grip.position.set(-0.006, -0.098, 0.042);
+  grip.rotation.x = 0.2;
   grip.castShadow = true;
   weapon.add(grip);
 
-  var stock = new THREE.Mesh(new THREE.BoxGeometry(0.056, 0.088, 0.24), gunDark);
-  stock.position.set(-0.018, 0.015, 0.2);
-  stock.rotation.x = -0.06;
-  weapon.add(stock);
-
-  var buffer = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.1, 8), gunMetal);
-  buffer.rotation.x = Math.PI / 2;
-  buffer.position.set(-0.02, 0.02, 0.12);
-  weapon.add(buffer);
+  var stockBarL = new THREE.Mesh(new THREE.BoxGeometry(0.011, 0.046, 0.19), gunRailMat);
+  stockBarL.position.set(-0.028, 0.022, 0.162);
+  stockBarL.castShadow = true;
+  weapon.add(stockBarL);
+  var stockBarR = new THREE.Mesh(new THREE.BoxGeometry(0.011, 0.046, 0.19), gunRailMat);
+  stockBarR.position.set(0.028, 0.022, 0.162);
+  stockBarR.castShadow = true;
+  weapon.add(stockBarR);
+  var stockPlate = new THREE.Mesh(new THREE.BoxGeometry(0.068, 0.062, 0.02), gunPoly);
+  stockPlate.position.set(0, 0.018, 0.268);
+  stockPlate.castShadow = true;
+  weapon.add(stockPlate);
+  var stockRubber = new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.058, 0.014), gunDark);
+  stockRubber.position.set(0, 0.018, 0.282);
+  weapon.add(stockRubber);
 
   var muzzleEmpty = new THREE.Object3D();
-  muzzleEmpty.position.set(0.01, 0.042, -0.64);
+  muzzleEmpty.position.set(0.008, 0.04, -0.652);
   weapon.add(muzzleEmpty);
   weapon.userData.muzzle = muzzleEmpty;
 
-  var magMesh = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.125, 0.078), gunDark);
-  magMesh.position.set(0.036, -0.062, 0.025);
+  var magMesh = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.118, 0.06), gunDark);
+  magMesh.position.set(0.03, -0.058, 0.018);
   weapon.add(magMesh);
   weapon.userData.mag = magMesh;
   weapon.userData.magBaseY = magMesh.position.y;
@@ -2757,69 +2815,81 @@
   camera.add(pistolWeapon);
 
   var sgWood = new THREE.MeshStandardMaterial({ color: 0x4a3326, roughness: 0.9, metalness: 0.04 });
-  var sgReceiver = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.075, 0.2), gunMetal);
-  sgReceiver.position.set(0, 0.01, 0.02);
+  var sgBarrelLen = 0.11;
+  var sgBarrelR = 0.0112;
+  var sgHalf = 0.0108;
+  var breechZ = 0.078;
+  var barrelAxisZ = breechZ - 0.034 - sgBarrelLen * 0.5;
+
+  var sgBreech = new THREE.Mesh(new THREE.BoxGeometry(0.054, 0.05, 0.072), gunMetal);
+  sgBreech.position.set(0, 0.03, breechZ);
+  sgBreech.castShadow = true;
+  pistolWeapon.add(sgBreech);
+
+  var sgReceiver = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.038, 0.055), gunDark);
+  sgReceiver.position.set(0, 0.02, breechZ + 0.056);
   sgReceiver.castShadow = true;
   pistolWeapon.add(sgReceiver);
 
-  var sgBarrelLen = 0.28;
-  var sgBarrelR = 0.013;
-  var sgBarrelGeo = new THREE.CylinderGeometry(sgBarrelR, sgBarrelR * 1.06, sgBarrelLen, 8);
+  var sgBarrelGeo = new THREE.CylinderGeometry(sgBarrelR, sgBarrelR * 1.08, sgBarrelLen, 8);
   var bLeft = new THREE.Mesh(sgBarrelGeo, gunDark);
   bLeft.rotation.x = Math.PI / 2;
-  bLeft.position.set(-0.02, 0.032, -sgBarrelLen * 0.5 - 0.06);
+  bLeft.position.set(-sgHalf, 0.03, barrelAxisZ);
   bLeft.castShadow = true;
   pistolWeapon.add(bLeft);
   var bRight = new THREE.Mesh(sgBarrelGeo, gunDark);
   bRight.rotation.x = Math.PI / 2;
-  bRight.position.set(0.02, 0.032, -sgBarrelLen * 0.5 - 0.06);
+  bRight.position.set(sgHalf, 0.03, barrelAxisZ);
   bRight.castShadow = true;
   pistolWeapon.add(bRight);
 
-  var sgRib = new THREE.Mesh(
-    new THREE.BoxGeometry(0.048, 0.012, sgBarrelLen * 0.85),
-    gunAccent
-  );
-  sgRib.position.set(0, 0.046, -sgBarrelLen * 0.5 - 0.06);
-  pistolWeapon.add(sgRib);
-
-  var sgFore = new THREE.Mesh(new THREE.BoxGeometry(0.046, 0.048, 0.12), sgWood);
-  sgFore.position.set(0, -0.012, -0.02);
+  var sgFore = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.03, sgBarrelLen * 0.72), sgWood);
+  sgFore.position.set(0, -0.006, breechZ - 0.018 - sgBarrelLen * 0.36);
   sgFore.castShadow = true;
   pistolWeapon.add(sgFore);
 
-  var sgGrip = new THREE.Mesh(new THREE.BoxGeometry(0.036, 0.095, 0.042), gunPoly);
-  sgGrip.position.set(0, -0.085, 0.06);
-  sgGrip.rotation.x = 0.32;
+  var sgGrip = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.068, 0.036), gunPoly);
+  sgGrip.position.set(0, -0.062, breechZ + 0.078);
+  sgGrip.rotation.x = 0.36;
   sgGrip.castShadow = true;
   pistolWeapon.add(sgGrip);
 
+  var sgStub = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.024, 0.038), sgWood);
+  sgStub.position.set(0, 0.016, breechZ + 0.098);
+  sgStub.castShadow = true;
+  pistolWeapon.add(sgStub);
+
   var sgTrig = new THREE.Mesh(
-    new THREE.TorusGeometry(0.02, 0.007, 6, 10, Math.PI * 0.5),
+    new THREE.TorusGeometry(0.017, 0.006, 6, 10, Math.PI * 0.5),
     gunDark
   );
   sgTrig.rotation.x = Math.PI / 2;
   sgTrig.rotation.z = Math.PI * 0.12;
-  sgTrig.position.set(0.012, -0.055, 0.03);
+  sgTrig.position.set(0.01, -0.042, breechZ + 0.048);
   pistolWeapon.add(sgTrig);
 
-  var sgLatch = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.018, 0.04), gunMetal);
-  sgLatch.position.set(0, 0.048, 0.08);
+  var sgHinge = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.05, 8), gunMetal);
+  sgHinge.rotation.z = Math.PI / 2;
+  sgHinge.position.set(0, -0.008, breechZ + 0.018);
+  pistolWeapon.add(sgHinge);
+
+  var sgLatch = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.005, 0.042), gunAccent);
+  sgLatch.position.set(0, 0.052, breechZ + 0.01);
   pistolWeapon.add(sgLatch);
 
-  var sgMuzzleZ = -sgBarrelLen * 0.5 - 0.06 - sgBarrelLen * 0.5;
+  var sgMuzzleZ = breechZ - 0.034 - sgBarrelLen;
   var sgMuzzleL = new THREE.Object3D();
-  sgMuzzleL.position.set(-0.02, 0.032, sgMuzzleZ);
+  sgMuzzleL.position.set(-sgHalf, 0.03, sgMuzzleZ);
   pistolWeapon.add(sgMuzzleL);
   var sgMuzzleR = new THREE.Object3D();
-  sgMuzzleR.position.set(0.02, 0.032, sgMuzzleZ);
+  sgMuzzleR.position.set(sgHalf, 0.03, sgMuzzleZ);
   pistolWeapon.add(sgMuzzleR);
   pistolWeapon.userData.muzzleL = sgMuzzleL;
   pistolWeapon.userData.muzzleR = sgMuzzleR;
 
-  pistolWeapon.userData.mag = sgReceiver;
-  pistolWeapon.userData.magBaseY = sgReceiver.position.y;
-  pistolWeapon.userData.magBaseZ = sgReceiver.position.z;
+  pistolWeapon.userData.mag = sgBreech;
+  pistolWeapon.userData.magBaseY = sgBreech.position.y;
+  pistolWeapon.userData.magBaseZ = sgBreech.position.z;
   pistolWeapon.userData.baseTiltX = pistolWeapon.rotation.x;
   pistolWeapon.userData.baseRotY = pistolWeapon.rotation.y;
   pistolWeapon.userData.baseZ = pistolWeapon.position.z;
@@ -2832,7 +2902,48 @@
     emissive: 0x0c140c,
     emissiveIntensity: 0.35
   });
-  var heldGrenadeMesh = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 10), heldGrenadeMat);
+  var grenFuseMat = new THREE.MeshStandardMaterial({
+    color: 0x2a2218,
+    metalness: 0.42,
+    roughness: 0.52
+  });
+  var grenPinMat = new THREE.MeshStandardMaterial({
+    color: 0xc0b8a0,
+    metalness: 0.55,
+    roughness: 0.35
+  });
+  function buildGrenadeVisualGroup() {
+    var g = new THREE.Group();
+    var core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.074, 1), heldGrenadeMat);
+    core.castShadow = true;
+    g.add(core);
+    var band = new THREE.Mesh(new THREE.TorusGeometry(0.076, 0.0075, 8, 22), heldGrenadeMat);
+    band.rotation.x = Math.PI / 2;
+    band.position.set(0, 0.01, 0);
+    g.add(band);
+    var fuse = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.017, 0.052, 8, 1), grenFuseMat);
+    fuse.position.set(0, 0.096, 0);
+    g.add(fuse);
+    var fuseCap = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.011, 0.014, 8, 1), grenPinMat);
+    fuseCap.position.set(0, 0.124, 0);
+    g.add(fuseCap);
+    var spoon = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.0035, 0.016), grenPinMat);
+    spoon.position.set(0.022, 0.098, 0.01);
+    spoon.rotation.z = -0.38;
+    g.add(spoon);
+    var pullRing = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.003, 6, 14), grenPinMat);
+    pullRing.position.set(0.048, 0.082, 0);
+    pullRing.rotation.y = Math.PI / 2;
+    g.add(pullRing);
+    var seg = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.01, 0.014), heldGrenadeMat);
+    seg.position.set(0, 0.018, 0.062);
+    g.add(seg);
+    var seg2 = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.01, 0.014), heldGrenadeMat);
+    seg2.position.set(0, 0.018, -0.062);
+    g.add(seg2);
+    return g;
+  }
+  var heldGrenadeMesh = buildGrenadeVisualGroup();
   heldGrenadeMesh.position.set(0.44, -0.4, -0.58);
   heldGrenadeMesh.visible = false;
   camera.add(heldGrenadeMesh);
@@ -2889,9 +3000,9 @@
     roughness: 0.3
   });
 
-  var bladeLen = 0.33;
-  var bladeW = 0.027;
-  var bladeTh = 0.00225;
+  var bladeLen = 0.34;
+  var bladeW = 0.017;
+  var bladeTh = 0.00135;
   var bladeHeelZ = -0.074;
   var bladeTipZ = bladeHeelZ - bladeLen;
   var bladeCenterZ = (bladeHeelZ + bladeTipZ) / 2;
@@ -2920,18 +3031,24 @@
   knifeWeapon.add(kFuller);
 
   var kGrindPanel = new THREE.Mesh(
-    new THREE.BoxGeometry(bladeW * 0.97, 0.0005, bladeLen * 0.86),
+    new THREE.BoxGeometry(bladeW * 0.97, 0.0004, bladeLen * 0.86),
     kBladeGrind
   );
   kGrindPanel.position.set(gripX, -bladeTh * 0.52, bladeCenterZ + bladeLen * 0.02);
   knifeWeapon.add(kGrindPanel);
 
   var kEdgeLine = new THREE.Mesh(
-    new THREE.BoxGeometry(bladeW * 1.02, 0.0005, bladeLen * 0.99),
+    new THREE.BoxGeometry(bladeW * 1.02, 0.0004, bladeLen * 0.99),
     kEdgeFlash
   );
   kEdgeLine.position.set(gripX, -bladeTh * 0.48, bladeCenterZ);
   knifeWeapon.add(kEdgeLine);
+
+  var kTip = new THREE.Mesh(new THREE.ConeGeometry(0.013, 0.048, 3, 1), kBladePolish);
+  kTip.rotation.x = -Math.PI / 2;
+  kTip.position.set(gripX, 0, bladeTipZ - 0.022);
+  kTip.castShadow = true;
+  knifeWeapon.add(kTip);
 
   var kClip = new THREE.Mesh(new THREE.BoxGeometry(bladeW * 0.52, bladeTh * 1.05, bladeLen * 0.095), kBladeSpineMat);
   kClip.position.set(gripX - bladeW * 0.1, 0, bladeTipZ + bladeLen * 0.048);
@@ -3261,6 +3378,7 @@
   }
 
   function resetGameStateToFactoryLevel1Wave1ForNewRun() {
+    clearStructureDebris();
     hp = 100;
     hpRegenAcc = 0;
     updateHpDisplay();
@@ -3306,8 +3424,7 @@
     grenadeCooldown = 0;
     if (activeGrenade) {
       scene.remove(activeGrenade.mesh);
-      activeGrenade.mesh.geometry.dispose();
-      activeGrenade.mesh.material.dispose();
+      disposeGroup(activeGrenade.mesh);
       activeGrenade = null;
     }
     reloading = false;
@@ -4516,6 +4633,7 @@
   }
 
   function switchToBackroomsLevel() {
+    clearStructureDebris();
     currentLevel = 2;
     graveyardEndless = false;
     pendingMapSwitch = false;
@@ -4546,6 +4664,7 @@
   }
 
   function switchToGraveyardLevel() {
+    clearStructureDebris();
     currentLevel = 3;
     graveyardEndless = false;
     pendingMapSwitch = false;
@@ -5436,6 +5555,310 @@
     }
   }
 
+  function clearStructureDebris() {
+    var di;
+    for (di = structureDebris.length - 1; di >= 0; di--) {
+      var sd0 = structureDebris[di];
+      scene.remove(sd0.mesh);
+      disposeGroup(sd0.mesh);
+    }
+    structureDebris.length = 0;
+  }
+
+  function explosionClosestPointOnColliderDistSq(ox, oy, oz, c) {
+    var qx = Math.max(c.minX, Math.min(ox, c.maxX));
+    var qy = Math.max(c.y0, Math.min(oy, c.y1));
+    var qz = Math.max(c.minZ, Math.min(oz, c.maxZ));
+    var dx = ox - qx;
+    var dy = oy - qy;
+    var dz = oz - qz;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
+  function sphereIntersectsAabb(ox, oy, oz, r, ax0, ax1, ay0, ay1, az0, az1) {
+    var qx = Math.max(ax0, Math.min(ox, ax1));
+    var qy = Math.max(ay0, Math.min(oy, ay1));
+    var qz = Math.max(az0, Math.min(oz, az1));
+    var dx = ox - qx;
+    var dy = oy - qy;
+    var dz = oz - qz;
+    return dx * dx + dy * dy + dz * dz < r * r;
+  }
+
+  function tryPartialDestroyStructure(c, ox, oy, oz, blastR, pinChip, liteDebris) {
+    if (c.linkedExtras && c.linkedExtras.length) return false;
+    var mesh = c.linkedMesh;
+    if (!mesh || !mesh.geometry || mesh.geometry.type !== "BoxGeometry") return false;
+
+    mesh.updateMatrixWorld(true);
+    var bbox = new THREE.Box3().setFromObject(mesh);
+    var minX = bbox.min.x;
+    var maxX = bbox.max.x;
+    var y0 = bbox.min.y;
+    var y1 = bbox.max.y;
+    var minZ = bbox.min.z;
+    var maxZ = bbox.max.z;
+
+    var wxw = maxX - minX;
+    var wzh = y1 - y0;
+    var wzd = maxZ - minZ;
+    if (wxw < 0.06 || wzh < 0.06 || wzd < 0.06) return false;
+
+    var nx = Math.max(2, Math.min(5, Math.ceil(wxw / 1.12)));
+    var ny = Math.max(1, Math.min(4, Math.ceil(wzh / 0.92)));
+    var nz = Math.max(2, Math.min(5, Math.ceil(wzd / 1.12)));
+    while (nx * ny * nz > 36) {
+      if (nx >= nz && nx > 2) nx--;
+      else if (nz > 2) nz--;
+      else if (ny > 1) ny--;
+      else break;
+    }
+
+    var dx = wxw / nx;
+    var dy = wzh / ny;
+    var dz = wzd / nz;
+
+    var ix;
+    var iy;
+    var iz;
+    var hitNSphere = 0;
+    var total = nx * ny * nz;
+    for (ix = 0; ix < nx; ix++) {
+      for (iy = 0; iy < ny; iy++) {
+        for (iz = 0; iz < nz; iz++) {
+          var hx0 = minX + ix * dx;
+          var hx1 = hx0 + dx;
+          var hy0 = y0 + iy * dy;
+          var hy1 = hy0 + dy;
+          var hz0 = minZ + iz * dz;
+          var hz1 = hz0 + dz;
+          if (sphereIntersectsAabb(ox, oy, oz, blastR, hx0, hx1, hy0, hy1, hz0, hz1)) hitNSphere++;
+        }
+      }
+    }
+    var fullDestroy = hitNSphere === total;
+    var useForced = false;
+    var fixIx = 0;
+    var fixIy = 0;
+    var fixIz = 0;
+    if (hitNSphere === 0 && pinChip) {
+      if (
+        ox >= minX - 0.02 &&
+        ox <= maxX + 0.02 &&
+        oy >= y0 - 0.02 &&
+        oy <= y1 + 0.02 &&
+        oz >= minZ - 0.02 &&
+        oz <= maxZ + 0.02
+      ) {
+        fixIx = Math.max(0, Math.min(nx - 1, ((ox - minX) / dx) | 0));
+        fixIy = Math.max(0, Math.min(ny - 1, ((oy - y0) / dy) | 0));
+        fixIz = Math.max(0, Math.min(nz - 1, ((oz - minZ) / dz) | 0));
+        useForced = true;
+      } else {
+        return false;
+      }
+    }
+    if (hitNSphere === 0 && !useForced) return false;
+    if (fullDestroy) {
+      destroyDestructibleColliderEntry(c);
+      return true;
+    }
+
+    function cellBlast(ix2, iy2, iz2, bx0, bx1, by0, by1, bz0, bz1) {
+      if (useForced && ix2 === fixIx && iy2 === fixIy && iz2 === fixIz) return true;
+      return sphereIntersectsAabb(ox, oy, oz, blastR, bx0, bx1, by0, by1, bz0, bz1);
+    }
+
+    var parentGroup = mesh.parent;
+    if (!parentGroup) parentGroup = factoryWorldGroup;
+
+    if (c.topCapMesh) {
+      var cap0 = c.topCapMesh;
+      c.topCapMesh = null;
+      if (cap0.parent) cap0.parent.remove(cap0);
+      removeShootBlockingRef(cap0);
+      disposeGroup(cap0);
+    }
+
+    var mat0 = mesh.material;
+    if (mat0 && mat0.length) mat0 = mat0[0];
+
+    if (mesh.parent) mesh.parent.remove(mesh);
+    removeShootBlockingRef(mesh);
+    disposeGroup(mesh);
+    c.linkedMesh = null;
+    c.destructible = false;
+    c.active = false;
+
+    for (ix = 0; ix < nx; ix++) {
+      for (iy = 0; iy < ny; iy++) {
+        for (iz = 0; iz < nz; iz++) {
+          var bx0 = minX + ix * dx;
+          var bx1 = bx0 + dx;
+          var by0 = y0 + iy * dy;
+          var by1 = by0 + dy;
+          var bz0 = minZ + iz * dz;
+          var bz1 = bz0 + dz;
+          if (cellBlast(ix, iy, iz, bx0, bx1, by0, by1, bz0, bz1)) {
+            var mcx = (bx0 + bx1) * 0.5;
+            var mcy = (by0 + by1) * 0.5;
+            var mcz = (bz0 + bz1) * 0.5;
+            spawnStructureDebrisAt(
+              mcx,
+              mcy,
+              mcz,
+              mat0,
+              liteDebris ? 1 + ((Math.random() * 2) | 0) : 3 + ((Math.random() * 4) | 0)
+            );
+            continue;
+          }
+          var fw = Math.max(bx1 - bx0, 0.03);
+          var fh = Math.max(by1 - by0, 0.03);
+          var fd = Math.max(bz1 - bz0, 0.03);
+          var frag = new THREE.Mesh(new THREE.BoxGeometry(fw, fh, fd), mat0);
+          frag.position.set((bx0 + bx1) * 0.5, (by0 + by1) * 0.5, (bz0 + bz1) * 0.5);
+          frag.castShadow = true;
+          frag.receiveShadow = true;
+          parentGroup.add(frag);
+          shootBlockingRoots.push(frag);
+          var isTopFrag = !!c.top && by1 >= y1 - 0.07;
+          addCollider(bx0, bx1, bz0, bz1, by0, by1, isTopFrag, !!c.noShootTopCap);
+          var nc = colliders[colliders.length - 1];
+          nc.linkedMesh = frag;
+          nc.destructible = true;
+        }
+      }
+    }
+
+    _bloodRayTargets = null;
+    return true;
+  }
+
+  function getDestructibleColliderForShotgunHit(obj) {
+    if (!obj) return null;
+    var ci;
+    for (ci = 0; ci < colliders.length; ci++) {
+      var c = colliders[ci];
+      if (!c.active || !c.destructible || c.perimeter) continue;
+      if (c.linkedExtras && c.linkedExtras.length) continue;
+      if (c.linkedMesh === obj) return c;
+      if (c.topCapMesh === obj) return c;
+    }
+    return null;
+  }
+
+  var SHOTGUN_STRUCT_CHIP_R = 0.26;
+
+  function applyShotgunStructureDamage(c, hx, hy, hz) {
+    tryPartialDestroyStructure(c, hx, hy, hz, SHOTGUN_STRUCT_CHIP_R, true, true);
+  }
+
+  function damageDestructibleStructuresNear(ox, oy, oz, radius) {
+    var rHit = radius * 0.72;
+    var r2 = rHit * rHit;
+    var ci;
+    for (ci = 0; ci < colliders.length; ci++) {
+      var c = colliders[ci];
+      if (c.active === false) continue;
+      if (!c.destructible || !c.linkedMesh) continue;
+      if (c.perimeter) continue;
+      if (explosionClosestPointOnColliderDistSq(ox, oy, oz, c) > r2) continue;
+      if (c.linkedExtras && c.linkedExtras.length) {
+        destroyDestructibleColliderEntry(c);
+        continue;
+      }
+      if (!tryPartialDestroyStructure(c, ox, oy, oz, rHit, false, false)) {
+        destroyDestructibleColliderEntry(c);
+      }
+    }
+  }
+
+  function removeShootBlockingRef(root) {
+    var si;
+    for (si = shootBlockingRoots.length - 1; si >= 0; si--) {
+      if (shootBlockingRoots[si] === root) {
+        shootBlockingRoots.splice(si, 1);
+        return;
+      }
+    }
+  }
+
+  function spawnStructureDebrisAt(wx, wy, wz, baseMat, count) {
+    var fallbackMat = rustMetalMat;
+    var useMat = baseMat && baseMat.isMaterial ? baseMat : fallbackMat;
+    var i;
+    for (i = 0; i < count; i++) {
+      var sx = 0.05 + Math.random() * 0.12;
+      var sy = 0.038 + Math.random() * 0.095;
+      var sz = 0.048 + Math.random() * 0.11;
+      var chunk = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), useMat);
+      chunk.castShadow = true;
+      chunk.receiveShadow = true;
+      chunk.position.set(
+        wx + (Math.random() - 0.5) * 0.42,
+        wy + (Math.random() - 0.5) * 0.32,
+        wz + (Math.random() - 0.5) * 0.42
+      );
+      scene.add(chunk);
+      var ang = Math.random() * Math.PI * 2;
+      var spd = 4.2 + Math.random() * 12;
+      structureDebris.push({
+        mesh: chunk,
+        px: chunk.position.x,
+        py: chunk.position.y,
+        pz: chunk.position.z,
+        vx: Math.cos(ang) * spd * (0.32 + Math.random() * 0.68),
+        vy: 2.6 + Math.random() * 9.5,
+        vz: Math.sin(ang) * spd * (0.32 + Math.random() * 0.68),
+        rx: (Math.random() - 0.5) * 9,
+        ry: (Math.random() - 0.5) * 9,
+        rz: (Math.random() - 0.5) * 9,
+        t: 0,
+        groundedT: 0
+      });
+    }
+  }
+
+  function destroyDestructibleColliderEntry(c) {
+    if (!c || !c.linkedMesh) return;
+    var mesh = c.linkedMesh;
+    c.linkedMesh = null;
+    c.destructible = false;
+    c.active = false;
+
+    mesh.updateMatrixWorld(true);
+    var wp = new THREE.Vector3();
+    mesh.getWorldPosition(wp);
+    var mat = mesh.material;
+    if (mat && mat.length) mat = mat[0];
+
+    if (c.linkedExtras) {
+      var ei;
+      for (ei = 0; ei < c.linkedExtras.length; ei++) {
+        var ex = c.linkedExtras[ei];
+        if (ex && ex.parent) ex.parent.remove(ex);
+        removeShootBlockingRef(ex);
+        disposeGroup(ex);
+      }
+      c.linkedExtras = null;
+    }
+
+    if (c.topCapMesh) {
+      var cap = c.topCapMesh;
+      c.topCapMesh = null;
+      if (cap.parent) cap.parent.remove(cap);
+      removeShootBlockingRef(cap);
+      disposeGroup(cap);
+    }
+
+    if (mesh.parent) mesh.parent.remove(mesh);
+    removeShootBlockingRef(mesh);
+    disposeGroup(mesh);
+
+    _bloodRayTargets = null;
+    spawnStructureDebrisAt(wp.x, wp.y, wp.z, mat, 11 + ((Math.random() * 11) | 0));
+  }
+
   function applyExplosionDamage(ox, oy, oz, radius, playerMaxDmg, playerFfMult) {
     var pff = playerFfMult != null ? playerFfMult : 1;
     var kbEff = 0.38 + 0.62 * pff;
@@ -5516,6 +5939,7 @@
       var bd = Math.hypot(B.wx - ox, B.wz - oz);
       if (bd < radius * 0.88) destroyBarrelEntry(B);
     }
+    damageDestructibleStructuresNear(ox, oy, oz, radius);
   }
 
   var GRENADE_PLAYER_FF_MULT = 0.34;
@@ -5670,16 +6094,7 @@
     dir.normalize();
     var origin = new THREE.Vector3(player.x, player.jumpY + eyeY - 0.12, player.z);
     origin.addScaledVector(dir, 0.5);
-    var gm = new THREE.Mesh(
-      new THREE.SphereGeometry(0.1, 10, 10),
-      new THREE.MeshStandardMaterial({
-        color: 0x3d5240,
-        roughness: 0.5,
-        metalness: 0.28,
-        emissive: 0x0c140c,
-        emissiveIntensity: 0.25
-      })
-    );
+    var gm = buildGrenadeVisualGroup();
     gm.position.copy(origin);
     scene.add(gm);
     activeGrenade = {
@@ -5804,6 +6219,7 @@
 
       var farPellet = 0;
       var missLen = 24;
+      var sgStrucHit = {};
       for (var pi = 0; pi < SHOTGUN_PELLETS; pi++) {
         var ua = Math.random() * Math.PI * 2;
         var ur = PELLET_DISK_R * Math.sqrt(Math.random());
@@ -5834,6 +6250,16 @@
             if (sgPelletKilled.indexOf(rt) >= 0) continue;
             pdist = pe.distance;
             if (removeEnemyByRoot(rt)) sgPelletKilled.push(rt);
+            break;
+          }
+          var dstr = getDestructibleColliderForShotgunHit(pe.object);
+          if (dstr) {
+            var dki = colliders.indexOf(dstr);
+            if (dki >= 0 && !sgStrucHit[dki]) {
+              sgStrucHit[dki] = 1;
+              applyShotgunStructureDamage(dstr, pe.point.x, pe.point.y, pe.point.z);
+            }
+            pdist = pe.distance;
             break;
           }
           pdist = pe.distance;
@@ -5965,22 +6391,16 @@
       return (z / mapR * 0.5 + 0.5) * sz;
     }
     function drawMinimapMedkitCase(cx, cy) {
-      var bw = 12;
-      var bh = 9;
-      var x0 = cx - bw * 0.5;
-      var y0 = cy - bh * 0.5;
-      ctx2.fillStyle = "#f2f5fa";
-      ctx2.strokeStyle = "#3a4558";
-      ctx2.lineWidth = 1.1;
-      ctx2.fillRect(x0, y0, bw, bh);
-      ctx2.strokeRect(x0 + 0.5, y0 + 0.5, bw - 1, bh - 1);
-      ctx2.fillStyle = "#c91828";
-      ctx2.fillRect(x0 + 1, y0 + bh - 3.2, bw - 2, 2.2);
-      ctx2.fillStyle = "#d01028";
-      var tw = 2.2;
-      var th = 5.2;
-      ctx2.fillRect(cx - tw * 0.5, cy - th * 0.5, tw, th);
-      ctx2.fillRect(cx - th * 0.5, cy - tw * 0.5, th, tw);
+      var arm = 5.2;
+      var thick = 2;
+      ctx2.beginPath();
+      ctx2.rect(cx - thick * 0.5, cy - arm, thick, arm * 2);
+      ctx2.rect(cx - arm, cy - thick * 0.5, arm * 2, thick);
+      ctx2.fillStyle = "#22c55e";
+      ctx2.fill();
+      ctx2.strokeStyle = "#14532d";
+      ctx2.lineWidth = 1;
+      ctx2.stroke();
     }
     function drawMinimapExplosiveHazard(cx, cy) {
       var R = 6.5;
@@ -6360,9 +6780,37 @@
         var by = Math.max(ag.py, ggh + 0.1);
         detonateGrenadeExplosion(ag.px, by, ag.pz);
         scene.remove(ag.mesh);
-        ag.mesh.geometry.dispose();
-        ag.mesh.material.dispose();
+        disposeGroup(ag.mesh);
         activeGrenade = null;
+      }
+    }
+
+    for (var sdi = structureDebris.length - 1; sdi >= 0; sdi--) {
+      var sd = structureDebris[sdi];
+      sd.vy -= GRAVITY * dt;
+      sd.px += sd.vx * dt;
+      sd.py += sd.vy * dt;
+      sd.pz += sd.vz * dt;
+      sd.mesh.position.set(sd.px, sd.py, sd.pz);
+      sd.mesh.rotation.x += sd.rx * dt;
+      sd.mesh.rotation.y += sd.ry * dt;
+      sd.mesh.rotation.z += sd.rz * dt;
+      sd.t += dt;
+      var sdG = getGroundHeight(sd.px, sd.pz);
+      if (sd.py <= sdG + 0.06 && sd.vy < 0) {
+        sd.py = sdG + 0.062;
+        sd.vy = -sd.vy * 0.2;
+        sd.vx *= 0.58;
+        sd.vz *= 0.58;
+        if (Math.abs(sd.vy) < 0.75) sd.vy = 0;
+      }
+      var onFloor = sd.py <= sdG + 0.1 && Math.abs(sd.vy) < 0.12;
+      if (onFloor) sd.groundedT = (sd.groundedT || 0) + dt;
+      else sd.groundedT = 0;
+      if (sd.t > 42 || (sd.groundedT > 15 && sd.t > 4)) {
+        scene.remove(sd.mesh);
+        disposeGroup(sd.mesh);
+        structureDebris.splice(sdi, 1);
       }
     }
 
