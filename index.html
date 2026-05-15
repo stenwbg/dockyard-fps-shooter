@@ -1154,12 +1154,12 @@
     <span class="gy-victory-badge gy-victory-badge--campaign">Victory</span>
     <h2 id="campaignCompleteTitle" class="gy-victory-title">Congratulations! You won! (for now)</h2>
     <p class="gy-victory-hint">
-      All sectors cleared. You held the factory, the liminal halls, the graveyard, the metro, and the construction site. Return to the title,
-      or keep clearing waves on the construction site in endless mode.
+      All sectors cleared. You held the factory, the liminal halls, the graveyard, the metro, the construction site, and the dockyard. Return to the title,
+      or keep clearing waves on the dockyard in endless mode.
     </p>
     <div class="gy-victory-actions">
       <button type="button" class="gy-victory-btn gy-victory-btn--primary" id="campaignCompleteEndlessBtn">
-        Continue on construction site — endless waves
+        Continue on dockyard — endless waves
       </button>
       <button type="button" class="gy-victory-btn" id="campaignCompleteBtn">Return to title</button>
     </div>
@@ -1217,7 +1217,7 @@
       <h1 class="menu-title" style="margin: 0 0 8px; font-size: clamp(1.35rem, 4vw, 1.85rem)">Dockyard OPS</h1>
       <div class="menu-mission-scroll">
         <p><strong>Mission.</strong> Clear each sector wave by wave. Survive, manage ammo, and use grenades on groups or red explosive drums. The rifle reaches farther; the shotgun hits harder up close.</p>
-        <p><strong>Progress.</strong> You begin in an <strong>abandoned industrial yard</strong>, push into <strong>liminal corridors</strong>, then a <strong>graveyard sector</strong>. After that, an <strong>in-service metro hall</strong> and an <strong>open-air construction site</strong> await—same haunted-industrial tone, new ground to hold.</p>
+        <p><strong>Progress.</strong> You begin in an <strong>abandoned industrial yard</strong>, push into <strong>liminal corridors</strong>, then a <strong>graveyard sector</strong>. After that, an <strong>in-service metro hall</strong>, an <strong>open-air construction site</strong>, and finally a <strong>container dockyard</strong> await—same haunted-industrial tone, new ground to hold.</p>
         <p><strong>Controls.</strong> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Space</kbd> jump · <kbd>LMB</kbd> fire · <kbd>R</kbd> reload · <kbd>1</kbd>–<kbd>4</kbd> weapons · <kbd>3</kbd>/<kbd>G</kbd> grenade · <kbd>P</kbd> pause.</p>
       </div>
       <button type="button" class="menu-play-btn" id="missionPlayBtn">Play</button>
@@ -1393,6 +1393,7 @@
   var MAP_DISPLAY_NAME_GRAVEYARD = "Graveyard";
   var MAP_DISPLAY_NAME_SUBWAY = "City Metro";
   var MAP_DISPLAY_NAME_MAINTENANCE = "Construction Site";
+  var MAP_DISPLAY_NAME_DOCKS = "Dockyard";
   var elMapName = document.getElementById("mapNameText");
   var elMapLevelSub = document.getElementById("mapLevelSub");
   if (elMapName) elMapName.textContent = MAP_DISPLAY_NAME;
@@ -1430,11 +1431,15 @@
   var maintenanceWorldGroup = new THREE.Group();
   maintenanceWorldGroup.name = "maintenanceWorld";
   maintenanceWorldGroup.visible = false;
+  var docksWorldGroup = new THREE.Group();
+  docksWorldGroup.name = "docksWorld";
+  docksWorldGroup.visible = false;
   scene.add(factoryWorldGroup);
   scene.add(backroomsWorldGroup);
   scene.add(graveyardWorldGroup);
   scene.add(subwayWorldGroup);
   scene.add(maintenanceWorldGroup);
+  scene.add(docksWorldGroup);
   var mapBuildParent = factoryWorldGroup;
 
   var camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.06, 280);
@@ -1498,6 +1503,8 @@
     rim.color.setHex(0x5a5048);
     rim.intensity = 0.28;
     rim.position.set(-20, 12, 22);
+    camera.far = 280;
+    dir.shadow.camera.far = 120;
   }
 
   function applyBackroomsSceneStyle() {
@@ -1522,6 +1529,8 @@
     rim.color.setHex(0x3a3224);
     rim.intensity = 0.02;
     rim.position.set(-20, 12, 22);
+    camera.far = 280;
+    dir.shadow.camera.far = 120;
   }
 
   function applyGraveyardSceneStyle() {
@@ -1546,6 +1555,8 @@
     rim.color.setHex(0x486088);
     rim.intensity = 0.22;
     rim.position.set(16, 18, -24);
+    camera.far = 280;
+    dir.shadow.camera.far = 120;
   }
 
   function applySubwaySceneStyle() {
@@ -1569,6 +1580,8 @@
     fill.position.set(0, 4.2, -2);
     rim.color.setHex(0x5a7898);
     rim.intensity = 0.08;
+    camera.far = 280;
+    dir.shadow.camera.far = 120;
   }
 
   function applyMaintenanceSceneStyle() {
@@ -1592,6 +1605,34 @@
     fill.position.set(8, 12, -4);
     rim.color.setHex(0x708090);
     rim.intensity = 0.06;
+    camera.far = 280;
+    dir.shadow.camera.far = 120;
+  }
+
+  function applyDocksSceneStyle() {
+    renderer.shadowMap.enabled = true;
+    dir.castShadow = true;
+    scene.background.setHex(0x4a5c78);
+    scene.fog.color.setHex(0x5c6c88);
+    scene.fog.near = 22;
+    scene.fog.far = 268;
+    camera.far = 520;
+    hemi.color.setHex(0xa8b8d8);
+    hemi.groundColor.setHex(0x2a3038);
+    hemi.intensity = 0.56;
+    ambient.color.setHex(0x7a8494);
+    ambient.intensity = 0.44;
+    dir.color.setHex(0xffe8d0);
+    dir.intensity = 0.72;
+    dir.position.set(28, 52, -18);
+    dir.target.position.set(0, 0, 0);
+    fill.color.setHex(0xffc878);
+    fill.intensity = 0.12;
+    fill.position.set(-12, 14, 8);
+    rim.color.setHex(0x486078);
+    rim.intensity = 0.14;
+    rim.position.set(-22, 20, 24);
+    dir.shadow.camera.far = 260;
   }
 
   var arena = 50;
@@ -1610,6 +1651,8 @@
   var subwayShootBlockingRoots = [];
   var maintenanceColliders = [];
   var maintenanceShootBlockingRoots = [];
+  var docksColliders = [];
+  var docksShootBlockingRoots = [];
   var colliders = factoryColliders;
   var shootBlockingRoots = factoryShootBlockingRoots;
 
@@ -1624,6 +1667,12 @@
       top: !!walkableTop,
       noShootTopCap: !!noShootTopCap,
       active: true
+    });
+  }
+
+  function disposeGroup(root) {
+    root.traverse(function (o) {
+      if (o.geometry && !o.geometry.userData.skipDispose) o.geometry.dispose();
     });
   }
 
@@ -1645,14 +1694,18 @@
     return Math.max(0, 0.72 - mn) * 0.48;
   }
 
-  function getGroundHeightFor(px, pz, agentR, refFeetY) {
+  function getGroundHeightFor(px, pz, agentR, refFeetY, maxLiftFromRef) {
     var best = 0;
     var ar = agentR == null ? 0.35 : agentR;
     var useRef =
       refFeetY != null &&
       typeof refFeetY === "number" &&
       !Number.isNaN(refFeetY);
-    var highCut = useRef ? refFeetY + 0.78 : null;
+    var lift = 0.78;
+    if (typeof maxLiftFromRef === "number" && !Number.isNaN(maxLiftFromRef)) {
+      lift = maxLiftFromRef;
+    }
+    var highCut = useRef ? refFeetY + lift : null;
     for (var gi = 0; gi < colliders.length; gi++) {
       var b = colliders[gi];
       if (b.active === false) continue;
@@ -2324,33 +2377,41 @@
     addCollider(jx - 0.26, jx + 0.26, jz - 0.22, jz + 0.22, 0, 0.135, true);
   }
 
-  function addWalkableTopCapsForColliderList(collList, shootList, parentGroup) {
+  function addWalkableTopCapForColliderIfNeeded(b, shootList, parentGroup) {
+    if (!b || !b.top) return;
+    if (b.topCapMesh) return;
+    if (b.noShootTopCap) return;
     var TOP_HITBOX_MAX_Y = 8.2;
     var TOP_SLAB = 0.052;
-    var hitMat = new THREE.MeshBasicMaterial({
-      transparent: true,
-      opacity: 0,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      toneMapped: false
-    });
-    for (var ti = 0; ti < collList.length; ti++) {
-      var b = collList[ti];
-      if (!b.top) continue;
-      if (b.noShootTopCap) continue;
-      if (b.y1 > TOP_HITBOX_MAX_Y) continue;
-      if (b.y1 <= b.y0 + 0.035) continue;
-      var bw = b.maxX - b.minX;
-      var bd = b.maxZ - b.minZ;
-      if (bw < 0.06 || bd < 0.06) continue;
-      var bcx = (b.minX + b.maxX) * 0.5;
-      var bcz = (b.minZ + b.maxZ) * 0.5;
-      var cap = new THREE.Mesh(new THREE.BoxGeometry(bw, TOP_SLAB, bd), hitMat);
-      cap.position.set(bcx, b.y1 + TOP_SLAB * 0.5, bcz);
-      cap.userData.topHitbox = true;
-      parentGroup.add(cap);
-      shootList.push(cap);
-      b.topCapMesh = cap;
+    if (!addWalkableTopCapForColliderIfNeeded._hitMat) {
+      addWalkableTopCapForColliderIfNeeded._hitMat = new THREE.MeshBasicMaterial({
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        toneMapped: false
+      });
+    }
+    var hitMat = addWalkableTopCapForColliderIfNeeded._hitMat;
+    if (b.y1 > TOP_HITBOX_MAX_Y) return;
+    if (b.y1 <= b.y0 + 0.035) return;
+    var bw = b.maxX - b.minX;
+    var bd = b.maxZ - b.minZ;
+    if (bw < 0.06 || bd < 0.06) return;
+    var bcx = (b.minX + b.maxX) * 0.5;
+    var bcz = (b.minZ + b.maxZ) * 0.5;
+    var cap = new THREE.Mesh(new THREE.BoxGeometry(bw, TOP_SLAB, bd), hitMat);
+    cap.position.set(bcx, b.y1 + TOP_SLAB * 0.5, bcz);
+    cap.userData.topHitbox = true;
+    parentGroup.add(cap);
+    shootList.push(cap);
+    b.topCapMesh = cap;
+  }
+
+  function addWalkableTopCapsForColliderList(collList, shootList, parentGroup) {
+    var ti;
+    for (ti = 0; ti < collList.length; ti++) {
+      addWalkableTopCapForColliderIfNeeded(collList[ti], shootList, parentGroup);
     }
   }
 
@@ -2400,6 +2461,19 @@
   var MAINTENANCE_PLAYER_CEILING = 9.4;
   var MAINTENANCE_SPAWN_X = 0;
   var MAINTENANCE_SPAWN_Z = 0;
+  var docksBuilt = false;
+  var floorDocks = null;
+  var DOCKS_PLAYER_CEILING = 18;
+  var DOCKS_SPAWN_X = 0;
+  var DOCKS_SPAWN_Z = 0;
+  var DOCKS_SPAWN_BOUNDS_X0 = -9;
+  var DOCKS_SPAWN_BOUNDS_X1 = 9;
+  var DOCKS_SPAWN_BOUNDS_Z0 = -10;
+  var DOCKS_SPAWN_BOUNDS_Z1 = 10;
+  var DOCKS_FEET_X0 = -20;
+  var DOCKS_FEET_X1 = 20;
+  var DOCKS_FEET_Z0 = -20;
+  var DOCKS_FEET_Z1 = 20;
 
   function makeBackroomsFloorTexture() {
     var c = document.createElement("canvas");
@@ -3576,6 +3650,26 @@
     mapBuildParent.add(floorMaintenance);
     addCollider(-half, half, -half, half, 0, 0.05, true);
 
+    (function addMaintenanceSun() {
+      var sunCoreMat = new THREE.MeshBasicMaterial({
+        color: 0xfff8ec,
+        depthWrite: false,
+        fog: false
+      });
+      var sunGroup = new THREE.Group();
+      sunGroup.name = "maintenanceSun";
+      var sunDisc = new THREE.Mesh(new THREE.CircleGeometry(4.6, 48), sunCoreMat);
+      sunDisc.renderOrder = -19;
+      sunGroup.add(sunDisc);
+      sunGroup.position.set(-44, 82, 32);
+      sunGroup.lookAt(0, 1.4, 0);
+      sunGroup.traverse(function (ch) {
+        ch.castShadow = false;
+        ch.receiveShadow = false;
+      });
+      mapBuildParent.add(sunGroup);
+    })();
+
     var mxPerimT = 0.58;
     var mxWallH = 4.35;
     addObstacleBox(arena * 2 + mxPerimT * 2, mxWallH, mxPerimT, 0, 0, -half - mxPerimT * 0.5, 0, perimWallMat, false, true);
@@ -3844,9 +3938,691 @@
     mapBuildParent = factoryWorldGroup;
   }
 
+  function buildDocksMap() {
+    if (docksBuilt) return;
+    docksBuilt = true;
+    colliders = docksColliders;
+    shootBlockingRoots = docksShootBlockingRoots;
+    mapBuildParent = docksWorldGroup;
+
+    var fenceZ = -17.4;
+    var dockZ0 = fenceZ + 0.62;
+    var CONT_W = 2.44;
+    var CONT_H = 2.59;
+    var CONT_L = 6.08;
+    var PERIM_GAP = 0;
+    var stepZPerim = CONT_L + PERIM_GAP;
+    var stepXNPerim = CONT_L + PERIM_GAP;
+    var DOCKS_PERIM_MAX_STACK = 5;
+    var DOCKS_INTERIOR_MAX_STACK = 3;
+    var ARENA_PAD = 0.42;
+    var dockX1 = half - ARENA_PAD - 2 * CONT_W;
+    var dockX0 = -dockX1;
+    var pierW = dockX1 - dockX0;
+    var nzBay = Math.max(5, Math.floor((pierW - CONT_L) / CONT_L));
+    var pierD = nzBay * CONT_L;
+    var dockZ1 = dockZ0 + pierD;
+    var pierCx = (dockX0 + dockX1) * 0.5;
+    var pierCz = (dockZ0 + dockZ1) * 0.5;
+
+    function makeConcretePierTexture() {
+      var c = document.createElement("canvas");
+      c.width = 512;
+      c.height = 512;
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#7a7e84";
+      ctx.fillRect(0, 0, 512, 512);
+      var gx;
+      for (gx = 0; gx < 512; gx += 3) {
+        ctx.fillStyle = "rgba(0,0,0," + (0.02 + (gx % 7) * 0.008) + ")";
+        ctx.fillRect(gx, 0, 1, 512);
+      }
+      var gy;
+      for (gy = 0; gy < 512; gy += 3) {
+        ctx.fillStyle = "rgba(255,255,255," + (0.015 + (gy % 5) * 0.006) + ")";
+        ctx.fillRect(0, gy, 512, 1);
+      }
+      var j;
+      for (j = 0; j < 9; j++) {
+        ctx.strokeStyle = "rgba(25,28,32,0.28)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(24 + j * 58, 24, 52, 464);
+      }
+      for (j = 0; j < 5200; j++) {
+        ctx.fillStyle = "rgba(35,38,42," + (0.04 + Math.random() * 0.08) + ")";
+        ctx.fillRect((Math.random() * 512) | 0, (Math.random() * 512) | 0, 1, 1);
+      }
+      for (j = 0; j < 180; j++) {
+        ctx.fillStyle = "rgba(90,88,82,0.12)";
+        ctx.fillRect((Math.random() * 508) | 0, (Math.random() * 508) | 0, 2 + ((Math.random() * 4) | 0), 2 + ((Math.random() * 4) | 0));
+      }
+      var tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(5.5, 5.5);
+      if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeContainerMaterial(r, g, b, label, style) {
+      style = style == null ? 0 : style;
+      var c = document.createElement("canvas");
+      c.width = 512;
+      c.height = 512;
+      var ctx = c.getContext("2d");
+      var r0 = Math.max(0, r - 28);
+      var g0 = Math.max(0, g - 28);
+      var b0 = Math.max(0, b - 28);
+      var grd = ctx.createLinearGradient(0, 0, 512, 512);
+      grd.addColorStop(0, "rgb(" + r + "," + g + "," + b + ")");
+      grd.addColorStop(1, "rgb(" + r0 + "," + g0 + "," + b0 + ")");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, 512, 512);
+      var col;
+      if (style === 0) {
+        for (col = 0; col < 48; col++) {
+          var x = 6 + col * 10.6;
+          ctx.strokeStyle = "rgba(0,0,0," + (0.04 + (col % 5) * 0.018) + ")";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, 512);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "rgba(12,14,20,0.55)";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(40, 32, 432, 448);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(52, 120, 160, 300);
+        ctx.strokeRect(300, 120, 160, 300);
+      } else if (style === 1) {
+        var rb;
+        for (rb = 0; rb < 22; rb++) {
+          var ry = 20 + rb * 22;
+          ctx.strokeStyle = "rgba(0,0,0," + (0.08 + (rb % 3) * 0.04) + ")";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(32, ry);
+          ctx.lineTo(480, ry);
+          ctx.stroke();
+        }
+        ctx.fillStyle = "rgba(255,255,255,0.22)";
+        ctx.fillRect(48, 200, 416, 36);
+        ctx.strokeStyle = "rgba(0,0,0,0.35)";
+        ctx.strokeRect(48, 200, 416, 36);
+      } else if (style === 2) {
+        ctx.fillStyle = "rgba(240,200,40,0.35)";
+        ctx.beginPath();
+        ctx.moveTo(256, 120);
+        ctx.lineTo(380, 380);
+        ctx.lineTo(132, 380);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,0.45)";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.fillStyle = "rgba(20,20,24,0.75)";
+        ctx.font = "700 52px system-ui,sans-serif";
+        ctx.fillText("!", 236, 310);
+      } else {
+        for (col = 0; col < 18; col++) {
+          ctx.strokeStyle = "rgba(0,0,0," + (0.06 + (col % 4) * 0.03) + ")";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(30 + col * 26, 40, 18, 432);
+        }
+        ctx.fillStyle = "rgba(255,255,255,0.18)";
+        ctx.fillRect(60, 80, 392, 100);
+        ctx.strokeStyle = "rgba(0,0,0,0.4)";
+        ctx.strokeRect(60, 80, 392, 100);
+      }
+      var rib;
+      for (rib = 0; rib < 10; rib++) {
+        var ryy = 48 + rib * 42;
+        ctx.strokeStyle = "rgba(0,0,0,0.1)";
+        ctx.beginPath();
+        ctx.moveTo(56, ryy);
+        ctx.lineTo(456, ryy);
+        ctx.stroke();
+      }
+      var sp;
+      for (sp = 0; sp < 36; sp++) {
+        ctx.fillStyle = "rgba(55,40,30," + (0.05 + Math.random() * 0.1) + ")";
+        ctx.beginPath();
+        ctx.arc(40 + Math.random() * 432, 40 + Math.random() * 432, 4 + Math.random() * 16, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.font = "700 32px system-ui,Segoe UI,sans-serif";
+      ctx.fillStyle = "rgba(240,242,250,0.4)";
+      ctx.fillText(label, 56, 92);
+      var tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+      if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.MeshStandardMaterial({
+        map: tex,
+        roughness: 0.78,
+        metalness: 0.32,
+        bumpMap: tex,
+        bumpScale: style === 1 ? 0.06 : 0.045,
+        envMapIntensity: 0.35
+      });
+    }
+
+    function makeChainLinkTexture() {
+      var c = document.createElement("canvas");
+      c.width = 256;
+      c.height = 256;
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "rgba(190,198,208,0.12)";
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(58,64,74,0.9)";
+      var sp = 20;
+      var row;
+      for (row = -1; row < 14; row++) {
+        var col;
+        for (col = -1; col < 14; col++) {
+          var ox = col * sp + (row % 2) * (sp * 0.5);
+          var oy = row * sp * 0.866;
+          ctx.beginPath();
+          ctx.moveTo(ox, oy);
+          ctx.lineTo(ox + sp * 0.5, oy + sp * 0.433);
+          ctx.lineTo(ox, oy + sp * 0.866);
+          ctx.lineTo(ox - sp * 0.5, oy + sp * 0.433);
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+      var tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(3.5, 1.5);
+      if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeWaterTexture() {
+      var c = document.createElement("canvas");
+      c.width = 256;
+      c.height = 256;
+      var ctx = c.getContext("2d");
+      var grd = ctx.createRadialGradient(128, 128, 4, 128, 128, 180);
+      grd.addColorStop(0, "#2a5070");
+      grd.addColorStop(0.5, "#183854");
+      grd.addColorStop(1, "#0e2034");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, 256, 256);
+      var i;
+      for (i = 0; i < 1200; i++) {
+        ctx.fillStyle = "rgba(200,230,255," + (0.02 + Math.random() * 0.04) + ")";
+        ctx.fillRect((Math.random() * 256) | 0, (Math.random() * 256) | 0, 2 + ((Math.random() * 6) | 0), 1);
+      }
+      var tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(48, 48);
+      if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    var concretePierMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      map: makeConcretePierTexture(),
+      roughness: 0.88,
+      metalness: 0.06,
+      emissive: 0x080808,
+      emissiveIntensity: 0.02
+    });
+    var waterTex = makeWaterTexture();
+    var waterMat = new THREE.MeshStandardMaterial({
+      color: 0x2a5078,
+      map: waterTex,
+      roughness: 0.18,
+      metalness: 0.42,
+      emissive: 0x061830,
+      emissiveIntensity: 0.06,
+      transparent: true,
+      opacity: 0.98
+    });
+    var galvanizedMat = new THREE.MeshStandardMaterial({
+      color: 0xb8c0cc,
+      roughness: 0.42,
+      metalness: 0.62,
+      emissive: 0x0a0c10,
+      emissiveIntensity: 0.02
+    });
+    var fenceYellowPaint = new THREE.MeshStandardMaterial({
+      color: 0xf4dc18,
+      roughness: 0.38,
+      metalness: 0.48,
+      emissive: 0x504008,
+      emissiveIntensity: 0.07
+    });
+    var chainLinkTex = makeChainLinkTexture();
+    var fencePanelMat = new THREE.MeshStandardMaterial({
+      color: 0xc8ccd4,
+      map: chainLinkTex,
+      transparent: true,
+      alphaTest: 0.15,
+      opacity: 0.92,
+      roughness: 0.55,
+      metalness: 0.55,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    var contMat = [
+      makeContainerMaterial(200, 92, 38, "HLCU 440281", 0),
+      makeContainerMaterial(38, 72, 140, "MSCU 918204", 1),
+      makeContainerMaterial(58, 58, 62, "XXLU 771032", 2),
+      makeContainerMaterial(28, 120, 86, "TRHU 552901", 3),
+      makeContainerMaterial(150, 36, 52, "REDU 330118", 0),
+      makeContainerMaterial(210, 200, 48, "YELL 109334", 1),
+      makeContainerMaterial(72, 58, 120, "PRPL 220877", 2),
+      makeContainerMaterial(44, 110, 70, "GRNU 661902", 3),
+      makeContainerMaterial(190, 60, 48, "CRMU 884120", 1),
+      makeContainerMaterial(80, 80, 110, "BLGR 229017", 0)
+    ];
+    var tireRubber = new THREE.MeshStandardMaterial({
+      color: 0x1a1c1e,
+      roughness: 0.92,
+      metalness: 0.02
+    });
+    var liftOrange = new THREE.MeshStandardMaterial({
+      color: 0xf28c18,
+      roughness: 0.48,
+      metalness: 0.48,
+      emissive: 0x503010,
+      emissiveIntensity: 0.06
+    });
+    var liftDark = new THREE.MeshStandardMaterial({
+      color: 0x2a2c30,
+      roughness: 0.86,
+      metalness: 0.38,
+      emissive: 0x060608,
+      emissiveIntensity: 0.03
+    });
+    var liftCabGlass = new THREE.MeshStandardMaterial({
+      color: 0x1a3048,
+      roughness: 0.22,
+      metalness: 0.78,
+      transparent: true,
+      opacity: 0.55
+    });
+    var mastSteel = new THREE.MeshStandardMaterial({
+      color: 0x6a7078,
+      roughness: 0.35,
+      metalness: 0.72
+    });
+
+    function addVisualMesh(mesh) {
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mapBuildParent.add(mesh);
+    }
+
+    addCollider(-half, half, -half, half, 0, 0.05, true);
+
+    var water = new THREE.Mesh(new THREE.PlaneGeometry(1100, 1100), waterMat);
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(0, -0.48, fenceZ - 200);
+    water.receiveShadow = true;
+    mapBuildParent.add(water);
+
+    floorDocks = new THREE.Mesh(new THREE.PlaneGeometry(pierW, pierD), concretePierMat);
+    floorDocks.rotation.x = -Math.PI / 2;
+    floorDocks.position.set(pierCx, 0.036, pierCz);
+    floorDocks.receiveShadow = true;
+    mapBuildParent.add(floorDocks);
+
+    (function addDocksSunAndClouds() {
+      function makeCloudBillboardTexture(seed) {
+        var c = document.createElement("canvas");
+        c.width = 256;
+        c.height = 128;
+        var ctx = c.getContext("2d");
+        ctx.clearRect(0, 0, 256, 128);
+        function rnd(i) {
+          var t = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453;
+          return t - Math.floor(t);
+        }
+        function puff(cx, cy, r, a) {
+          var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+          g.addColorStop(0, "rgba(248,252,255," + a + ")");
+          g.addColorStop(0.52, "rgba(236,242,250," + (a * 0.42) + ")");
+          g.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        puff(44 + rnd(1) * 36, 64 + (rnd(2) - 0.5) * 22, 34 + rnd(3) * 18, 0.9);
+        puff(108 + rnd(4) * 24, 58 + (rnd(5) - 0.5) * 18, 38 + rnd(6) * 14, 0.84);
+        puff(172 + rnd(7) * 28, 66 + (rnd(8) - 0.5) * 20, 32 + rnd(9) * 16, 0.8);
+        puff(218 + rnd(10) * 22, 54 + (rnd(11) - 0.5) * 16, 26 + rnd(12) * 12, 0.68);
+        puff(86 + rnd(13) * 40, 48 + (rnd(14) - 0.5) * 14, 20 + rnd(15) * 10, 0.52);
+        var tex = new THREE.CanvasTexture(c);
+        if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
+      }
+
+      var sunCoreMat = new THREE.MeshBasicMaterial({
+        color: 0xfff8ec,
+        depthWrite: false,
+        fog: false
+      });
+      var sunGroup = new THREE.Group();
+      sunGroup.name = "docksSun";
+      var sunDisc = new THREE.Mesh(new THREE.CircleGeometry(4.8, 48), sunCoreMat);
+      sunDisc.renderOrder = -19;
+      sunGroup.add(sunDisc);
+      sunGroup.position.set(52, 64, -36);
+      sunGroup.lookAt(pierCx, 4, pierCz);
+      sunGroup.traverse(function (ch) {
+        ch.castShadow = false;
+        ch.receiveShadow = false;
+      });
+      mapBuildParent.add(sunGroup);
+
+      var cloudsGroup = new THREE.Group();
+      cloudsGroup.name = "docksClouds";
+      var cloudBase = { transparent: true, depthWrite: false, fog: true, side: THREE.DoubleSide };
+      var placements = [
+        { x: -22, y: 46, z: dockZ1 + 14, w: 32, h: 14, ry: 0.08, seed: 11 },
+        { x: 8, y: 52, z: dockZ1 + 22, w: 38, h: 16, ry: -0.12, seed: 23 },
+        { x: 28, y: 44, z: dockZ0 - 8, w: 30, h: 13, ry: 0.2, seed: 37 },
+        { x: -35, y: 50, z: pierCz, w: 36, h: 15, ry: -0.05, seed: 41 },
+        { x: -8, y: 48, z: dockZ0 + 6, w: 28, h: 12, ry: 0.15, seed: 53 },
+        { x: 40, y: 54, z: pierCz + 10, w: 34, h: 14, ry: -0.18, seed: 67 }
+      ];
+      var pi;
+      for (pi = 0; pi < placements.length; pi++) {
+        var p = placements[pi];
+        var cm = new THREE.MeshBasicMaterial(
+          Object.assign({ map: makeCloudBillboardTexture(p.seed) }, cloudBase)
+        );
+        var cloudPl = new THREE.Mesh(new THREE.PlaneGeometry(p.w, p.h), cm);
+        cloudPl.position.set(p.x, p.y, p.z);
+        cloudPl.rotation.y = p.ry;
+        cloudPl.castShadow = false;
+        cloudPl.receiveShadow = false;
+        cloudsGroup.add(cloudPl);
+      }
+      mapBuildParent.add(cloudsGroup);
+    })();
+
+    var fenceLineZ = dockZ0 - 0.14;
+    addObstacleBox(pierW + 0.65, 0.92, 0.2, pierCx, 0, fenceLineZ - 0.08, 0, galvanizedMat, false, true);
+    addCollider(dockX0 - 0.55, dockX1 + 0.55, fenceLineZ - 0.55, fenceLineZ + 0.12, 0, 2.52, false, true);
+    var postSpacing = 2.85;
+    var postX0 = dockX0 + 0.35;
+    var postX1 = dockX1 - 0.35;
+    var postCount = Math.max(2, Math.floor((postX1 - postX0) / postSpacing) + 1);
+    var postStep = (postX1 - postX0) / (postCount - 1);
+    var pi;
+    for (pi = 0; pi < postCount; pi++) {
+      var px = postX0 + pi * postStep;
+      addObstacleBox(0.16, 1.02, 0.16, px, 0, fenceLineZ + 0.02, 0, galvanizedMat, false, true);
+      addObstacleBox(0.26, 0.09, 0.26, px, 1.02, fenceLineZ + 0.02, 0, fenceYellowPaint, false, true);
+    }
+    for (pi = 0; pi < postCount - 1; pi++) {
+      var pmid = postX0 + pi * postStep + postStep * 0.5;
+      var panelW = postStep * 0.86;
+      var panel = new THREE.Mesh(new THREE.PlaneGeometry(panelW, 0.92), fencePanelMat);
+      panel.position.set(pmid, 0.56, fenceLineZ + 0.02);
+      panel.rotation.y = 0;
+      addVisualMesh(panel);
+    }
+    addObstacleBox(pierW + 0.5, 0.12, 0.12, pierCx, 1.08, fenceLineZ + 0.02, 0, fenceYellowPaint, false, true);
+
+    function stackContainers(cx, cz, levels, ry, matOrFn, perimeter) {
+      var lv = levels | 0;
+      if (perimeter) lv = Math.min(Math.max(1, lv), DOCKS_PERIM_MAX_STACK);
+      else lv = Math.min(Math.max(1, lv), DOCKS_INTERIOR_MAX_STACK);
+      var si;
+      var yb = 0;
+      for (si = 0; si < lv; si++) {
+        var mat = typeof matOrFn === "function" ? matOrFn(si) : matOrFn;
+        addObstacleBox(CONT_W, CONT_H, CONT_L, cx, yb, cz, ry, mat, false, perimeter);
+        yb += CONT_H + 0.002;
+      }
+    }
+
+    function placeEastWestRow(cx, z0, z1, inner, zi0) {
+      var zp;
+      var zi = zi0;
+      for (zp = z0; zp <= z1 + 0.001; zp += stepZPerim) {
+        var hiIn = Math.min(DOCKS_PERIM_MAX_STACK, 3 + (zi % 2));
+        var hiOut = Math.min(DOCKS_PERIM_MAX_STACK, 4 + (zi % 2));
+        var lv = inner ? hiIn : hiOut;
+        (function (zii, zpp, innerB, lvB) {
+          stackContainers(cx, zpp, lvB, 0, function (tier) {
+            return contMat[(zii + tier * 3 + (innerB ? 0 : 2)) % contMat.length];
+          }, true);
+        })(zi, zp, inner, lv);
+        zi++;
+      }
+      return zi;
+    }
+
+    var eastCxInner = dockX1 + CONT_W * 0.5;
+    var westCxInner = dockX0 - CONT_W * 0.5;
+    var eastCxOuter = eastCxInner + CONT_W;
+    var westCxOuter = westCxInner - CONT_W;
+    var zSouth = dockZ0 + CONT_L * 0.5;
+    var zNorthLim = dockZ1 - CONT_L * 0.5;
+    var ziRun = 0;
+    ziRun = placeEastWestRow(eastCxInner, zSouth, zNorthLim, true, ziRun);
+    placeEastWestRow(eastCxOuter, zSouth, zNorthLim, false, ziRun);
+    ziRun = 0;
+    ziRun = placeEastWestRow(westCxInner, zSouth, zNorthLim, true, ziRun);
+    placeEastWestRow(westCxOuter, zSouth, zNorthLim, false, ziRun);
+
+    var northCzInner = dockZ1 + CONT_W * 0.5 + 0.02;
+    var northCzOuter = northCzInner + CONT_W;
+    var nxSouth = dockX0 + CONT_L * 0.5;
+    var nxNorthLim = dockX1 - CONT_L * 0.5;
+    var nxi = 0;
+    var nxc;
+    for (nxc = nxSouth; nxc <= nxNorthLim + 0.001; nxc += stepXNPerim) {
+      (function (ix, xp) {
+        var lvN = Math.min(DOCKS_PERIM_MAX_STACK, 3 + (ix % 2));
+        stackContainers(xp, northCzInner, lvN, Math.PI * 0.5, function (tier) {
+          return contMat[(ix + tier * 2) % contMat.length];
+        }, true);
+        var lvO = Math.min(DOCKS_PERIM_MAX_STACK, 4 + (ix % 3));
+        stackContainers(xp, northCzOuter, lvO, Math.PI * 0.5, function (tier) {
+          return contMat[(ix + tier + 5) % contMat.length];
+        }, true);
+      })(nxi, nxc);
+      nxi++;
+    }
+
+    var xRem = nxi > 0 ? pierW - nxi * CONT_L : 0;
+    if (xRem > 0.45) {
+      var fillW = Math.min(CONT_W - 0.06, Math.max(CONT_L * 0.35, xRem - 0.06));
+      var fillCx = dockX1 - xRem * 0.5 - 0.02;
+      addObstacleBox(fillW, CONT_H, CONT_L, fillCx, 0, northCzInner, Math.PI * 0.5, contMat[7], false, true);
+      addObstacleBox(fillW, CONT_H, CONT_L, fillCx, 0, northCzOuter, Math.PI * 0.5, contMat[2], false, true);
+      if (xRem > CONT_L * 0.72) {
+        addObstacleBox(fillW, CONT_H, CONT_L, fillCx, CONT_H + 0.002, northCzInner, Math.PI * 0.5, contMat[3], false, true);
+        addObstacleBox(fillW, CONT_H, CONT_L, fillCx, CONT_H + 0.002, northCzOuter, Math.PI * 0.5, contMat[6], false, true);
+      }
+    }
+    var numZPerim = 1 + Math.floor((zNorthLim - zSouth + 1e-6) / stepZPerim);
+    var zRem = pierD - numZPerim * CONT_L;
+    if (zRem > 0.45) {
+      var fillD = Math.min(CONT_L - 0.06, Math.max(CONT_L * 0.35, zRem - 0.06));
+      var fillCz = dockZ1 - zRem * 0.5 - 0.02;
+      addObstacleBox(CONT_W, CONT_H, fillD, eastCxInner, 0, fillCz, 0, contMat[4], false, true);
+      addObstacleBox(CONT_W, CONT_H, fillD, westCxInner, 0, fillCz, 0, contMat[8], false, true);
+      addObstacleBox(CONT_W, CONT_H, fillD, eastCxOuter, 0, fillCz, 0, contMat[1], false, true);
+      addObstacleBox(CONT_W, CONT_H, fillD, westCxOuter, 0, fillCz, 0, contMat[5], false, true);
+      if (zRem > CONT_L * 0.72) {
+        addObstacleBox(CONT_W, CONT_H, fillD, eastCxInner, CONT_H + 0.002, fillCz, 0, contMat[9], false, true);
+        addObstacleBox(CONT_W, CONT_H, fillD, westCxInner, CONT_H + 0.002, fillCz, 0, contMat[0], false, true);
+        addObstacleBox(CONT_W, CONT_H, fillD, eastCxOuter, CONT_H + 0.002, fillCz, 0, contMat[7], false, true);
+        addObstacleBox(CONT_W, CONT_H, fillD, westCxOuter, CONT_H + 0.002, fillCz, 0, contMat[3], false, true);
+      }
+    }
+
+    function dockCornerStacks(cx, cz, lv, ry, seed) {
+      stackContainers(cx, cz, Math.min(lv | 0, DOCKS_PERIM_MAX_STACK), ry, function (tier) {
+        return contMat[(seed + tier * 3) % contMat.length];
+      }, true);
+    }
+    var neCx = (eastCxOuter + dockX1 + CONT_L * 0.48) * 0.5 + 0.22;
+    var neCz = (zNorthLim + northCzInner) * 0.5 + 0.14;
+    dockCornerStacks(neCx, neCz, 5, Math.PI * 0.5, 1);
+    dockCornerStacks(neCx - CONT_W * 0.52, neCz + CONT_L * 0.22, 4, Math.PI * 0.5, 6);
+    var nwCx = (westCxOuter + dockX0 - CONT_L * 0.48) * 0.5 - 0.22;
+    var nwCz = (zNorthLim + northCzInner) * 0.5 + 0.14;
+    dockCornerStacks(nwCx, nwCz, 5, Math.PI * 0.5, 2);
+    dockCornerStacks(nwCx + CONT_W * 0.52, nwCz + CONT_L * 0.22, 5, Math.PI * 0.5, 8);
+    dockCornerStacks(nwCx + CONT_W * 1.02, nwCz + CONT_L * 0.42, 5, Math.PI * 0.5, 21);
+    var seCx = (eastCxOuter + dockX1 + CONT_L * 0.48) * 0.5 + 0.22;
+    var seCz = (fenceLineZ + zSouth + dockZ0) / 3 + 0.42;
+    dockCornerStacks(seCx, seCz, 5, 0, 4);
+    dockCornerStacks(seCx - CONT_W * 0.48, seCz + CONT_L * 0.26, 5, 0, 9);
+    dockCornerStacks(seCx - CONT_W * 0.96, seCz + CONT_L * 0.52, 4, 0, 13);
+    dockCornerStacks(seCx - CONT_W * 1.42, seCz + CONT_L * 0.76, 4, 0, 24);
+    addObstacleBox(CONT_W * 0.92, CONT_H * 0.62, CONT_L * 0.94, seCx - 0.28, CONT_H * 0.42, seCz - 0.32, -0.11, contMat[3], false, true);
+    addObstacleBox(CONT_W * 0.88, CONT_H * 0.58, CONT_L * 0.9, seCx + CONT_W * 0.22, CONT_H * 0.38, seCz + CONT_L * 0.12, 0.07, contMat[6], false, true);
+    addObstacleBox(CONT_W * 0.9, CONT_H * 0.55, CONT_L * 0.92, seCx - CONT_W * 0.36, CONT_H * 0.52, seCz + CONT_L * 0.28, -0.14, contMat[2], false, true);
+    var swCx = (westCxOuter + dockX0 - CONT_L * 0.48) * 0.5 - 0.22;
+    var swCz = (fenceLineZ + zSouth + dockZ0) / 3 + 0.42;
+    dockCornerStacks(swCx, swCz, 4, 0, 5);
+    dockCornerStacks(swCx + CONT_W * 0.48, swCz + CONT_L * 0.26, 3, 0, 0);
+
+    var pierNorthZ = dockZ1 - CONT_W * 0.42;
+    dockCornerStacks(dockX0 + CONT_L * 0.46, pierNorthZ, 5, 0, 14);
+    dockCornerStacks(dockX0 + CONT_L * 0.46 + CONT_W * 0.52, pierNorthZ + CONT_L * 0.22, 5, 0, 18);
+
+    function interiorStackMixed(cx, cz, levels, idxA, idxB) {
+      var lv = Math.min(Math.max(1, levels | 0), DOCKS_INTERIOR_MAX_STACK);
+      stackContainers(cx, cz, lv, 0, function (tier) {
+        return contMat[tier % 2 === 0 ? idxA : idxB];
+      }, false);
+    }
+    function interiorStackTriple(cx, cz, a, b, c) {
+      stackContainers(cx, cz, 3, 0, function (tier) {
+        return contMat[tier === 0 ? a : tier === 1 ? b : c];
+      }, false);
+    }
+    interiorStackMixed(-10, -10.2, 2, 0, 3);
+    interiorStackMixed(12, -3.9, 2, 2, 6);
+    interiorStackMixed(-8, 8.7, 2, 4, 1);
+    interiorStackMixed(7.5, 13.6, 2, 5, 7);
+    interiorStackMixed(-14, 2.45, 2, 8, 9);
+    interiorStackMixed(6, 2.45, 2, 3, 5);
+    interiorStackTriple(-3, 11, 0, 4, 7);
+    interiorStackMixed(2, -6.5, 2, 1, 8);
+    interiorStackMixed(-16, 4, 2, 6, 2);
+    interiorStackMixed(9, 5.5, 2, 9, 0);
+    interiorStackMixed(-5, 6, 3, 3, 5);
+    interiorStackMixed(4, -2, 3, 6, 1);
+
+    var sealH = 3.45;
+    var sealNorthZ = Math.min(half - ARENA_PAD, northCzOuter + CONT_W * 0.5 + 0.16);
+    var zSealSouth = fenceLineZ - 2.35;
+    var zSealNorth = sealNorthZ + 1.15;
+    var sealZSpan = Math.max(pierD + 4 * CONT_W + 8, zSealNorth - zSealSouth);
+    var sealZMid = (zSealSouth + zSealNorth) * 0.5;
+    var sealEastX = Math.min(half - ARENA_PAD, eastCxOuter + CONT_W * 0.5 + 0.14);
+    var sealWestX = Math.max(-half + ARENA_PAD, westCxOuter - CONT_W * 0.5 - 0.14);
+    addObstacleBox(0.42, sealH, sealZSpan, sealEastX, 0, sealZMid, 0, galvanizedMat, false, true);
+    addObstacleBox(0.42, sealH, sealZSpan, sealWestX, 0, sealZMid, 0, galvanizedMat, false, true);
+    var sealNorthW = sealEastX - sealWestX + 0.9;
+    addObstacleBox(sealNorthW, sealH, 0.42, (sealEastX + sealWestX) * 0.5, 0, sealNorthZ, 0, galvanizedMat, false, true);
+
+    var DOCKS_IN_PAD = 1.05;
+    DOCKS_SPAWN_BOUNDS_X0 = sealWestX + DOCKS_IN_PAD;
+    DOCKS_SPAWN_BOUNDS_X1 = sealEastX - DOCKS_IN_PAD;
+    DOCKS_SPAWN_BOUNDS_Z0 = fenceLineZ + 0.72;
+    DOCKS_SPAWN_BOUNDS_Z1 = sealNorthZ - 0.95;
+    if (DOCKS_SPAWN_BOUNDS_X1 < DOCKS_SPAWN_BOUNDS_X0 + 2.8) {
+      var midXB = (sealWestX + sealEastX) * 0.5;
+      DOCKS_SPAWN_BOUNDS_X0 = midXB - 1.4;
+      DOCKS_SPAWN_BOUNDS_X1 = midXB + 1.4;
+    }
+    if (DOCKS_SPAWN_BOUNDS_Z1 < DOCKS_SPAWN_BOUNDS_Z0 + 2.8) {
+      var midZB = (fenceLineZ + sealNorthZ) * 0.5;
+      DOCKS_SPAWN_BOUNDS_Z0 = midZB - 1.4;
+      DOCKS_SPAWN_BOUNDS_Z1 = midZB + 1.4;
+    }
+
+    var dInset = 0.05;
+    DOCKS_FEET_X0 = westCxOuter - CONT_W * 0.5 + dInset;
+    DOCKS_FEET_X1 = eastCxOuter + CONT_W * 0.5 - dInset;
+    DOCKS_FEET_Z0 = Math.max(fenceLineZ + 0.52, dockZ0 + dInset);
+    DOCKS_FEET_Z1 = northCzOuter + CONT_W * 0.5 - dInset;
+    if (DOCKS_FEET_Z1 < DOCKS_FEET_Z0 + 2.2) {
+      var midFZ = (DOCKS_FEET_Z0 + DOCKS_FEET_Z1) * 0.5;
+      DOCKS_FEET_Z0 = midFZ - 1.1;
+      DOCKS_FEET_Z1 = midFZ + 1.1;
+    }
+    if (DOCKS_FEET_X1 < DOCKS_FEET_X0 + 2.2) {
+      var midFX = (DOCKS_FEET_X0 + DOCKS_FEET_X1) * 0.5;
+      DOCKS_FEET_X0 = midFX - 1.1;
+      DOCKS_FEET_X1 = midFX + 1.1;
+    }
+
+    var flx = 17.2;
+    var flz = 11.8;
+    var flRy = 0.35;
+    var cosF = Math.cos(flRy);
+    var sinF = Math.sin(flRy);
+    function forkLocal(wx, wy, wz, ww, hh, dd, mat) {
+      var lx = wx * cosF - wz * sinF;
+      var lz = wx * sinF + wz * cosF;
+      addObstacleBox(ww, hh, dd, flx + lx, wy, flz + lz, flRy, mat || liftDark, false, true);
+    }
+    forkLocal(0, 0.22, 0, 1.52, 0.38, 2.15, liftOrange);
+    forkLocal(-0.52, 0.22, 0.95, 0.34, 0.34, 0.34, tireRubber);
+    forkLocal(0.52, 0.22, 0.95, 0.34, 0.34, 0.34, tireRubber);
+    forkLocal(-0.52, 0.22, -0.95, 0.34, 0.34, 0.34, tireRubber);
+    forkLocal(0.52, 0.22, -0.95, 0.34, 0.34, 0.34, tireRubber);
+    forkLocal(0, 0.52, -0.38, 0.95, 0.55, 1.05, liftDark);
+    forkLocal(0, 1.12, -0.92, 0.82, 0.62, 0.72, liftCabGlass);
+    forkLocal(0, 1.55, -0.35, 0.95, 0.12, 1.15, mastSteel);
+    forkLocal(-0.28, 0.52, 1.05, 0.14, 2.35, 0.2, mastSteel);
+    forkLocal(0.28, 0.52, 1.05, 0.14, 2.35, 0.2, mastSteel);
+    forkLocal(0, 1.05, 1.42, 0.55, 0.32, 0.38, liftDark);
+    forkLocal(-0.22, 0.78, 1.72, 0.12, 0.1, 1.12, mastSteel);
+    forkLocal(0.22, 0.78, 1.72, 0.12, 0.1, 1.12, mastSteel);
+    forkLocal(0, 0.86, 1.95, 0.08, 0.08, 0.85, mastSteel);
+    var wpos = [
+      [-0.52, 0.95],
+      [0.52, 0.95],
+      [-0.52, -0.95],
+      [0.52, -0.95]
+    ];
+    var wh;
+    for (wh = 0; wh < 4; wh++) {
+      var wmesh = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.16, 14), tireRubber);
+      wmesh.rotation.z = Math.PI / 2;
+      var wxo = wpos[wh][0];
+      var wzo = wpos[wh][1];
+      var wxl = wxo * cosF - wzo * sinF;
+      var wzl = wxo * sinF + wzo * cosF;
+      wmesh.position.set(flx + wxl, 0.22, flz + wzl);
+      addVisualMesh(wmesh);
+    }
+
+    addExplosiveBarrel(-10, pierCz + 5, 0.34, 1.0, 6);
+    addExplosiveBarrel(6, dockZ0 + 5, 0.35, 0.98, 6);
+    addExplosiveBarrel(14, pierCz - 6, 0.33, 1.02, 6);
+    addExplosiveBarrel(-18, dockZ1 - 6, 0.36, 0.96, 6);
+
+    DOCKS_SPAWN_X = 0;
+    DOCKS_SPAWN_Z = dockZ0 + 4.8;
+
+    addWalkableTopCapsForColliderList(docksColliders, docksShootBlockingRoots, docksWorldGroup);
+
+    colliders = factoryColliders;
+    shootBlockingRoots = factoryShootBlockingRoots;
+    mapBuildParent = factoryWorldGroup;
+  }
+
   buildGraveyardMap();
   buildSubwayMap();
   buildMaintenanceMap();
+  buildDocksMap();
 
   (function ensureWorldMeshFrustumCulling() {
     function walk(root) {
@@ -3866,6 +4642,7 @@
     walk(graveyardWorldGroup);
     walk(subwayWorldGroup);
     walk(maintenanceWorldGroup);
+    walk(docksWorldGroup);
   })();
 
   var player = { x: SPAWN_X, z: SPAWN_Z, jumpY: 0, vy: 0, kbVx: 0, kbVz: 0, grounded: true, radius: 0.35, _jumpPress: false };
@@ -4679,20 +5456,19 @@
   var MAX_WAVES_GRAVEYARD_UI = 10;
   var MAX_WAVES_SUBWAY_UI = 18;
   var MAX_WAVES_MAINTENANCE_UI = 15;
+  var MAX_WAVES_DOCKS_UI = 12;
   var currentLevel = 1;
   var pendingMapSwitch = false;
   var pendingGraveyardSwitch = false;
   var pendingSubwaySwitch = false;
   var pendingMaintenanceSwitch = false;
+  var pendingDocksSwitch = false;
   var graveyardVictoryOpen = false;
   var campaignCompleteOpen = false;
   var graveyardEndless = false;
   var maintenanceEndless = false;
+  var docksEndless = false;
   var paused = false;
-
-  /* DEV_LEVEL_PORTALS: two chunks flagged below (toggle + install). Set ENABLE… false to disable; delete both chunks to remove. */
-  var ENABLE_DEV_LEVEL_PORTALS = true;
-  var updateDevLevelPortals = function (_dt) {};
 
   document.addEventListener("pointerlockchange", function () {
     pointerLocked = document.pointerLockElement === renderer.domElement;
@@ -4724,20 +5500,22 @@
 
   function resetGameStateToFactoryLevel1Wave1ForNewRun(opt) {
     clearStructureDebris();
-    hp = 100;
-    hpRegenAcc = 0;
-    updateHpDisplay();
+      hp = 100;
+      hpRegenAcc = 0;
+      updateHpDisplay();
     clearMedkitPickups();
-    medkitSpawnAcc = 0;
-    wave = 1;
-    waveIntermission = 0;
-    pendingSpawnCount = 0;
+      medkitSpawnAcc = 0;
+      wave = 1;
+      waveIntermission = 0;
+      pendingSpawnCount = 0;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
     pendingSubwaySwitch = false;
     pendingMaintenanceSwitch = false;
+    pendingDocksSwitch = false;
     graveyardEndless = false;
     maintenanceEndless = false;
+    docksEndless = false;
     meleeBloodSplatterCooldown = 0;
     graveyardVictoryOpen = false;
     campaignCompleteOpen = false;
@@ -4755,52 +5533,53 @@
     graveyardWorldGroup.visible = false;
     subwayWorldGroup.visible = false;
     maintenanceWorldGroup.visible = false;
+    docksWorldGroup.visible = false;
     colliders = factoryColliders;
     shootBlockingRoots = factoryShootBlockingRoots;
     activeFloorMesh = floor;
     activeCeilingY = CEILING_Y;
     applyFactorySceneStyle();
     updateMapLevelHudTitle();
-    hideWaveCountdownOverlay();
-    player.x = SPAWN_X;
-    player.z = SPAWN_Z;
-    player.vy = 0;
-    player.kbVx = 0;
-    player.kbVz = 0;
-    player.grounded = true;
-    player._jumpPress = false;
-    magPrimary = MAG_PRIMARY;
-    magSecondary = MAG_PISTOL;
-    weaponSlot = 1;
-    quickKnifeReturnOnFRelease = false;
-    weapon.visible = true;
-    pistolWeapon.visible = false;
-    knifeWeapon.visible = false;
-    grenadeCooldown = 0;
-    if (activeGrenade) {
-      scene.remove(activeGrenade.mesh);
+      hideWaveCountdownOverlay();
+      player.x = SPAWN_X;
+      player.z = SPAWN_Z;
+      player.vy = 0;
+      player.kbVx = 0;
+      player.kbVz = 0;
+      player.grounded = true;
+      player._jumpPress = false;
+      magPrimary = MAG_PRIMARY;
+      magSecondary = MAG_PISTOL;
+      weaponSlot = 1;
+      quickKnifeReturnOnFRelease = false;
+      weapon.visible = true;
+      pistolWeapon.visible = false;
+      knifeWeapon.visible = false;
+      grenadeCooldown = 0;
+      if (activeGrenade) {
+        scene.remove(activeGrenade.mesh);
       disposeGroup(activeGrenade.mesh);
-      activeGrenade = null;
-    }
-    reloading = false;
-    reloadWeaponSlot = 0;
-    reloadTime = 0;
+        activeGrenade = null;
+      }
+      reloading = false;
+      reloadWeaponSlot = 0;
+      reloadTime = 0;
     reloadMidPlayed = false;
-    if (elReloadHud) elReloadHud.style.display = "none";
-    resetExplosiveBarrels();
+      if (elReloadHud) elReloadHud.style.display = "none";
+      resetExplosiveBarrels();
     clearBloodSplatters();
-    paused = false;
-    pauseLayer.classList.remove("visible");
-    pauseLayer.setAttribute("aria-hidden", "true");
-    updateAmmoHud();
-    updateGrenadeHud();
-    updateHotbar();
-    updateHotbarAvailability();
-    player.jumpY = getGroundHeight(player.x, player.z);
-    yaw.position.set(player.x, eyeY + player.jumpY, player.z);
-    yaw.quaternion.identity();
-    titleEl.textContent = MAP_DISPLAY_NAME;
-    subtitleEl.textContent = "Click to capture the mouse and enter first person.";
+      paused = false;
+      pauseLayer.classList.remove("visible");
+      pauseLayer.setAttribute("aria-hidden", "true");
+      updateAmmoHud();
+      updateGrenadeHud();
+      updateHotbar();
+      updateHotbarAvailability();
+      player.jumpY = getGroundHeight(player.x, player.z);
+      yaw.position.set(player.x, eyeY + player.jumpY, player.z);
+      yaw.quaternion.identity();
+      titleEl.textContent = MAP_DISPLAY_NAME;
+      subtitleEl.textContent = "Click to capture the mouse and enter first person.";
     spawnWaveNow(getEnemySpawnCountForWave(wave));
     updateWaveHudDisplay();
     if (opt && opt.missionIntro) showMissionIntroPanel();
@@ -4867,6 +5646,7 @@
       graveyardVictoryOpen = false;
       graveyardEndless = true;
       maintenanceEndless = false;
+      docksEndless = false;
       paused = false;
       if (graveyardVictoryLayer) {
         graveyardVictoryLayer.classList.remove("visible");
@@ -4879,6 +5659,7 @@
       pendingGraveyardSwitch = false;
       pendingSubwaySwitch = false;
       pendingMaintenanceSwitch = false;
+      pendingDocksSwitch = false;
       showWaveCountdownOverlay();
       elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
       renderer.domElement.requestPointerLock();
@@ -4893,6 +5674,7 @@
       graveyardVictoryOpen = false;
       paused = false;
       maintenanceEndless = false;
+      docksEndless = false;
       if (graveyardVictoryLayer) {
         graveyardVictoryLayer.classList.remove("visible");
         graveyardVictoryLayer.setAttribute("aria-hidden", "true");
@@ -4914,7 +5696,8 @@
       ensureAudio();
       playUiConfirm();
       campaignCompleteOpen = false;
-      maintenanceEndless = true;
+      maintenanceEndless = false;
+      docksEndless = true;
       paused = false;
       if (campaignCompleteLayer) {
         campaignCompleteLayer.classList.remove("visible");
@@ -4927,6 +5710,7 @@
       pendingGraveyardSwitch = false;
       pendingSubwaySwitch = false;
       pendingMaintenanceSwitch = false;
+      pendingDocksSwitch = false;
       showWaveCountdownOverlay();
       elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
       renderer.domElement.requestPointerLock();
@@ -4954,8 +5738,8 @@
     ensureAudio();
     playUiConfirm();
     if (gameOver) {
-      gameOver = false;
-      resetGameStateToFactoryLevel1Wave1ForNewRun();
+      location.reload();
+      return;
     }
     overlay.classList.add("hidden");
     renderer.domElement.requestPointerLock();
@@ -6138,8 +6922,15 @@
       for (var att = 0; att < 60; att++) {
         var ang = Math.random() * Math.PI * 2;
         var dist = 8 + Math.random() * (half - 10);
+        if (currentLevel === 6) {
+          sx = DOCKS_SPAWN_BOUNDS_X0 + Math.random() * (DOCKS_SPAWN_BOUNDS_X1 - DOCKS_SPAWN_BOUNDS_X0);
+          sz = DOCKS_SPAWN_BOUNDS_Z0 + Math.random() * (DOCKS_SPAWN_BOUNDS_Z1 - DOCKS_SPAWN_BOUNDS_Z0);
+        } else {
         sx = Math.cos(ang) * dist;
         sz = Math.sin(ang) * dist;
+        }
+        if (currentLevel === 6 && !isDocksCompoundSpawn(sx, sz)) continue;
+        if (currentLevel === 6 && isDocksSouthCornerSpawn(sx, sz)) continue;
         if (!enemyWalkFree(sx, sz, rad)) continue;
         if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
         if (currentLevel === 2 && !isBackroomsReachableWorld(sx, sz)) continue;
@@ -6160,8 +6951,15 @@
         for (var ring = 8; ring < half - 1 && !ok; ring += 1.2) {
           for (var sweep = 0; sweep < 24 && !ok; sweep++) {
             var ang2 = (j / n) * Math.PI * 2 + sweep * (Math.PI / 12) + j * 0.51;
+            if (currentLevel === 6) {
+              sx = DOCKS_SPAWN_BOUNDS_X0 + Math.random() * (DOCKS_SPAWN_BOUNDS_X1 - DOCKS_SPAWN_BOUNDS_X0);
+              sz = DOCKS_SPAWN_BOUNDS_Z0 + Math.random() * (DOCKS_SPAWN_BOUNDS_Z1 - DOCKS_SPAWN_BOUNDS_Z0);
+            } else {
             sx = Math.cos(ang2) * ring;
             sz = Math.sin(ang2) * ring;
+            }
+            if (currentLevel === 6 && !isDocksCompoundSpawn(sx, sz)) continue;
+            if (currentLevel === 6 && isDocksSouthCornerSpawn(sx, sz)) continue;
             if (!enemyWalkFree(sx, sz, rad)) continue;
             if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
             if (currentLevel === 2 && !isBackroomsReachableWorld(sx, sz)) continue;
@@ -6178,13 +6976,44 @@
           }
         }
       }
+      if (!ok && currentLevel === 6) {
+        var dk6;
+        for (dk6 = 0; dk6 < 88; dk6++) {
+          sx = DOCKS_SPAWN_BOUNDS_X0 + Math.random() * (DOCKS_SPAWN_BOUNDS_X1 - DOCKS_SPAWN_BOUNDS_X0);
+          sz = DOCKS_SPAWN_BOUNDS_Z0 + Math.random() * (DOCKS_SPAWN_BOUNDS_Z1 - DOCKS_SPAWN_BOUNDS_Z0);
+          if (!isDocksCompoundSpawn(sx, sz)) continue;
+          if (isDocksSouthCornerSpawn(sx, sz)) continue;
+          if (!enemyWalkFree(sx, sz, rad)) continue;
+          if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
+          if (Math.hypot(sx - player.x, sz - player.z) < minFromPlayer * 0.62) continue;
+          buddyOk = true;
+          for (var pd6 = 0; pd6 < placed.length; pd6++) {
+            if (Math.hypot(sx - placed[pd6].position.x, sz - placed[pd6].position.z) < minFromBuddy * 0.68) {
+              buddyOk = false;
+              break;
+            }
+          }
+          if (!buddyOk) continue;
+          ok = true;
+          break;
+        }
+      }
       if (!ok) {
         sx = Math.cos((j / n) * Math.PI * 2) * (half - 2);
         sz = Math.sin((j / n) * Math.PI * 2) * (half - 2);
+        if (currentLevel === 6) {
+          sx = Math.max(DOCKS_SPAWN_BOUNDS_X0, Math.min(DOCKS_SPAWN_BOUNDS_X1, sx));
+          sz = Math.max(DOCKS_SPAWN_BOUNDS_Z0, Math.min(DOCKS_SPAWN_BOUNDS_Z1, sz));
+        }
         if (!enemyWalkFree(sx, sz, rad)) {
+          if (currentLevel === 6) {
+            sx = Math.max(DOCKS_SPAWN_BOUNDS_X0 + 0.35, Math.min(DOCKS_SPAWN_BOUNDS_X1 - 0.35, sx));
+            sz = Math.max(DOCKS_SPAWN_BOUNDS_Z0 + 0.35, Math.min(DOCKS_SPAWN_BOUNDS_Z1 - 0.35, sz));
+          } else {
           sx = Math.max(-half + 2, Math.min(half - 2, sx));
           sz = Math.max(-half + 2, Math.min(half - 2, sz));
         }
+      }
         if (currentLevel === 2 && !isBackroomsReachableWorld(sx, sz)) {
           var rj;
           for (rj = 0; rj < 36; rj++) {
@@ -6195,6 +7024,33 @@
             if (!isBackroomsReachableWorld(sx, sz)) continue;
             break;
           }
+        }
+      }
+      if (currentLevel === 6) {
+        if (isDocksSouthCornerSpawn(sx, sz)) {
+          var dn6;
+          for (dn6 = 0; dn6 < 72; dn6++) {
+            sx = DOCKS_SPAWN_BOUNDS_X0 + Math.random() * (DOCKS_SPAWN_BOUNDS_X1 - DOCKS_SPAWN_BOUNDS_X0);
+            sz = DOCKS_SPAWN_BOUNDS_Z0 + Math.random() * (DOCKS_SPAWN_BOUNDS_Z1 - DOCKS_SPAWN_BOUNDS_Z0);
+            if (!isDocksCompoundSpawn(sx, sz) || isDocksSouthCornerSpawn(sx, sz)) continue;
+            if (!enemyWalkFree(sx, sz, rad)) continue;
+            if (getGroundHeightFor(sx, sz, rad) > 0.22) continue;
+            break;
+          }
+        }
+        var nud6 = 0;
+        while (isDocksSouthCornerSpawn(sx, sz) && nud6 < 12) {
+          nud6++;
+          sx = (DOCKS_SPAWN_BOUNDS_X0 + DOCKS_SPAWN_BOUNDS_X1) * 0.5 + (Math.random() - 0.5) * 7;
+          sz =
+            DOCKS_SPAWN_BOUNDS_Z0 +
+            (DOCKS_SPAWN_BOUNDS_Z1 - DOCKS_SPAWN_BOUNDS_Z0) * (0.38 + Math.random() * 0.48);
+          sx = Math.max(DOCKS_SPAWN_BOUNDS_X0 + 0.55, Math.min(DOCKS_SPAWN_BOUNDS_X1 - 0.55, sx));
+          sz = Math.max(DOCKS_SPAWN_BOUNDS_Z0 + 0.55, Math.min(DOCKS_SPAWN_BOUNDS_Z1 - 0.55, sz));
+        }
+        if (isDocksSouthCornerSpawn(sx, sz)) {
+          sx = (DOCKS_SPAWN_BOUNDS_X0 + DOCKS_SPAWN_BOUNDS_X1) * 0.5;
+          sz = DOCKS_SPAWN_BOUNDS_Z0 + (DOCKS_SPAWN_BOUNDS_Z1 - DOCKS_SPAWN_BOUNDS_Z0) * 0.58;
         }
       }
       var feetY0 = getGroundHeightFor(sx, sz, rad);
@@ -6240,10 +7096,12 @@
     currentLevel = 1;
     graveyardEndless = false;
     maintenanceEndless = false;
+    docksEndless = false;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
     pendingSubwaySwitch = false;
     pendingMaintenanceSwitch = false;
+    pendingDocksSwitch = false;
     waveIntermission = 0;
     hideWaveCountdownOverlay();
     factoryWorldGroup.visible = true;
@@ -6251,6 +7109,7 @@
     graveyardWorldGroup.visible = false;
     subwayWorldGroup.visible = false;
     maintenanceWorldGroup.visible = false;
+    docksWorldGroup.visible = false;
     colliders = factoryColliders;
     shootBlockingRoots = factoryShootBlockingRoots;
     activeFloorMesh = floor;
@@ -6281,15 +7140,18 @@
     currentLevel = 2;
     graveyardEndless = false;
     maintenanceEndless = false;
+    docksEndless = false;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
     pendingSubwaySwitch = false;
     pendingMaintenanceSwitch = false;
+    pendingDocksSwitch = false;
     factoryWorldGroup.visible = false;
     backroomsWorldGroup.visible = true;
     graveyardWorldGroup.visible = false;
     subwayWorldGroup.visible = false;
     maintenanceWorldGroup.visible = false;
+    docksWorldGroup.visible = false;
     colliders = backroomsColliders;
     shootBlockingRoots = backroomsShootBlockingRoots;
     activeFloorMesh = floorBackrooms;
@@ -6320,15 +7182,18 @@
     currentLevel = 3;
     graveyardEndless = false;
     maintenanceEndless = false;
+    docksEndless = false;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
     pendingSubwaySwitch = false;
     pendingMaintenanceSwitch = false;
+    pendingDocksSwitch = false;
     factoryWorldGroup.visible = false;
     backroomsWorldGroup.visible = false;
     graveyardWorldGroup.visible = true;
     subwayWorldGroup.visible = false;
     maintenanceWorldGroup.visible = false;
+    docksWorldGroup.visible = false;
     colliders = graveyardColliders;
     shootBlockingRoots = graveyardShootBlockingRoots;
     activeFloorMesh = floorGraveyard;
@@ -6360,15 +7225,18 @@
     currentLevel = 4;
     graveyardEndless = false;
     maintenanceEndless = false;
+    docksEndless = false;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
     pendingSubwaySwitch = false;
     pendingMaintenanceSwitch = false;
+    pendingDocksSwitch = false;
     factoryWorldGroup.visible = false;
     backroomsWorldGroup.visible = false;
     graveyardWorldGroup.visible = false;
     subwayWorldGroup.visible = true;
     maintenanceWorldGroup.visible = false;
+    docksWorldGroup.visible = false;
     colliders = subwayColliders;
     shootBlockingRoots = subwayShootBlockingRoots;
     activeFloorMesh = floorSubway;
@@ -6407,15 +7275,18 @@
     currentLevel = 5;
     graveyardEndless = false;
     maintenanceEndless = false;
+    docksEndless = false;
     pendingMapSwitch = false;
     pendingGraveyardSwitch = false;
     pendingSubwaySwitch = false;
     pendingMaintenanceSwitch = false;
+    pendingDocksSwitch = false;
     factoryWorldGroup.visible = false;
     backroomsWorldGroup.visible = false;
     graveyardWorldGroup.visible = false;
     subwayWorldGroup.visible = false;
     maintenanceWorldGroup.visible = true;
+    docksWorldGroup.visible = false;
     colliders = maintenanceColliders;
     shootBlockingRoots = maintenanceShootBlockingRoots;
     activeFloorMesh = floorMaintenance;
@@ -6439,191 +7310,47 @@
     elLeft.textContent = String(enemies.length);
   }
 
-  /* DEV_LEVEL_PORTALS — dev-only warps to every map from every map (walk into ring). Delete this block to strip the feature. */
-  (function installDevLevelPortals() {
-    if (!ENABLE_DEV_LEVEL_PORTALS) return;
-    var COOLDOWN = 1.25;
-    var cooldownT = 0;
-    var wp = new THREE.Vector3();
-    var roots = [];
-
-    function groundYFor(collList, px, pz) {
-      var prev = colliders;
-      colliders = collList;
-      var y = getGroundHeightFor(px, pz, 0.38, 0);
-      colliders = prev;
-      return y;
-    }
-
-    var DEV_PORTAL_HUBS = [
-      { x: wu(11.5), z: wu(9.5) },
-      { x: wu(7), z: wu(4) },
-      { x: wu(12), z: wu(-4) },
-      { x: wu(5), z: wu(2) },
-      { x: wu(-6), z: wu(-8) }
-    ];
-    var DEV_PORTAL_NAMES = [
-      MAP_DISPLAY_NAME,
-      MAP_DISPLAY_NAME_BACKROOMS,
-      MAP_DISPLAY_NAME_GRAVEYARD,
-      MAP_DISPLAY_NAME_SUBWAY,
-      MAP_DISPLAY_NAME_MAINTENANCE
-    ];
-
-    function portalSpotOpen(collList, px, pz) {
-      var gy = groundYFor(collList, px, pz);
-      if (gy > 7 || gy < -0.35) return false;
-      if (Math.abs(px) > half - 1.9 || Math.abs(pz) > half - 1.9) return false;
-      var prev = colliders;
-      colliders = collList;
-      var ok = enemyWalkFreeAt(px, pz, 0.52, gy);
-      colliders = prev;
-      return ok;
-    }
-
-    function pickPortalXZ(collList, hubX, hubZ, slotIndex, nSlots) {
-      var ang = -0.78 + (nSlots <= 1 ? 0 : (slotIndex / (nSlots - 1)) * 1.56);
-      var rList = [3.05, 2.68, 3.42, 2.92, 3.28, 2.5];
-      var ri;
-      for (ri = 0; ri < rList.length; ri++) {
-        var rad = rList[ri];
-        var lx = hubX + Math.cos(ang) * rad;
-        var lz = hubZ + Math.sin(ang) * rad;
-        if (portalSpotOpen(collList, lx, lz)) {
-          return { x: lx, z: lz, y: groundYFor(collList, lx, lz) };
-        }
-      }
-      var bi;
-      for (bi = 0; bi < 10; bi++) {
-        var t = bi * 0.62;
-        var lx2 = hubX + Math.cos(ang + t) * 2.35;
-        var lz2 = hubZ + Math.sin(ang + t) * 2.35;
-        if (portalSpotOpen(collList, lx2, lz2)) {
-          return { x: lx2, z: lz2, y: groundYFor(collList, lx2, lz2) };
-        }
-      }
-      var gy0 = groundYFor(collList, hubX, hubZ);
-      return { x: hubX, z: hubZ, y: gy0 };
-    }
-
-    function makePortalLabelSprite(displayName, hue01) {
-      var canvas = document.createElement("canvas");
-      canvas.width = 704;
-      canvas.height = 188;
-      var ctx = canvas.getContext("2d");
-      var hue = Math.round(hue01 * 360);
-      var pad = 12;
-      ctx.fillStyle = "rgba(6,8,12,0.9)";
-      ctx.fillRect(pad, pad, canvas.width - 2 * pad, canvas.height - 2 * pad);
-      ctx.strokeStyle = "hsl(" + hue + ",76%,56%)";
-      ctx.lineWidth = 5;
-      ctx.strokeRect(pad + 2, pad + 2, canvas.width - 2 * pad - 4, canvas.height - 2 * pad - 4);
-      var fs = displayName.length > 18 ? 38 : displayName.length > 14 ? 44 : 52;
-      ctx.font = "700 " + fs + "px system-ui,Segoe UI,sans-serif";
-      ctx.fillStyle = "#eef3ff";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(displayName, canvas.width * 0.5, canvas.height * 0.5);
-      var tex = new THREE.CanvasTexture(canvas);
-      tex.needsUpdate = true;
-      if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
-      var sm = new THREE.SpriteMaterial({
-        map: tex,
-        transparent: true,
-        opacity: 0.95,
-        depthWrite: false,
-        depthTest: true
-      });
-      var spr = new THREE.Sprite(sm);
-      spr.scale.set(3.1, 0.82, 1);
-      spr.position.set(0, 1.28, 0);
-      spr.renderOrder = 2;
-      return spr;
-    }
-
-    function devGoToLevel(tgt) {
-      if (tgt === currentLevel) return;
-      cooldownT = COOLDOWN;
-      if (tgt === 1) switchToFactoryLevel();
-      else if (tgt === 2) switchToBackroomsLevel();
-      else if (tgt === 3) switchToGraveyardLevel();
-      else if (tgt === 4) switchToSubwayLevel();
-      else if (tgt === 5) switchToMaintenanceLevel();
-    }
-
-    function addRingForMap(mapLevel, parentGroup, collList, hubX, hubZ) {
-      var targets = [];
-      var L;
-      for (L = 1; L <= 5; L++) {
-        if (L !== mapLevel) targets.push(L);
-      }
-      var n = targets.length;
-      var ci;
-      for (ci = 0; ci < n; ci++) {
-        var tgt = targets[ci];
-        var spot = pickPortalXZ(collList, hubX, hubZ, ci, n);
-        var lx = spot.x;
-        var lz = spot.z;
-        var gy = spot.y;
-        if (gy > 6 || !(gy > -0.5)) {
-          gy = groundYFor(collList, lx, lz);
-        }
-        var hue = tgt === 1 ? 0.52 : tgt === 2 ? 0.88 : tgt === 3 ? 0.28 : tgt === 4 ? 0.14 : 0.08;
-        var col = new THREE.Color().setHSL(hue, 0.75, 0.52);
-        var mat = new THREE.MeshBasicMaterial({
-          color: col,
-          transparent: true,
-          opacity: 0.88,
-          depthWrite: false,
-          toneMapped: false
-        });
-        var ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.07, 10, 28), mat);
-        ring.rotation.x = -Math.PI / 2;
-        ring.position.set(0, 0, 0);
-        ring.userData.skipDispose = true;
-        ring.geometry.userData.skipDispose = true;
-        var grp = new THREE.Group();
-        grp.name = "devLevelPortal";
-        grp.position.set(lx, gy + 0.07, lz);
-        grp.add(ring);
-        grp.add(makePortalLabelSprite(DEV_PORTAL_NAMES[tgt - 1], hue));
-        grp.userData.devPortalTargetLevel = tgt;
-        grp.userData.devPortalRadius = 0.78;
-        parentGroup.add(grp);
-        roots.push(grp);
-      }
-    }
-
-    addRingForMap(1, factoryWorldGroup, factoryColliders, DEV_PORTAL_HUBS[0].x, DEV_PORTAL_HUBS[0].z);
-    addRingForMap(2, backroomsWorldGroup, backroomsColliders, DEV_PORTAL_HUBS[1].x, DEV_PORTAL_HUBS[1].z);
-    addRingForMap(3, graveyardWorldGroup, graveyardColliders, DEV_PORTAL_HUBS[2].x, DEV_PORTAL_HUBS[2].z);
-    addRingForMap(4, subwayWorldGroup, subwayColliders, DEV_PORTAL_HUBS[3].x, DEV_PORTAL_HUBS[3].z);
-    addRingForMap(5, maintenanceWorldGroup, maintenanceColliders, DEV_PORTAL_HUBS[4].x, DEV_PORTAL_HUBS[4].z);
-
-    updateDevLevelPortals = function (dt) {
-      if (cooldownT > 0) cooldownT -= dt;
-      if (!pointerLocked || paused || cooldownT > 0) return;
-      var pi;
-      for (pi = 0; pi < roots.length; pi++) {
-        var g = roots[pi];
-        if (!g.parent || !g.parent.visible) continue;
-        g.updateMatrixWorld(true);
-        wp.setFromMatrixPosition(g.matrixWorld);
-        var r = g.userData.devPortalRadius || 0.75;
-        var tgt = g.userData.devPortalTargetLevel;
-        if (tgt == null) continue;
-        if (Math.hypot(player.x - wp.x, player.z - wp.z) >= r) continue;
-        if (!player.grounded) continue;
-        devGoToLevel(tgt);
-        break;
-      }
-    };
-  })();
-
-  function disposeGroup(root) {
-    root.traverse(function (o) {
-      if (o.geometry && !o.geometry.userData.skipDispose) o.geometry.dispose();
-    });
+  function switchToDocksLevel() {
+    buildDocksMap();
+    clearStructureDebris();
+    clearBloodSplatters();
+    clearMedkitPickups();
+    currentLevel = 6;
+    graveyardEndless = false;
+    maintenanceEndless = false;
+    docksEndless = false;
+    pendingMapSwitch = false;
+    pendingGraveyardSwitch = false;
+    pendingSubwaySwitch = false;
+    pendingMaintenanceSwitch = false;
+    pendingDocksSwitch = false;
+    factoryWorldGroup.visible = false;
+    backroomsWorldGroup.visible = false;
+    graveyardWorldGroup.visible = false;
+    subwayWorldGroup.visible = false;
+    maintenanceWorldGroup.visible = false;
+    docksWorldGroup.visible = true;
+    colliders = docksColliders;
+    shootBlockingRoots = docksShootBlockingRoots;
+    activeFloorMesh = floorDocks;
+    activeCeilingY = DOCKS_PLAYER_CEILING;
+    applyDocksSceneStyle();
+    wave = 1;
+    updateMapLevelHudTitle();
+    updateWaveHudDisplay();
+    _bloodRayTargets = null;
+    player.x = DOCKS_SPAWN_X;
+    player.z = DOCKS_SPAWN_Z;
+    player.vy = 0;
+    player.kbVx = 0;
+    player.kbVz = 0;
+    player.grounded = true;
+    player._jumpPress = false;
+    player.jumpY = getGroundHeight(player.x, player.z);
+    yaw.position.set(player.x, eyeY + player.jumpY, player.z);
+    spawnWaveNow(getEnemySpawnCountForWave(wave));
+    refillPlayerCombatSuppliesForLevelEnter();
+    elLeft.textContent = String(enemies.length);
   }
 
   var initialSpawnDone = false;
@@ -7608,6 +8335,72 @@
     c.linkedExtras = null;
   }
 
+  function projectPartialFragOntoOrigBoxSurface(L, hw, hh, hd) {
+    var lx = L.x;
+    var ly = L.y;
+    var lz = L.z;
+    var ax = Math.abs(lx) / hw;
+    var ay = Math.abs(ly) / hh;
+    var az = Math.abs(lz) / hd;
+    if (ax <= 1 && ay <= 1 && az <= 1) {
+      var maxa = Math.max(ax, ay, az);
+      if (maxa < 1e-7) {
+        L.set(0, hh, 0);
+        return;
+      }
+      if (ax >= ay && ax >= az) L.x = lx > 0 ? hw : -hw;
+      else if (ay >= az) L.y = ly > 0 ? hh : -hh;
+      else L.z = lz > 0 ? hd : -hd;
+      return;
+    }
+    L.x = Math.max(-hw, Math.min(hw, lx));
+    L.y = Math.max(-hh, Math.min(hh, ly));
+    L.z = Math.max(-hd, Math.min(hd, lz));
+  }
+
+  function origLocalBoxSurfaceToStandardUv(L, hw, hh, hd, outUv) {
+    var lx = L.x;
+    var ly = L.y;
+    var lz = L.z;
+    var eps = Math.max(hw, hh, hd) * 2e-4 + 1e-6;
+    var d2w = 0.5 / Math.max(hw, 1e-6);
+    var d2h = 0.5 / Math.max(hh, 1e-6);
+    var d2d = 0.5 / Math.max(hd, 1e-6);
+    if (Math.abs(lx - hw) < eps) {
+      outUv.set((hd - lz) * d2d, (hh - ly) * d2h);
+    } else if (Math.abs(lx + hw) < eps) {
+      outUv.set((lz + hd) * d2d, (hh - ly) * d2h);
+    } else if (Math.abs(ly - hh) < eps) {
+      outUv.set((lx + hw) * d2w, (hd - lz) * d2d);
+    } else if (Math.abs(ly + hh) < eps) {
+      outUv.set((lx + hw) * d2w, (lz + hd) * d2d);
+    } else if (Math.abs(lz - hd) < eps) {
+      outUv.set((lx + hw) * d2w, (hh - ly) * d2h);
+    } else if (Math.abs(lz + hd) < eps) {
+      outUv.set((hw - lx) * d2w, (hh - ly) * d2h);
+    } else {
+      outUv.set(0.5, 0.5);
+    }
+  }
+
+  function remapPartialStructureFragUvs(geom, fragCx, fragCy, fragCz, origWorldInv, hw, hh, hd, wp, L, outUv) {
+    var pos = geom.attributes.position;
+    var uva = geom.attributes.uv;
+    if (!pos || !uva) return;
+    var pi;
+    for (pi = 0; pi < pos.count; pi++) {
+      wp.fromBufferAttribute(pos, pi);
+      wp.x += fragCx;
+      wp.y += fragCy;
+      wp.z += fragCz;
+      L.copy(wp).applyMatrix4(origWorldInv);
+      projectPartialFragOntoOrigBoxSurface(L, hw, hh, hd);
+      origLocalBoxSurfaceToStandardUv(L, hw, hh, hd, outUv);
+      uva.setXY(pi, outUv.x, outUv.y);
+    }
+    uva.needsUpdate = true;
+  }
+
   function tryPartialDestroyStructure(c, ox, oy, oz, blastR, pinChip, liteDebris) {
     var mesh = c.linkedMesh;
     if (!mesh || !mesh.geometry || mesh.geometry.type !== "BoxGeometry") return false;
@@ -7693,6 +8486,21 @@
       return sphereIntersectsAabb(ox, oy, oz, blastR, bx0, bx1, by0, by1, bz0, bz1);
     }
 
+    var blasted = new Uint8Array(nx * ny * nz);
+    for (ix = 0; ix < nx; ix++) {
+      for (iy = 0; iy < ny; iy++) {
+        for (iz = 0; iz < nz; iz++) {
+          var bx0b = minX + ix * dx;
+          var bx1b = bx0b + dx;
+          var by0b = y0 + iy * dy;
+          var by1b = by0b + dy;
+          var bz0b = minZ + iz * dz;
+          var bz1b = bz0b + dz;
+          blasted[ix + nx * (iy + ny * iz)] = cellBlast(ix, iy, iz, bx0b, bx1b, by0b, by1b, bz0b, bz1b) ? 1 : 0;
+        }
+      }
+    }
+
     var parentGroup = mesh.parent;
     if (!parentGroup) parentGroup = factoryWorldGroup;
 
@@ -7706,6 +8514,16 @@
 
     var mat0 = mesh.material;
     if (mat0 && mat0.length) mat0 = mat0[0];
+
+    mesh.updateMatrixWorld(true);
+    var origWorldInv = new THREE.Matrix4().copy(mesh.matrixWorld).invert();
+    var gp = mesh.geometry.parameters;
+    var oHalfW = gp.width * 0.5;
+    var oHalfH = gp.height * 0.5;
+    var oHalfD = gp.depth * 0.5;
+    var uvRemapWp = new THREE.Vector3();
+    var uvRemapL = new THREE.Vector3();
+    var uvRemapOut = new THREE.Vector2();
 
     if (mesh.parent) mesh.parent.remove(mesh);
     removeShootBlockingRef(mesh);
@@ -7723,7 +8541,8 @@
           var by1 = by0 + dy;
           var bz0 = minZ + iz * dz;
           var bz1 = bz0 + dz;
-          if (cellBlast(ix, iy, iz, bx0, bx1, by0, by1, bz0, bz1)) {
+          var cellIdx = ix + nx * (iy + ny * iz);
+          if (blasted[cellIdx]) {
             var mcx = (bx0 + bx1) * 0.5;
             var mcy = (by0 + by1) * 0.5;
             var mcz = (bz0 + bz1) * 0.5;
@@ -7741,16 +8560,35 @@
           var fd = Math.max(bz1 - bz0, 0.03);
           var frag = new THREE.Mesh(new THREE.BoxGeometry(fw, fh, fd), mat0);
           frag.position.set((bx0 + bx1) * 0.5, (by0 + by1) * 0.5, (bz0 + bz1) * 0.5);
+          remapPartialStructureFragUvs(
+            frag.geometry,
+            frag.position.x,
+            frag.position.y,
+            frag.position.z,
+            origWorldInv,
+            oHalfW,
+            oHalfH,
+            oHalfD,
+            uvRemapWp,
+            uvRemapL,
+            uvRemapOut
+          );
           frag.castShadow = false;
           frag.receiveShadow = false;
           parentGroup.add(frag);
           shootBlockingRoots.push(frag);
           if (currentLevel === 2) frag.userData.brBloodSpanXZ = Math.hypot(fw * 0.5, fd * 0.5) + 0.06;
-          var isTopFrag = !!c.top && by1 >= y1 - 0.07;
+          var exposedUp = false;
+          if (c.top) {
+            if (iy + 1 >= ny) exposedUp = true;
+            else exposedUp = blasted[ix + nx * ((iy + 1) + ny * iz)] !== 0;
+          }
+          var isTopFrag = !!c.top && exposedUp;
           addCollider(bx0, bx1, bz0, bz1, by0, by1, isTopFrag, !!c.noShootTopCap);
           var nc = colliders[colliders.length - 1];
           nc.linkedMesh = frag;
           nc.destructible = true;
+          if (isTopFrag) addWalkableTopCapForColliderIfNeeded(nc, shootBlockingRoots, parentGroup);
         }
       }
     }
@@ -8036,6 +8874,16 @@
       if (targetWave >= 12) m5 += 12;
       return Math.floor(m5);
     }
+    if (currentLevel === 6 && targetWave === 12) return 62;
+    if (currentLevel === 6 && targetWave > 12) {
+      return Math.min(112, Math.floor(56 + (targetWave - 12) * 3.3));
+    }
+    if (currentLevel === 6) {
+      var m6 = 6 + targetWave * 2.45;
+      if (targetWave >= 5) m6 += 5;
+      if (targetWave >= 8) m6 += 9;
+      return Math.floor(m6);
+    }
     return 4 + targetWave * 2;
   }
 
@@ -8044,11 +8892,13 @@
     if (currentLevel === 2) return MAX_WAVES_BACKROOMS_UI;
     if (currentLevel === 3) return MAX_WAVES_GRAVEYARD_UI;
     if (currentLevel === 4) return MAX_WAVES_SUBWAY_UI;
+    if (currentLevel === 5) return MAX_WAVES_MAINTENANCE_UI;
+    if (currentLevel === 6) return MAX_WAVES_DOCKS_UI;
     return MAX_WAVES_MAINTENANCE_UI;
   }
 
   function updateWaveHudDisplay() {
-    if ((currentLevel === 3 && graveyardEndless) || (currentLevel === 5 && maintenanceEndless)) {
+    if ((currentLevel === 3 && graveyardEndless) || (currentLevel === 5 && maintenanceEndless) || (currentLevel === 6 && docksEndless)) {
       elWave.textContent = String(wave) + "/∞";
     } else {
       elWave.textContent = String(wave) + "/" + String(getMaxWavesForHud());
@@ -8061,7 +8911,8 @@
       else if (currentLevel === 2) elMapName.textContent = MAP_DISPLAY_NAME_BACKROOMS;
       else if (currentLevel === 3) elMapName.textContent = MAP_DISPLAY_NAME_GRAVEYARD;
       else if (currentLevel === 4) elMapName.textContent = MAP_DISPLAY_NAME_SUBWAY;
-      else elMapName.textContent = MAP_DISPLAY_NAME_MAINTENANCE;
+      else if (currentLevel === 5) elMapName.textContent = MAP_DISPLAY_NAME_MAINTENANCE;
+      else if (currentLevel === 6) elMapName.textContent = MAP_DISPLAY_NAME_DOCKS;
     }
     if (elMapLevelSub) elMapLevelSub.textContent = "Level " + String(currentLevel);
   }
@@ -8073,6 +8924,31 @@
         pendingGraveyardSwitch = false;
         pendingSubwaySwitch = false;
         pendingMaintenanceSwitch = false;
+        pendingDocksSwitch = true;
+        pendingSpawnCount = 0;
+        waveIntermission = 3.4;
+        showWaveCountdownOverlay();
+        hp = Math.min(100, hp + 12);
+        return;
+      }
+      waveIntermission = 3.4;
+      pendingMapSwitch = false;
+      pendingGraveyardSwitch = false;
+      pendingSubwaySwitch = false;
+      pendingMaintenanceSwitch = false;
+      pendingDocksSwitch = false;
+      pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
+      showWaveCountdownOverlay();
+      hp = Math.min(100, hp + 12);
+      return;
+    }
+    if (currentLevel === 6 && wave === 12) {
+      if (!docksEndless) {
+        pendingMapSwitch = false;
+        pendingGraveyardSwitch = false;
+        pendingSubwaySwitch = false;
+        pendingMaintenanceSwitch = false;
+        pendingDocksSwitch = false;
         pendingSpawnCount = 0;
         waveIntermission = 0;
         hideWaveCountdownOverlay();
@@ -8085,6 +8961,7 @@
       pendingGraveyardSwitch = false;
       pendingSubwaySwitch = false;
       pendingMaintenanceSwitch = false;
+      pendingDocksSwitch = false;
       pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
       showWaveCountdownOverlay();
       hp = Math.min(100, hp + 12);
@@ -8095,6 +8972,7 @@
       pendingGraveyardSwitch = false;
       pendingSubwaySwitch = true;
       pendingMaintenanceSwitch = false;
+      pendingDocksSwitch = false;
       pendingSpawnCount = 0;
       waveIntermission = 3.4;
       showWaveCountdownOverlay();
@@ -8107,24 +8985,28 @@
       pendingMapSwitch = false;
       pendingGraveyardSwitch = false;
       pendingSubwaySwitch = false;
+      pendingDocksSwitch = false;
       pendingSpawnCount = 0;
     } else if (currentLevel === 1 && wave === 10) {
       pendingMapSwitch = true;
       pendingGraveyardSwitch = false;
       pendingSubwaySwitch = false;
       pendingMaintenanceSwitch = false;
+      pendingDocksSwitch = false;
       pendingSpawnCount = 0;
     } else if (currentLevel === 2 && wave === 15) {
       pendingMapSwitch = false;
       pendingGraveyardSwitch = true;
       pendingSubwaySwitch = false;
       pendingMaintenanceSwitch = false;
+      pendingDocksSwitch = false;
       pendingSpawnCount = 0;
     } else {
       pendingMapSwitch = false;
       pendingGraveyardSwitch = false;
       pendingSubwaySwitch = false;
       pendingMaintenanceSwitch = false;
+      pendingDocksSwitch = false;
       pendingSpawnCount = getEnemySpawnCountForWave(wave + 1);
     }
     showWaveCountdownOverlay();
@@ -8139,7 +9021,9 @@
   }
 
   function showWaveCountdownOverlay() {
-    if (pendingMaintenanceSwitch) {
+    if (pendingDocksSwitch) {
+      elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_DOCKS;
+    } else if (pendingMaintenanceSwitch) {
       elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_MAINTENANCE;
     } else if (pendingGraveyardSwitch) {
       elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_GRAVEYARD;
@@ -8148,7 +9032,7 @@
     } else if (pendingMapSwitch) {
       elWaveUpcomingLabel.textContent = MAP_DISPLAY_NAME_BACKROOMS;
     } else {
-      elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
+    elWaveUpcomingLabel.textContent = "Wave " + String(wave + 1);
     }
     elWaveCountNum.textContent = String(Math.max(0, Math.ceil(waveIntermission)));
     elWaveCountdownLayer.classList.add("visible");
@@ -8453,7 +9337,7 @@
     if (stepLen < 1e-8) return false;
     var px = m.position.x;
     var pz = m.position.z;
-    var feetY = e.feetY != null ? e.feetY : getGroundHeightFor(px, pz, r);
+    var feetY = e.feetY != null ? e.feetY : getGroundHeightFor(px, pz, r, null, 0.78);
     function tryOne(nx, nz) {
       if (enemyWalkFreeAt(nx, nz, r, feetY)) {
         m.position.x = nx;
@@ -8514,7 +9398,7 @@
     if (currentLevel === 2) {
       ctx2.fillStyle = "rgba(34, 32, 42, 0.98)";
     } else {
-      ctx2.fillStyle = "rgba(14, 12, 10, 0.97)";
+    ctx2.fillStyle = "rgba(14, 12, 10, 0.97)";
     }
     ctx2.fillRect(0, 0, sz, sz);
     function mx(x) {
@@ -8841,7 +9725,6 @@
       rebuildEnemyNavigationGrid();
     }
     updateSubwayTrain(dt);
-    updateDevLevelPortals(dt); /* DEV_LEVEL_PORTALS */
 
     if (
       pointerLocked &&
@@ -8952,13 +9835,18 @@
           hideWaveCountdownOverlay();
           switchToMaintenanceLevel();
           playWaveReady();
-        } else if (pendingSpawnCount > 0) {
-          wave++;
-          updateWaveHudDisplay();
-          spawnWaveNow(pendingSpawnCount);
-          pendingSpawnCount = 0;
+        } else if (pendingDocksSwitch) {
+          pendingDocksSwitch = false;
           hideWaveCountdownOverlay();
+          switchToDocksLevel();
           playWaveReady();
+        } else if (pendingSpawnCount > 0) {
+        wave++;
+          updateWaveHudDisplay();
+        spawnWaveNow(pendingSpawnCount);
+        pendingSpawnCount = 0;
+        hideWaveCountdownOverlay();
+        playWaveReady();
         }
       }
     }
@@ -9020,6 +9908,7 @@
     }
 
     if (!gameOver) {
+      if (currentLevel === 6) clampPlayerToDocksContainerFeet();
       var wasGrounded = player.grounded;
       if (pointerLocked && player._jumpPress && player.grounded) {
         ensureAudio();
@@ -9423,8 +10312,9 @@
         m.rotation.y = Math.atan2(player.x - m.position.x, player.z - m.position.z);
 
         var px = player.x - m.position.x;
+        var py = player.jumpY - m.position.y;
         var pz = player.z - m.position.z;
-        var pd = Math.hypot(px, pz) || 1;
+        var pd = Math.hypot(px, py, pz);
         if (pd < ENEMY_MELEE_RANGE) {
           hp -= CONTACT_DPS * dt;
           if (hp < 0) hp = 0;
@@ -9448,7 +10338,13 @@
           }
         }
       }
-      e.feetY = getGroundHeightFor(m.position.x, m.position.z, r);
+      e.feetY = getGroundHeightFor(
+        m.position.x,
+        m.position.z,
+        r,
+        e.feetY != null ? e.feetY : m.position.y,
+        0.42
+      );
       m.position.y = e.feetY;
     }
 
@@ -9479,7 +10375,10 @@
   }
 
   function enemyWalkFreeAt(px, pz, rad, feetY) {
-    if (Math.abs(px) > half - 0.45 || Math.abs(pz) > half - 0.45) return false;
+    if (currentLevel === 6) {
+      var er = rad == null ? 0.38 : rad;
+      if (px < DOCKS_FEET_X0 + er || px > DOCKS_FEET_X1 - er || pz < DOCKS_FEET_Z0 + er || pz > DOCKS_FEET_Z1 - er) return false;
+    } else if (Math.abs(px) > half - 0.45 || Math.abs(pz) > half - 0.45) return false;
     for (var ec = 0; ec < colliders.length; ec++) {
       var b = colliders[ec];
       if (b.active === false) continue;
@@ -9594,6 +10493,37 @@
     return false;
   }
 
+  function isDocksCompoundSpawn(wx, wz) {
+    if (currentLevel !== 6) return true;
+    return (
+      wx >= DOCKS_SPAWN_BOUNDS_X0 &&
+      wx <= DOCKS_SPAWN_BOUNDS_X1 &&
+      wz >= DOCKS_SPAWN_BOUNDS_Z0 &&
+      wz <= DOCKS_SPAWN_BOUNDS_Z1
+    );
+  }
+
+  function isDocksSouthCornerSpawn(wx, wz) {
+    if (currentLevel !== 6) return false;
+    var x0 = DOCKS_SPAWN_BOUNDS_X0;
+    var x1 = DOCKS_SPAWN_BOUNDS_X1;
+    var z0 = DOCKS_SPAWN_BOUNDS_Z0;
+    var xSpan = Math.max(0.01, x1 - x0);
+    var zSpan = Math.max(0.01, DOCKS_SPAWN_BOUNDS_Z1 - z0);
+    var r = Math.min(24, Math.max(15.5, Math.min(xSpan, zSpan) * 0.46));
+    var r2 = r * r;
+    var dsw = (wx - x0) * (wx - x0) + (wz - z0) * (wz - z0);
+    var dse = (wx - x1) * (wx - x1) + (wz - z0) * (wz - z0);
+    return dsw < r2 || dse < r2;
+  }
+
+  function clampPlayerToDocksContainerFeet() {
+    if (currentLevel !== 6) return;
+    var pr = player.radius;
+    player.x = Math.max(DOCKS_FEET_X0 + pr, Math.min(DOCKS_FEET_X1 - pr, player.x));
+    player.z = Math.max(DOCKS_FEET_Z0 + pr, Math.min(DOCKS_FEET_Z1 - pr, player.z));
+  }
+
   var enemyNavCacheLevel = -9999;
   var enemyNav = {
     step: 1.44,
@@ -9619,7 +10549,7 @@
     for (vi = 0; vi < colliders.length; vi++) {
       var box = colliders[vi];
       if (box.active === false || !box.top) continue;
-      if (!aabbOverlap(nx, nz, r, box)) continue;
+      if (!aabbOverlap(nx, nz, r + thinWalkableGroundPad(box), box)) continue;
       var dh = box.y1 - feetY;
       if (dh < VAULT_MIN_LIFT || dh > VAULT_MAX_HEIGHT) continue;
       if (!enemyWalkFreeAt(nx, nz, r, box.y1)) continue;
@@ -9670,6 +10600,7 @@
         var gh = getGroundHeightFor(wx, wz, 0.38, 0);
         var ok = enemyWalkFreeAt(wx, wz, 0.38, gh);
         if (ok && currentLevel === 2 && !isBackroomsReachableWorld(wx, wz)) ok = false;
+        if (ok && currentLevel === 6 && !isDocksCompoundSpawn(wx, wz)) ok = false;
         var ij = ii + jj * nx;
         feetNav[ij] = gh;
         walk[ij] = ok ? 1 : 0;
@@ -9825,12 +10756,12 @@
   }
 
   function tryEnemyVaultTo(m, e, nx, nz, r, feetY) {
-    var best = getEnemyVaultLandFeet(nx, nz, r, feetY);
-    if (best < 0) return false;
+    var land = getEnemyVaultLandFeet(nx, nz, r, feetY);
+    if (land < 0) return false;
     m.position.x = nx;
     m.position.z = nz;
-    e.feetY = best;
-    m.position.y = best;
+    e.feetY = land;
+    m.position.y = land;
     return true;
   }
 
@@ -9892,7 +10823,10 @@
   }
 
   function playerFree(x, z, feetY) {
-    if (Math.abs(x) > half - player.radius || Math.abs(z) > half - player.radius) return false;
+    var pr = player.radius;
+    if (currentLevel === 6) {
+      if (x < DOCKS_FEET_X0 + pr || x > DOCKS_FEET_X1 - pr || z < DOCKS_FEET_Z0 + pr || z > DOCKS_FEET_Z1 - pr) return false;
+    } else if (Math.abs(x) > half - pr || Math.abs(z) > half - pr) return false;
     for (var i = 0; i < colliders.length; i++) {
       var box = colliders[i];
       if (box.active === false) continue;
@@ -9921,6 +10855,7 @@
     player.jumpY = best;
     player.vy = 0;
     player.grounded = true;
+    clampPlayerToDocksContainerFeet();
     return true;
   }
 
@@ -9931,6 +10866,7 @@
     if (playerFree(nx, nz, feetY)) {
       player.x = nx;
       player.z = nz;
+      clampPlayerToDocksContainerFeet();
       return;
     }
     if (canVault && tryVaultTo(nx, nz, feetY)) return;
@@ -9942,6 +10878,7 @@
     nz = player.z + dz;
     if (playerFree(player.x, nz, feetY)) player.z = nz;
     else if (canVault && tryVaultTo(player.x, nz, feetY)) { }
+    clampPlayerToDocksContainerFeet();
   }
 
   var fpsHudTPrev = performance.now();
