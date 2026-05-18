@@ -469,6 +469,72 @@
     margin-left: auto;
     margin-right: auto;
   }
+  #overlay .menu-face-upload {
+    margin: 0 0 16px;
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  #overlay .menu-face-upload-title {
+    margin: 0 0 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8b93a5;
+  }
+  #overlay .menu-face-upload-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  #overlay .menu-face-upload-label {
+    cursor: pointer;
+    display: inline-flex;
+  }
+  #overlay .menu-face-upload-btn {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #e8ecf5;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  #overlay .menu-face-upload-label:hover .menu-face-upload-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+  #overlay .menu-face-reset-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #aeb6c8;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  #overlay .menu-face-reset-btn:hover {
+    color: #e8ecf5;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  #overlay .menu-face-reset-btn[hidden] {
+    display: none;
+  }
+  #overlay .menu-face-upload-status {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #6f7788;
+  }
   #overlay .menu-cta {
     display: inline-flex;
     align-items: center;
@@ -1238,7 +1304,18 @@
         <p><strong>Weapons</strong> <kbd>1</kbd> rifle · <kbd>2</kbd> shotgun · <kbd>3</kbd> grenade · <kbd>4</kbd> knife · <kbd>G</kbd> quick grenade · <kbd>F</kbd> quick knife · wheel</p>
         <p><strong>Other</strong> <kbd>P</kbd> or <kbd>Esc</kbd> pause · <kbd>LMB</kbd> hold for rifle auto · click per shotgun shot · <kbd>Enter</kbd> start</p>
       </div>
-      <p class="menu-notes">Face photo from Wikimedia Commons. Modular factory floor with structural bays and industrial tanks.</p>
+      <div class="menu-face-upload" id="menuFaceUploadWrap">
+        <p class="menu-face-upload-title">Enemy face</p>
+        <div class="menu-face-upload-actions">
+          <label class="menu-face-upload-label" for="menuFacePhotoInput">
+            <span class="menu-face-upload-btn">Choose photo from device</span>
+            <input type="file" id="menuFacePhotoInput" accept="image/*" hidden />
+          </label>
+          <button type="button" class="menu-face-reset-btn" id="menuFaceResetBtn" hidden>Use default face</button>
+        </div>
+        <p class="menu-face-upload-status" id="menuFaceUploadStatus">Default face: Elon Musk (Wikimedia Commons)</p>
+      </div>
+      <p class="menu-notes">Modular factory floor with structural bays and industrial tanks.</p>
       <div class="menu-cta"><span>Start</span><kbd>Enter</kbd></div>
     </div>
     <div class="menu-card menu-card--gameover" id="gameOverPanel" hidden>
@@ -1264,6 +1341,10 @@
   var menuShowControls = document.getElementById("menuShowControls");
   var menuControlsPanel = document.getElementById("menuControlsPanel");
   var menuControlsToggleWrap = document.getElementById("menuControlsToggleWrap");
+  var menuFaceUploadWrap = document.getElementById("menuFaceUploadWrap");
+  var menuFacePhotoInput = document.getElementById("menuFacePhotoInput");
+  var menuFaceResetBtn = document.getElementById("menuFaceResetBtn");
+  var menuFaceUploadStatus = document.getElementById("menuFaceUploadStatus");
 
   function syncStartMenuControlsPanel() {
     if (!menuShowControls || !menuControlsPanel) return;
@@ -1308,6 +1389,24 @@
   if (menuControlsPanel) {
     menuControlsPanel.addEventListener("click", function (e) {
       e.stopPropagation();
+    });
+  }
+  if (menuFaceUploadWrap) {
+    menuFaceUploadWrap.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
+  if (menuFacePhotoInput) {
+    menuFacePhotoInput.addEventListener("change", function () {
+      var file = menuFacePhotoInput.files && menuFacePhotoInput.files[0];
+      if (file) loadCustomFaceFromFile(file);
+    });
+  }
+  if (menuFaceResetBtn) {
+    menuFaceResetBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      resetFaceToDefault();
     });
   }
   var crosshair = document.getElementById("crosshair");
@@ -6749,7 +6848,13 @@
 
   var FACE_TEX_URL =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg/1024px-Elon_Musk_Royal_Society_%28crop2%29.jpg";
+  var FACE_TEX_FALLBACK_URL =
+    "https://upload.wikimedia.org/wikipedia/commons/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg";
   var faceTexture = null;
+  var defaultFaceTexture = null;
+  var customFaceTexture = null;
+  var customFaceObjectUrl = null;
+  var customFaceActive = false;
   var facePlaneMaterial = null;
 
   var backHeadGeo = new THREE.SphereGeometry(0.34, 26, 22);
@@ -7364,7 +7469,7 @@
   var texLoader = new THREE.TextureLoader();
   texLoader.setCrossOrigin("anonymous");
 
-  function applyFaceTexture(t) {
+  function configureFaceTextureSampling(t) {
     t.colorSpace = THREE.SRGBColorSpace;
     t.wrapS = THREE.RepeatWrapping;
     t.wrapT = THREE.RepeatWrapping;
@@ -7377,38 +7482,129 @@
     if (renderer.capabilities.getMaxAnisotropy) {
       t.anisotropy = Math.min(12, renderer.capabilities.getMaxAnisotropy());
     }
-    faceTexture = t;
-    if (facePlaneMaterial) facePlaneMaterial.dispose();
-    facePlaneMaterial = new THREE.MeshBasicMaterial({
-      map: t,
-      toneMapped: true,
-      polygonOffset: true,
-      polygonOffsetFactor: -2,
-      polygonOffsetUnits: -1
-    });
-    doInitialSpawn();
   }
 
-  texLoader.load(
-    FACE_TEX_URL,
-    applyFaceTexture,
-    undefined,
-    function () {
-      texLoader.load(
-        "https://upload.wikimedia.org/wikipedia/commons/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg",
-        applyFaceTexture,
-        undefined,
-        function () {
-          faceTexture = null;
-          if (facePlaneMaterial) {
-            facePlaneMaterial.dispose();
-            facePlaneMaterial = null;
-          }
-          doInitialSpawn();
-        }
-      );
+  function disposeCustomFaceTexture() {
+    if (customFaceTexture) {
+      customFaceTexture.dispose();
+      customFaceTexture = null;
     }
-  );
+    if (customFaceObjectUrl) {
+      URL.revokeObjectURL(customFaceObjectUrl);
+      customFaceObjectUrl = null;
+    }
+  }
+
+  function updateMenuFaceUploadUi() {
+    if (!menuFaceUploadStatus) return;
+    if (customFaceActive && menuFacePhotoInput && menuFacePhotoInput.files && menuFacePhotoInput.files[0]) {
+      menuFaceUploadStatus.textContent = "Custom face: " + menuFacePhotoInput.files[0].name;
+    } else if (customFaceActive) {
+      menuFaceUploadStatus.textContent = "Using your custom face photo.";
+    } else {
+      menuFaceUploadStatus.textContent = "Default face: Elon Musk (Wikimedia Commons)";
+    }
+    if (menuFaceResetBtn) menuFaceResetBtn.hidden = !customFaceActive;
+  }
+
+  function applyFaceTexture(t) {
+    configureFaceTextureSampling(t);
+    faceTexture = t;
+    if (!facePlaneMaterial) {
+      facePlaneMaterial = new THREE.MeshBasicMaterial({
+        map: t,
+        toneMapped: true,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -1
+      });
+    } else {
+      facePlaneMaterial.map = t;
+      facePlaneMaterial.needsUpdate = true;
+    }
+    if (initialSpawnDone && enemies.length) {
+      spawnWaveNow(enemies.length);
+    } else {
+      doInitialSpawn();
+    }
+  }
+
+  function loadDefaultFaceFromNetwork() {
+    texLoader.load(
+      FACE_TEX_URL,
+      function (t) {
+        defaultFaceTexture = t;
+        if (!customFaceActive) applyFaceTexture(t);
+      },
+      undefined,
+      function () {
+        texLoader.load(
+          FACE_TEX_FALLBACK_URL,
+          function (t) {
+            defaultFaceTexture = t;
+            if (!customFaceActive) applyFaceTexture(t);
+          },
+          undefined,
+          function () {
+            defaultFaceTexture = null;
+            if (!customFaceActive) {
+              faceTexture = null;
+              if (facePlaneMaterial) {
+                facePlaneMaterial.dispose();
+                facePlaneMaterial = null;
+              }
+              doInitialSpawn();
+            }
+          }
+        );
+      }
+    );
+  }
+
+  function loadCustomFaceFromFile(file) {
+    if (!file || !/^image\//i.test(file.type)) {
+      if (menuFaceUploadStatus) {
+        menuFaceUploadStatus.textContent = "Please choose an image file (PNG, JPG, WebP, etc.).";
+      }
+      return;
+    }
+    disposeCustomFaceTexture();
+    customFaceObjectUrl = URL.createObjectURL(file);
+    texLoader.load(
+      customFaceObjectUrl,
+      function (t) {
+        customFaceTexture = t;
+        customFaceActive = true;
+        applyFaceTexture(t);
+        updateMenuFaceUploadUi();
+      },
+      undefined,
+      function () {
+        disposeCustomFaceTexture();
+        customFaceActive = false;
+        if (menuFaceUploadStatus) {
+          menuFaceUploadStatus.textContent = "Could not load that image. Using default face.";
+        }
+        updateMenuFaceUploadUi();
+        if (defaultFaceTexture) applyFaceTexture(defaultFaceTexture);
+      }
+    );
+  }
+
+  function resetFaceToDefault() {
+    customFaceActive = false;
+    disposeCustomFaceTexture();
+    if (menuFacePhotoInput) menuFacePhotoInput.value = "";
+    if (defaultFaceTexture) {
+      applyFaceTexture(defaultFaceTexture);
+    } else {
+      loadDefaultFaceFromNetwork();
+    }
+    updateMenuFaceUploadUi();
+  }
+
+  loadDefaultFaceFromNetwork();
+  updateMenuFaceUploadUi();
 
   var PLAYER_MOVE_SPEED = 6.6;
   /* Enemy run speed as a fraction of PLAYER_MOVE_SPEED; keep under 1 so you can outrun them. */
